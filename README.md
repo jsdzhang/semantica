@@ -1,4 +1,4 @@
-# 🧠 SemantiCore
+# 🧠 SemantiCore 
 
 <div align="center">
 
@@ -121,6 +121,45 @@ Modern AI systems require structured, semantically rich data to perform effectiv
 
 ---
 
+## 🆕 **Data Processing & Transformation Modules**
+
+### 📝 **Advanced Document Processing**
+- **Multi-Format Support**: PDF, DOCX, PPTX, XLSX, ODT, RTF, TXT, Markdown
+- **Smart Content Extraction**: Text, tables, images, metadata, annotations
+- **Layout Analysis**: Document structure understanding and preservation
+- **OCR Integration**: Tesseract, PaddleOCR, AWS Textract, Google Vision
+- **Document Classification**: Automatic categorization and routing
+
+### 🌐 **Web & RSS Feed Processing**
+- **Intelligent Web Scraping**: JavaScript rendering, dynamic content extraction
+- **RSS/Atom Feed Monitoring**: Real-time feed processing and semantic analysis
+- **News Aggregation**: Multi-source news semantic analysis and deduplication
+- **Content Monitoring**: Change detection and semantic diff analysis
+- **Web Archive Processing**: Wayback Machine and historical content analysis
+
+### 📊 **Structured Data Transformation**
+- **Database Integration**: SQL, NoSQL, GraphQL, REST API data extraction
+- **Spreadsheet Processing**: Complex Excel formulas, pivot tables, charts
+- **CSV/TSV Advanced Processing**: Schema inference, data cleaning, validation
+- **JSON/XML Deep Processing**: Nested structure flattening and semantic mapping
+- **API Response Transformation**: Dynamic schema generation from API responses
+
+### 🎨 **Rich Media Processing**
+- **HTML/CSS Semantic Extraction**: Clean text extraction with structure preservation
+- **Markdown Advanced Processing**: Complex syntax, extensions, table processing
+- **Email Processing**: MIME, headers, attachments, thread reconstruction
+- **Social Media Data**: Twitter, LinkedIn, Reddit post processing and analysis
+- **Code Repository Analysis**: Git history, code comments, documentation extraction
+
+### 🔄 **Real-time Stream Processing**
+- **Message Queue Integration**: Kafka, RabbitMQ, AWS SQS, Redis Streams
+- **Webhook Processing**: Real-time API callbacks and event processing
+- **Log File Analysis**: System logs, application logs, security logs
+- **Sensor Data Processing**: IoT data streams and time-series analysis
+- **Social Media Streams**: Real-time social media monitoring and analysis
+
+---
+
 ## 🚀 Quick Start
 
 ### 📦 Installation Options
@@ -135,13 +174,16 @@ pip install semanticore
 # Full installation with all dependencies
 pip install "semanticore[all]"
 
+# Extended processing modules
+pip install "semanticore[extended,web,feeds,documents,media]"
+
 # Specific integrations
-pip install "semanticore[openai,neo4j,pinecone]"
+pip install "semanticore[openai,neo4j,pinecone,ocr,scraping]"
 
 # Development installation
 git clone https://github.com/yourusername/semanticore.git
 cd semanticore
-pip install -e ".[dev]"
+pip install -e ".[dev,extended]"
 ```
 </details>
 
@@ -149,823 +191,758 @@ pip install -e ".[dev]"
 <summary><b>🐳 Docker Installation</b></summary>
 
 ```bash
-# Pull and run SemantiCore
-docker run -p 8000:8000 semanticore/semanticore:latest
+# Pull and run SemantiCore Extended
+docker run -p 8000:8000 semanticore/semanticore:extended
 
-# With custom configuration
-docker run -v ./config:/app/config semanticore/semanticore:latest
+# With all processing modules
+docker run -v ./config:/app/config -v ./data:/app/data semanticore/semanticore:full
 
-# Docker Compose for full stack
-curl -O https://raw.githubusercontent.com/semanticore/semanticore/main/docker-compose.yml
-docker-compose up -d
+# Docker Compose for full stack with processing modules
+curl -O https://raw.githubusercontent.com/semanticore/semanticore/main/docker-compose-extended.yml
+docker-compose -f docker-compose-extended.yml up -d
 ```
 </details>
 
-<details>
-<summary><b>☸️ Kubernetes Deployment</b></summary>
-
-```bash
-# Deploy to Kubernetes
-kubectl apply -f https://raw.githubusercontent.com/semanticore/semanticore/main/k8s/
-
-# Helm installation
-helm repo add semanticore https://charts.semanticore.io
-helm install my-semanticore semanticore/semanticore
-```
-</details>
-
-### ⚡ 30-Second Demo
+### ⚡ 30-Second Extended Demo
 
 ```python
 from semanticore import SemantiCore
+from semanticore.processors import DocumentProcessor, WebProcessor, FeedProcessor
 
-# Initialize with your preferred providers
+# Initialize with extended capabilities
 core = SemantiCore(
     llm_provider="openai",
     embedding_model="text-embedding-3-large",
     vector_store="pinecone",
-    graph_db="neo4j"
+    graph_db="neo4j",
+    extended_processing=True
 )
 
-# Transform unstructured text into semantic knowledge
-text = """
-Tesla reported Q4 2024 earnings with $25.2B revenue, a 15% increase year-over-year.
-CEO Elon Musk highlighted the success of the Model Y and expansion in the Chinese market.
-The company plans to launch three new models in 2025, including the long-awaited Cybertruck.
-"""
+# Process various data formats
+doc_processor = DocumentProcessor(core)
+web_processor = WebProcessor(core)
+feed_processor = FeedProcessor(core)
 
-# Extract semantic information
-result = core.extract_semantics(text)
-
-print("Entities:", result.entities)
-# [Entity(name="Tesla", type="ORGANIZATION"), Entity(name="Elon Musk", type="PERSON")]
-
-print("Relationships:", result.relationships) 
-# [Relation(subject="Tesla", predicate="reported", object="Q4 2024 earnings")]
-
-print("Events:", result.events)
-# [Event(type="EARNINGS_REPORT", date="Q4 2024", amount="$25.2B")]
-
-# Generate knowledge graph
-knowledge_graph = core.build_knowledge_graph(text)
-print("Graph nodes:", len(knowledge_graph.nodes))
-print("Graph edges:", len(knowledge_graph.edges))
-```
-
-### 🎬 Interactive Demo
-
-```python
-from semanticore import SemantiCore
-
-# Initialize the core engine
-core = SemantiCore()
-
-# Extract semantic information from text
-text = """
-OpenAI released GPT-4 in March 2023, which significantly improved 
-reasoning capabilities over GPT-3.5. The model was trained using 
-reinforcement learning from human feedback (RLHF).
-"""
-
-# One-line semantic extraction
-result = core.extract(text)
-
-print(result.entities)     # [Entity(name="OpenAI", type="ORGANIZATION"), ...]
-print(result.relations)    # [Relation(subject="OpenAI", predicate="released", object="GPT-4"), ...]
-print(result.schema)       # Auto-generated Pydantic schema
-print(result.metadata)     # Enriched contextual information
-```
-
----
-
-## 🧩 Core Features Deep Dive
-
-### 🧠 Semantic Extraction Engine
-
-Advanced NLP pipeline that extracts meaningful structure from unstructured data:
-
-```python
-from semanticore.extract import EntityExtractor, RelationExtractor, TopicClassifier
-
-# Named Entity Recognition with custom models
-extractor = EntityExtractor(
-    model="en_core_web_trf",  # spaCy model
-    custom_labels=["MALWARE", "THREAT_ACTOR", "VULNERABILITY"]
+# Process PDF documents with OCR
+pdf_result = doc_processor.process_pdf(
+    "financial_report.pdf",
+    enable_ocr=True,
+    extract_tables=True,
+    preserve_layout=True
 )
 
-entities = extractor.extract("APT29 used FrostBite malware against critical infrastructure")
-
-# Relation and Triple Extraction
-rel_extractor = RelationExtractor(llm_provider="openai")
-relations = rel_extractor.extract_relations(text, entities)
-
-# Topic Classification and Categorization
-classifier = TopicClassifier()
-topics = classifier.classify(text, categories=["cybersecurity", "technology", "politics"])
-```
-
-### 🧱 Dynamic Schema Generation
-
-Automatically generate type-safe schemas from extracted data:
-
-```python
-from semanticore.schema import SchemaGenerator, validate_data
-
-# Generate Pydantic models from extracted entities
-generator = SchemaGenerator()
-schema = generator.from_entities(entities)
-
-# Export to various formats
-schema.to_pydantic()    # Python Pydantic model
-schema.to_json_schema() # JSON Schema
-schema.to_yaml()        # YAML Schema
-schema.to_typescript()  # TypeScript interfaces
-
-# Validate new data against generated schema
-is_valid = validate_data(new_data, schema)
-```
-
-### 🔌 Universal Connectors
-
-Seamlessly connect to any data source:
-
-```python
-from semanticore.connectors import FileConnector, WebConnector, APIConnector
-
-# File processing (PDF, DOCX, CSV, JSON, Markdown)
-file_conn = FileConnector()
-documents = file_conn.load("./documents/*.pdf")
-semantic_docs = core.process_documents(documents)
-
-# Web scraping and RSS feeds
-web_conn = WebConnector()
-pages = web_conn.scrape_urls(["https://example.com/news"])
-web_semantics = core.extract_from_web(pages)
-
-# REST API integration
-api_conn = APIConnector(base_url="https://api.example.com")
-api_data = api_conn.fetch("/endpoints")
-structured_data = core.structure_api_response(api_data)
-```
-
-### 🧪 Validation & Quality Assurance
-
-Ensure data quality and consistency across your pipeline:
-
-```python
-from semanticore.validation import SchemaValidator, ConsistencyChecker, QualityMetrics
-
-# Schema validation
-validator = SchemaValidator(schema)
-validation_result = validator.validate(data)
-
-if not validation_result.is_valid:
-    print(f"Validation errors: {validation_result.errors}")
-
-# Consistency checking across multiple extractions
-checker = ConsistencyChecker()
-consistency_score = checker.check_consistency([result1, result2, result3])
-
-# Quality metrics and confidence scoring
-metrics = QualityMetrics()
-quality_report = metrics.assess(extraction_result)
-print(f"Extraction confidence: {quality_report.confidence}")
-```
-
-### 📐 Intelligent Chunking & Embedding
-
-RAG-optimized document processing with semantic awareness:
-
-```python
-from semanticore.vectorizer import SemanticChunker, EmbeddingEngine
-
-# Semantic-aware chunking
-chunker = SemanticChunker(
-    chunk_size=512,
-    overlap=50,
-    respect_boundaries=True,  # Don't split entities/relations
-    add_metadata=True
+# Process web pages with JavaScript rendering
+web_result = web_processor.scrape_and_process(
+    "https://news.example.com/article",
+    render_js=True,
+    extract_metadata=True,
+    follow_links=True
 )
 
-chunks = chunker.chunk_document(document, semantic_info=result)
-
-# Multi-modal embedding support
-embedder = EmbeddingEngine(
-    provider="sentence-transformers",  # or "openai", "huggingface"
-    model="all-MiniLM-L6-v2"
-)
-
-embedded_chunks = embedder.embed_chunks(chunks)
-
-# Direct vector database integration
-from semanticore.vector_stores import FAISSStore, PineconeStore
-
-store = FAISSStore()
-store.add_embeddings(embedded_chunks)
-```
-
-### 📚 Knowledge Graph Export
-
-Transform extracted semantics into graph databases:
-
-```python
-from semanticore.kg import Neo4jExporter, RDFExporter, KuzuExporter
-
-# Neo4j export with Cypher generation
-neo4j_exporter = Neo4jExporter(
-    uri="bolt://localhost:7687",
-    user="neo4j",
-    password="password"
-)
-
-# Create nodes and relationships
-neo4j_exporter.export_entities(entities)
-neo4j_exporter.export_relations(relations)
-
-# RDF triple export
-rdf_exporter = RDFExporter(format="turtle")
-triples = rdf_exporter.to_triples(entities, relations)
-
-# Query the generated knowledge graph
-from semanticore.kg.query import GraphQuerier
-
-querier = GraphQuerier(neo4j_exporter)
-results = querier.cypher("MATCH (n:ORGANIZATION)-[r:RELEASED]->(m:PRODUCT) RETURN n, r, m")
-```
-
-### 📡 Semantic Routing
-
-Intelligently route queries and tasks to appropriate handlers:
-
-```python
-from semanticore.routing import SemanticRouter, IntentClassifier
-
-# Set up routing rules
-router = SemanticRouter()
-
-# Intent-based routing
-router.add_intent_route("question_answering", qa_agent)
-router.add_intent_route("data_extraction", extraction_pipeline)
-router.add_intent_route("summarization", summary_agent)
-
-# Keyword and pattern-based routing
-router.add_keyword_route(["threat", "malware", "vulnerability"], security_agent)
-router.add_pattern_route(r"CVE-\d{4}-\d+", vulnerability_lookup)
-
-# LLM-powered semantic routing
-router.add_semantic_route(
-    description="Handle complex analytical queries about financial data",
-    handler=financial_analysis_agent,
-    examples=["What's the trend in quarterly revenue?", "Analyze the risk factors"]
-)
-
-# Route incoming requests
-query = "What are the latest cybersecurity threats targeting healthcare?"
-handler = router.route(query)
-response = handler.process(query)
-```
-
----
-
-## 🔧 Integration Examples
-
-### 🤖 LLM Provider Integration
-
-```python
-from semanticore.llm import LLMProvider
-
-# OpenAI Integration
-openai_provider = LLMProvider(
-    provider="openai",
-    model="gpt-4-turbo",
-    api_key="your-openai-key"
-)
-
-# Anthropic Integration
-anthropic_provider = LLMProvider(
-    provider="anthropic", 
-    model="claude-3-opus-20240229",
-    api_key="your-anthropic-key"
-)
-
-# Google Gemini Integration
-gemini_provider = LLMProvider(
-    provider="google",
-    model="gemini-pro",
-    api_key="your-google-key"
-)
-
-# Hugging Face Integration
-hf_provider = LLMProvider(
-    provider="huggingface",
-    model="mistralai/Mistral-7B-Instruct-v0.1",
-    api_key="your-hf-key"
-)
-
-# Local Model Integration
-local_provider = LLMProvider(
-    provider="local",
-    model_path="/path/to/model",
-    device="cuda"
-)
-
-# Use with SemantiCore
-core = SemantiCore(llm_provider=openai_provider)
-```
-
-### 🕸️ Knowledge Graph Database Integration
-
-```python
-from semanticore.graph import GraphDatabase
-
-# Neo4j Integration
-neo4j_db = GraphDatabase(
-    provider="neo4j",
-    uri="bolt://localhost:7687",
-    username="neo4j",
-    password="password"
-)
-
-# KuzuDB Integration (Embedded Graph Database)
-kuzu_db = GraphDatabase(
-    provider="kuzu",
-    database_path="/path/to/kuzu/db"
-)
-
-# ArangoDB Integration
-arango_db = GraphDatabase(
-    provider="arangodb",
-    host="localhost",
-    port=8529,
-    username="root",
-    password="password"
-)
-
-# Amazon Neptune Integration
-neptune_db = GraphDatabase(
-    provider="neptune",
-    endpoint="your-neptune-endpoint.amazonaws.com",
-    port=8182,
-    region="us-east-1"
-)
-
-# Build knowledge graph
-from semanticore import SemantiCore
-
-core = SemantiCore(graph_db=neo4j_db)
-documents = ["doc1.txt", "doc2.txt", "doc3.txt"]
-
-# Automatically extract entities and relationships, build graph
-knowledge_graph = core.build_knowledge_graph_from_documents(documents)
-print(f"Created graph with {knowledge_graph.node_count} nodes and {knowledge_graph.edge_count} edges")
-```
-
-### 📊 Vector Store Integration
-
-```python
-from semanticore.vector import VectorStore
-
-# Pinecone Integration
-pinecone_store = VectorStore(
-    provider="pinecone",
-    api_key="your-pinecone-key",
-    environment="us-west1-gcp",
-    index_name="semanticore-index"
-)
-
-# Milvus Integration
-milvus_store = VectorStore(
-    provider="milvus",
-    host="localhost",
-    port=19530,
-    collection_name="semantic_embeddings"
-)
-
-# Weaviate Integration
-weaviate_store = VectorStore(
-    provider="weaviate",
-    url="http://localhost:8080",
-    class_name="SemanticChunk"
-)
-
-# Chroma Integration
-chroma_store = VectorStore(
-    provider="chroma",
-    persist_directory="/path/to/chroma/db",
-    collection_name="documents"
-)
-
-# FAISS Integration (Local)
-faiss_store = VectorStore(
-    provider="faiss",
-    index_path="/path/to/faiss/index",
-    dimension=1536
-)
-
-# Use with SemantiCore for RAG
-core = SemantiCore(
-    vector_store=pinecone_store,
-    embedding_model="text-embedding-3-large"
-)
-
-# Semantic chunking and embedding
-chunks = core.semantic_chunk_documents(documents)
-embeddings = core.embed_chunks(chunks)
-vector_store.store_embeddings(chunks, embeddings)
-
-# Semantic search
-query = "What are the latest AI developments?"
-results = core.semantic_search(query, top_k=5)
-```
-
-### 🔗 Framework Integration
-
-```python
-# LangChain Integration
-from semanticore.integrations.langchain import SemanticChain
-from langchain.chains import ConversationalRetrievalChain
-
-semantic_chain = SemanticChain(
-    semanticore_instance=core,
-    retriever_type="semantic",
-    context_engineering=True
-)
-
-langchain_chain = ConversationalRetrievalChain(
-    retriever=semantic_chain.as_retriever(),
-    memory=semantic_chain.get_memory(),
-    return_source_documents=True
-)
-
-# LlamaIndex Integration
-from semanticore.integrations.llamaindex import SemanticIndex
-from llama_index import VectorStoreIndex
-
-semantic_index = SemanticIndex(
-    semanticore_instance=core,
-    enable_semantic_routing=True
-)
-
-llama_index = VectorStoreIndex.from_vector_store(
-    semantic_index.get_vector_store()
-)
-
-# CrewAI Integration
-from semanticore.integrations.crewai import SemanticCrew
-from crewai import Agent, Task, Crew
-
-# Create semantic-aware agents
-researcher = Agent(
-    role='Research Analyst',
-    goal='Analyze semantic patterns in data',
-    backstory='Expert in semantic data analysis',
-    semantic_memory=core.get_semantic_memory()
-)
-
-writer = Agent(
-    role='Content Writer',
-    goal='Create semantic-rich content',
-    backstory='Specialist in semantic content creation',
-    semantic_memory=core.get_semantic_memory()
-)
-
-# Create semantic crew
-semantic_crew = SemanticCrew(
-    agents=[researcher, writer],
-    semantic_coordination=True,
-    knowledge_sharing=True
-)
-```
-
----
-
-## 🎯 Use Cases & Examples
-
-### 🔐 Cybersecurity Threat Intelligence
-
-```python
-from semanticore.domains.cyber import ThreatIntelExtractor
-
-# Specialized cybersecurity extraction
-threat_extractor = ThreatIntelExtractor()
-threat_report = """
-APT29 (Cozy Bear) launched a sophisticated spear-phishing campaign 
-targeting US government agencies using a previously unknown malware 
-variant called FrostBite. The attack exploited CVE-2024-1234 in 
-Microsoft Exchange servers.
-"""
-
-intel = threat_extractor.extract(threat_report)
-print(intel.threat_actors)    # ["APT29", "Cozy Bear"]
-print(intel.malware)          # ["FrostBite"]
-print(intel.vulnerabilities)  # ["CVE-2024-1234"]
-print(intel.attack_patterns)  # ["spear-phishing", "server exploitation"]
-
-# Export to STIX format for threat intelligence platforms
-stix_bundle = intel.to_stix()
-```
-
-### 🧬 Biomedical Research Assistant
-
-```python
-from semanticore.domains.biomedical import BiomedicalExtractor
-
-bio_extractor = BiomedicalExtractor()
-research_text = """
-The study investigated the efficacy of remdesivir in treating COVID-19 
-patients. Results showed a 31% reduction in recovery time compared to 
-placebo (p<0.001). Side effects included nausea in 12% of patients.
-"""
-
-bio_data = bio_extractor.extract(research_text)
-print(bio_data.drugs)         # ["remdesivir"]
-print(bio_data.conditions)    # ["COVID-19"]
-print(bio_data.outcomes)      # ["31% reduction in recovery time"]
-print(bio_data.side_effects)  # ["nausea"]
-
-# Generate structured clinical data
-clinical_schema = bio_data.to_clinical_schema()
-```
-
-### 📊 Financial Document Analysis
-
-```python
-from semanticore.domains.finance import FinancialExtractor
-
-fin_extractor = FinancialExtractor()
-earnings_report = """
-Q4 2024 revenue increased 15% YoY to $2.3B, driven by strong performance 
-in the cloud computing segment. Operating margin improved to 23.5% from 
-21.2% in the prior year. The company announced a $1B share buyback program.
-"""
-
-financial_data = fin_extractor.extract(earnings_report)
-print(financial_data.metrics)     # {"revenue": "$2.3B", "margin": "23.5%"}
-print(financial_data.periods)     # ["Q4 2024"]
-print(financial_data.events)      # ["$1B share buyback program"]
-
-# Export to financial analysis tools
-financial_json = financial_data.to_standardized_json()
-```
-
----
-
-## 🎯 Advanced Features
-
-### 🧠 Multi-Domain Semantic Processing
-
-```python
-from semanticore.domains import CybersecurityProcessor, FinanceProcessor, HealthcareProcessor
-
-# Cybersecurity semantic processing
-cyber_processor = CybersecurityProcessor(
-    threat_intelligence_feeds=["misp", "stix"],
-    ontology="cybersecurity.owl",
-    enable_threat_hunting=True
-)
-
-# Process security incidents
-incident_report = """
-APT29 exploited CVE-2024-1234 in Microsoft Exchange to deploy Cobalt Strike.
-The attack used spear-phishing emails with malicious attachments.
-"""
-
-cyber_analysis = cyber_processor.analyze(incident_report)
-print("Threat Actors:", cyber_analysis.threat_actors)
-print("Vulnerabilities:", cyber_analysis.vulnerabilities)
-print("Attack Techniques:", cyber_analysis.mitre_techniques)
-
-# Financial semantic processing
-finance_processor = FinanceProcessor(
-    market_data_sources=["yahoo", "alpha_vantage"],
-    ontology="finance.owl",
-    enable_sentiment_analysis=True
-)
-
-# Healthcare semantic processing
-health_processor = HealthcareProcessor(
-    medical_ontologies=["snomed", "icd10"],
-    enable_drug_interaction_detection=True
-)
-```
-
-### 🎯 Context Engineering for RAG
-
-```python
-from semanticore.context import ContextEngineer
-
-# Advanced context engineering
-context_engineer = ContextEngineer(
-    max_context_length=128000,
-    compression_strategy="semantic_preservation",
-    relevance_scoring=True
-)
-
-# Optimize context for specific queries
-query = "How can we improve cloud security against APT attacks?"
-documents = load_security_documents()
-
-# Intelligent context compression
-optimized_context = context_engineer.optimize_context(
-    query=query,
-    documents=documents,
-    preserve_entities=True,
-    maintain_relationships=True,
-    compression_ratio=0.3  # 70% reduction while preserving meaning
-)
-
-print(f"Context compressed from {len(documents)} to {len(optimized_context)} tokens")
-print(f"Semantic preservation: {context_engineer.preservation_score:.2%}")
-```
-
-### 🔄 Real-time Semantic Processing
-
-```python
-from semanticore.streaming import SemanticStreamProcessor
-
-# Real-time semantic processing
-stream_processor = SemanticStreamProcessor(
-    input_streams=["kafka://events", "websocket://feeds"],
-    processing_pipeline=[
-        "entity_extraction",
-        "relationship_detection", 
-        "ontology_mapping",
-        "knowledge_graph_update"
-    ],
-    batch_size=100,
-    processing_interval="5s"
-)
-
-# Process streaming data
-async for semantic_event in stream_processor.process():
-    if semantic_event.confidence > 0.8:
-        # Update knowledge graph
-        core.update_knowledge_graph(semantic_event)
-        
-        # Trigger alerts if needed
-        if semantic_event.importance == "critical":
-            await alert_system.send_alert(semantic_event)
-```
-
-### 🔀 Semantic Routing & Orchestration
-
-```python
-from semanticore.routing import SemanticRouter
-
-# Multi-dimensional semantic routing
-router = SemanticRouter(
-    routing_dimensions=["intent", "domain", "complexity", "urgency"],
-    agents={
-        "security_analyst": SecurityAgent(),
-        "data_scientist": DataScienceAgent(),
-        "business_analyst": BusinessAgent()
-    }
-)
-
-# Route queries to appropriate agents
-query = "Analyze the security implications of our latest data breach"
-routed_agent = router.route_query(query)
-response = routed_agent.process(query)
-```
-
----
-
-## 🔧 Advanced Configuration
-
-### 🎛️ Custom Model Integration
-
-```python
-from semanticore.models import CustomLLMProvider
-
-# Integrate your own models
-class MyCustomLLM(CustomLLMProvider):
-    def __init__(self, model_path):
-        self.model = load_model(model_path)
-    
-    def extract_entities(self, text):
-        return self.model.predict(text)
-
-# Use custom model in SemantiCore
-core = SemantiCore(llm_provider=MyCustomLLM("./my_model"))
-```
-
-### 🏗️ Pipeline Customization
-
-```python
-from semanticore.pipeline import Pipeline, Step
-
-# Build custom processing pipeline
-pipeline = Pipeline([
-    Step("preprocess", text_cleaner),
-    Step("extract_entities", entity_extractor),
-    Step("extract_relations", relation_extractor),
-    Step("enrich_metadata", metadata_enricher),
-    Step("validate", schema_validator),
-    Step("export", knowledge_graph_exporter)
+# Process RSS feeds with semantic analysis
+feed_result = feed_processor.monitor_feeds([
+    "https://feeds.example.com/tech-news",
+    "https://feeds.example.com/financial-news"
+], semantic_deduplication=True)
+
+# Unified semantic extraction across all sources
+combined_semantics = core.extract_unified_semantics([
+    pdf_result, web_result, feed_result
 ])
 
-# Process data through pipeline
-results = pipeline.run(input_data)
+print("Total entities:", len(combined_semantics.entities))
+print("Cross-source relationships:", len(combined_semantics.cross_relations))
+print("Unified knowledge graph nodes:", len(combined_semantics.graph.nodes))
 ```
 
-### ⚙️ Configuration Management
+---
 
-```yaml
-# semanticore.yaml
-extractors:
-  entity:
-    model: "en_core_web_trf"
-    confidence_threshold: 0.8
-  relation:
-    llm_provider: "openai"
-    model: "gpt-4"
-    
-schema:
-  auto_generate: true
-  validation_level: "strict"
-  
-export:
-  formats: ["json", "rdf", "cypher"]
-  knowledge_graph:
-    provider: "neo4j"
-    batch_size: 1000
-```
+## 🧩 Extended Processing Modules
+
+### 📄 Advanced Document Processing
 
 ```python
-# Load configuration
-from semanticore.config import load_config
-config = load_config("semanticore.yaml")
-core = SemantiCore(config=config)
+from semanticore.processors.documents import (
+    PDFProcessor, DOCXProcessor, ExcelProcessor, 
+    MarkdownProcessor, HTMLProcessor, EmailProcessor
+)
+
+# PDF Processing with Advanced Features
+pdf_processor = PDFProcessor(
+    ocr_engine="tesseract",  # or "paddleocr", "aws_textract"
+    extract_images=True,
+    extract_tables=True,
+    preserve_layout=True,
+    language_detection=True
+)
+
+# Process complex PDF with semantic extraction
+pdf_result = pdf_processor.process(
+    "complex_document.pdf",
+    semantic_extraction=True,
+    chunk_by_sections=True,
+    extract_metadata=True
+)
+
+print("Extracted text sections:", len(pdf_result.sections))
+print("Tables found:", len(pdf_result.tables))
+print("Images extracted:", len(pdf_result.images))
+print("Semantic entities:", len(pdf_result.entities))
+
+# DOCX Processing with Style Preservation
+docx_processor = DOCXProcessor(
+    preserve_formatting=True,
+    extract_comments=True,
+    extract_tracked_changes=True
+)
+
+docx_result = docx_processor.process("document.docx")
+
+# Excel Processing with Formula Analysis
+excel_processor = ExcelProcessor(
+    evaluate_formulas=True,
+    extract_charts=True,
+    analyze_pivot_tables=True
+)
+
+excel_result = excel_processor.process("data.xlsx")
+print("Sheets processed:", len(excel_result.sheets))
+print("Formulas analyzed:", len(excel_result.formulas))
+```
+
+### 🌐 Web Scraping & RSS Processing
+
+```python
+from semanticore.processors.web import (
+    WebScraper, RSSFeedProcessor, NewsAggregator,
+    SocialMediaProcessor, WebArchiveProcessor
+)
+
+# Advanced Web Scraping
+web_scraper = WebScraper(
+    render_javascript=True,
+    wait_for_elements=True,
+    handle_dynamic_content=True,
+    extract_structured_data=True,  # JSON-LD, microdata
+    follow_pagination=True
+)
+
+# Scrape with semantic understanding
+scrape_result = web_scraper.scrape_urls([
+    "https://example.com/news",
+    "https://example.com/research"
+], semantic_extraction=True)
+
+# RSS Feed Processing with Intelligence
+rss_processor = RSSFeedProcessor(
+    deduplication_strategy="semantic",
+    content_enrichment=True,
+    sentiment_analysis=True,
+    trend_detection=True
+)
+
+# Monitor multiple feeds
+feed_results = rss_processor.monitor_feeds({
+    "tech_news": "https://feeds.example.com/tech",
+    "finance_news": "https://feeds.example.com/finance",
+    "security_news": "https://feeds.example.com/security"
+}, update_interval=300)  # 5 minutes
+
+# News Aggregation with Semantic Clustering
+news_aggregator = NewsAggregator(
+    sources=["rss", "web", "api"],
+    clustering_method="semantic",
+    bias_detection=True,
+    fact_checking=True
+)
+
+aggregated_news = news_aggregator.aggregate_and_analyze(
+    topics=["artificial intelligence", "cybersecurity", "finance"]
+)
+
+print("News clusters:", len(aggregated_news.clusters))
+print("Bias scores:", aggregated_news.bias_analysis)
+```
+
+### 📊 Structured Data Processing
+
+```python
+from semanticore.processors.structured import (
+    DatabaseProcessor, APIProcessor, SpreadsheetProcessor,
+    JSONProcessor, XMLProcessor, CSVProcessor
+)
+
+# Database Processing
+db_processor = DatabaseProcessor(
+    connection_string="postgresql://user:pass@localhost/db",
+    semantic_mapping=True,
+    relationship_inference=True
+)
+
+# Extract semantic knowledge from database
+db_semantics = db_processor.extract_semantics(
+    tables=["customers", "orders", "products"],
+    include_relationships=True,
+    generate_ontology=True
+)
+
+# API Processing with Dynamic Schema Generation
+api_processor = APIProcessor(
+    base_url="https://api.example.com",
+    authentication="bearer_token",
+    schema_inference=True,
+    semantic_mapping=True
+)
+
+# Process API responses semantically
+api_results = api_processor.process_endpoints([
+    "/users", "/orders", "/products"
+], semantic_extraction=True)
+
+# Advanced CSV Processing
+csv_processor = CSVProcessor(
+    auto_detect_schema=True,
+    data_quality_assessment=True,
+    semantic_type_inference=True,
+    outlier_detection=True
+)
+
+csv_result = csv_processor.process(
+    "large_dataset.csv",
+    chunk_size=10000,
+    parallel_processing=True
+)
+
+print("Schema inferred:", csv_result.schema)
+print("Data quality score:", csv_result.quality_score)
+print("Semantic types:", csv_result.semantic_types)
+```
+
+### 🎨 Rich Media & Content Processing
+
+```python
+from semanticore.processors.media import (
+    HTMLProcessor, MarkdownProcessor, EmailProcessor,
+    SocialMediaProcessor, CodeRepositoryProcessor
+)
+
+# HTML Processing with Semantic Structure
+html_processor = HTMLProcessor(
+    preserve_structure=True,
+    extract_microdata=True,
+    semantic_tagging=True,
+    content_classification=True
+)
+
+html_result = html_processor.process(
+    html_content,
+    extract_links=True,
+    analyze_seo=True
+)
+
+# Advanced Markdown Processing
+markdown_processor = MarkdownProcessor(
+    extensions=["tables", "footnotes", "toc", "math"],
+    semantic_header_analysis=True,
+    cross_reference_linking=True
+)
+
+md_result = markdown_processor.process("README.md")
+
+# Email Processing with Thread Analysis
+email_processor = EmailProcessor(
+    thread_reconstruction=True,
+    attachment_processing=True,
+    sentiment_analysis=True,
+    entity_recognition=True
+)
+
+# Process email data
+email_result = email_processor.process_mailbox(
+    "path/to/mailbox",
+    semantic_threading=True
+)
+
+# Social Media Processing
+social_processor = SocialMediaProcessor(
+    platforms=["twitter", "linkedin", "reddit"],
+    sentiment_analysis=True,
+    trend_detection=True,
+    influence_analysis=True
+)
+
+social_result = social_processor.process_posts(
+    posts_data,
+    extract_hashtags=True,
+    network_analysis=True
+)
+
+# Code Repository Analysis
+code_processor = CodeRepositoryProcessor(
+    languages=["python", "javascript", "java"],
+    analyze_comments=True,
+    extract_documentation=True,
+    dependency_analysis=True
+)
+
+repo_result = code_processor.process_repository(
+    "path/to/repo",
+    include_git_history=True
+)
+```
+
+### 🔄 Real-time Stream Processing
+
+```python
+from semanticore.processors.streaming import (
+    KafkaProcessor, WebhookProcessor, LogProcessor,
+    SensorDataProcessor, SocialStreamProcessor
+)
+
+# Kafka Stream Processing
+kafka_processor = KafkaProcessor(
+    bootstrap_servers=["localhost:9092"],
+    topics=["events", "logs", "metrics"],
+    semantic_processing=True,
+    real_time_analysis=True
+)
+
+# Process streaming data with semantic analysis
+async def process_kafka_stream():
+    async for message in kafka_processor.stream():
+        semantic_result = core.extract_semantics(message.value)
+        
+        if semantic_result.importance == "critical":
+            await alert_system.send_alert(semantic_result)
+        
+        # Update knowledge graph in real-time
+        core.update_knowledge_graph(semantic_result)
+
+# Webhook Processing
+webhook_processor = WebhookProcessor(
+    endpoint="/webhooks/semantic",
+    authentication="hmac_sha256",
+    semantic_routing=True
+)
+
+# Log File Processing
+log_processor = LogProcessor(
+    log_formats=["apache", "nginx", "syslog", "json"],
+    anomaly_detection=True,
+    pattern_recognition=True,
+    semantic_correlation=True
+)
+
+log_analysis = log_processor.process_logs(
+    "path/to/logs",
+    real_time=True,
+    alert_on_anomalies=True
+)
+
+# IoT Sensor Data Processing
+sensor_processor = SensorDataProcessor(
+    data_types=["temperature", "humidity", "pressure"],
+    time_series_analysis=True,
+    anomaly_detection=True,
+    semantic_context=True
+)
+
+sensor_result = sensor_processor.process_stream(
+    sensor_data_stream,
+    window_size="5m",
+    aggregation_functions=["mean", "max", "std"]
+)
 ```
 
 ---
 
-## 🏗️ Architecture
+## 🔧 Extended Integration Examples
 
-SemantiCore follows a modular, cloud-native architecture designed for scalability and extensibility:
+### 🌐 Multi-Source Data Pipeline
 
-```mermaid
-graph TB
-    subgraph "🌐 API Gateway"
-        A[REST API] --> B[GraphQL API]
-        B --> C[WebSocket API]
-    end
-    
-    subgraph "🧠 Core Engine"
-        D[Semantic Processor] --> E[Schema Generator]
-        E --> F[Validator]
-        F --> G[Router]
-    end
-    
-    subgraph "🔌 Connectors"
-        H[File Connector]
-        I[Web Connector]
-        J[API Connector]
-        K[Database Connector]
-    end
-    
-    subgraph "🔍 Extractors"
-        L[NER Extractor]
-        M[Relation Extractor]
-        N[Topic Classifier]
-        O[LLM Extractor]
-    end
-    
-    subgraph "📊 Storage Layer"
-        P[Vector Stores]
-        Q[Graph Databases]
-        R[Document Stores]
-        S[Cache Layer]
-    end
-    
-    subgraph "🚀 Export Layer"
-        T[Knowledge Graphs]
-        U[Embeddings]
-        V[Schemas]
-        W[APIs]
-    end
-    
-    A --> D
-    D --> L
-    D --> M
-    D --> N
-    D --> O
-    
-    H --> D
-    I --> D
-    J --> D
-    K --> D
-    
-    G --> P
-    G --> Q
-    G --> R
-    G --> S
-    
-    F --> T
-    F --> U
-    F --> V
-    F --> W
+```python
+from semanticore import SemantiCore
+from semanticore.pipelines import UnifiedDataPipeline
+
+# Create unified processing pipeline
+pipeline = UnifiedDataPipeline(
+    sources={
+        "documents": ["./docs/*.pdf", "./docs/*.docx"],
+        "web_pages": ["https://news.example.com", "https://research.example.com"],
+        "rss_feeds": ["https://feeds.example.com/tech", "https://feeds.example.com/science"],
+        "databases": ["postgresql://localhost/db1", "mongodb://localhost/db2"],
+        "apis": ["https://api.example.com/v1", "https://api2.example.com/v2"],
+        "streams": ["kafka://localhost:9092/events", "webhook://localhost:8080/data"]
+    },
+    processors={
+        "semantic_extraction": True,
+        "entity_linking": True,
+        "relationship_inference": True,
+        "ontology_mapping": True,
+        "quality_assessment": True
+    },
+    output_formats=["knowledge_graph", "vector_embeddings", "structured_json"]
+)
+
+# Process all sources
+unified_result = pipeline.process_all_sources(
+    parallel_processing=True,
+    batch_size=100,
+    semantic_deduplication=True
+)
+
+print(f"Processed {unified_result.total_documents} documents")
+print(f"Extracted {len(unified_result.entities)} unique entities")
+print(f"Found {len(unified_result.relationships)} relationships")
+print(f"Generated knowledge graph with {unified_result.graph.node_count} nodes")
+```
+
+### 🔄 Real-time Multi-Format Processing
+
+```python
+from semanticore.processors.realtime import RealTimeProcessor
+
+# Real-time processing of multiple formats
+real_time_processor = RealTimeProcessor(
+    input_formats=["pdf", "html", "json", "csv", "xml", "rss"],
+    processing_modes=["streaming", "batch", "hybrid"],
+    semantic_analysis=True,
+    quality_monitoring=True
+)
+
+# Set up processing rules
+real_time_processor.add_processing_rule(
+    format="pdf",
+    condition="size > 10MB",
+    action="queue_for_batch_processing"
+)
+
+real_time_processor.add_processing_rule(
+    format="json",
+    condition="contains_sensitive_data == True",
+    action="encrypt_and_process"
+)
+
+# Start real-time processing
+async def start_processing():
+    async for processed_item in real_time_processor.process():
+        # Route based on content type and semantic analysis
+        if processed_item.content_type == "financial":
+            await financial_system.process(processed_item)
+        elif processed_item.content_type == "security":
+            await security_system.process(processed_item)
+        else:
+            await general_system.process(processed_item)
+```
+
+### 📊 Advanced Analytics Pipeline
+
+```python
+from semanticore.analytics import SemanticAnalyticsPipeline
+
+# Create analytics pipeline for processed data
+analytics_pipeline = SemanticAnalyticsPipeline(
+    data_sources=unified_result,
+    analytics_modules=[
+        "trend_analysis",
+        "sentiment_analysis", 
+        "topic_modeling",
+        "entity_clustering",
+        "relationship_analysis",
+        "temporal_analysis",
+        "cross_source_correlation"
+    ]
+)
+
+# Run comprehensive analytics
+analytics_result = analytics_pipeline.analyze(
+    time_window="30d",
+    confidence_threshold=0.8,
+    include_predictions=True
+)
+
+print("Trending topics:", analytics_result.trending_topics)
+print("Entity clusters:", len(analytics_result.entity_clusters))
+print("Temporal patterns:", analytics_result.temporal_patterns)
+print("Cross-source correlations:", analytics_result.correlations)
 ```
 
 ---
 
+## 🎯 Extended Use Cases
+
+### 📰 News & Media Intelligence
+
+```python
+from semanticore.applications import NewsIntelligence
+
+# Comprehensive news monitoring and analysis
+news_intel = NewsIntelligence(
+    sources={
+        "rss_feeds": ["reuters", "ap", "bbc", "cnn"],
+        "web_scraping": ["financial_times", "wall_street_journal"],
+        "social_media": ["twitter_news", "linkedin_news"],
+        "press_releases": ["company_websites", "pr_newswire"]
+    },
+    analysis_features=[
+        "bias_detection",
+        "fact_checking",
+        "sentiment_analysis",
+        "topic_clustering",
+        "trend_prediction",
+        "source_credibility"
+    ]
+)
+
+# Monitor specific topics
+covid_news = news_intel.monitor_topic(
+    topic="COVID-19 variants",
+    languages=["en", "es", "fr"],
+    sentiment_tracking=True,
+    geographic_analysis=True
+)
+
+print("Articles analyzed:", len(covid_news.articles))
+print("Sentiment trends:", covid_news.sentiment_trends)
+print("Geographic distribution:", covid_news.geographic_data)
+```
+
+### 🏢 Enterprise Document Intelligence
+
+```python
+from semanticore.applications import EnterpriseDocumentIntelligence
+
+# Enterprise-scale document processing
+doc_intel = EnterpriseDocumentIntelligence(
+    document_sources={
+        "sharepoint": "https://company.sharepoint.com",
+        "file_shares": ["//server1/docs", "//server2/contracts"],
+        "email_archives": "exchange_server",
+        "cloud_storage": ["s3://company-docs", "gs://company-files"]
+    },
+    processing_features=[
+        "automatic_classification",
+        "entity_extraction",
+        "relationship_mapping",
+        "compliance_checking",
+        "duplicate_detection",
+        "version_tracking"
+    ]
+)
+
+# Process enterprise documents
+enterprise_result = doc_intel.process_enterprise_documents(
+    document_types=["contracts", "policies", "reports", "emails"],
+    compliance_frameworks=["gdpr", "sox", "hipaa"],
+    retention_policies=True
+)
+
+print("Documents processed:", len(enterprise_result.documents))
+print("Compliance violations:", len(enterprise_result.compliance_violations))
+print("Knowledge graph entities:", len(enterprise_result.knowledge_graph.entities))
+```
+
+### 🔐 Security Intelligence Platform
+
+```python
+from semanticore.applications import SecurityIntelligence
+
+# Comprehensive security monitoring
+security_intel = SecurityIntelligence(
+    data_sources={
+        "threat_feeds": ["misp", "taxii", "osint"],
+        "security_logs": ["siem", "firewall", "ids/ips"],
+        "vulnerability_databases": ["nvd", "cve", "exploit-db"],
+        "dark_web_monitoring": ["tor_sites", "forums", "marketplaces"],
+        "social_media": ["twitter_security", "reddit_netsec"]
+    },
+    analysis_capabilities=[
+        "threat_attribution",
+        "ioc_extraction", 
+        "attack_pattern_recognition",
+        "malware_analysis",
+        "vulnerability_correlation",
+        "risk_assessment"
+    ]
+)
+
+# Monitor threats in real-time
+threat_monitoring = security_intel.monitor_threats(
+    threat_types=["apt", "ransomware", "phishing", "zero_day"],
+    industries=["finance", "healthcare", "government"],
+    geographic_regions=["north_america", "europe", "asia"]
+)
+
+print("Threats detected:", len(threat_monitoring.threats))
+print("High priority alerts:", len(threat_monitoring.high_priority))
+print("Attribution confidence:", threat_monitoring.attribution_scores)
+```
+
+---
+
+## 🔧 Configuration & Deployment
+
+### 📋 Extended Configuration
+
+```yaml
+# semanticore-extended.yaml
+core:
+  llm_provider: "openai"
+  embedding_model: "text-embedding-3-large"
+  vector_store: "pinecone"
+  graph_db: "neo4j"
+
+processors:
+  documents:
+    pdf:
+      ocr_engine: "tesseract"
+      extract_images: true
+      extract_tables: true
+      preserve_layout: true
+    docx:
+      preserve_formatting: true
+      extract_comments: true
+    excel:
+      evaluate_formulas: true
+      extract_charts: true
+  
+  web:
+    scraping:
+      render_javascript: true
+      wait_timeout: 30
+      concurrent_requests: 10
+      respect_robots_txt: true
+    rss:
+      update_interval: 300
+      semantic_deduplication: true
+      content_enrichment: true
+  
+  structured:
+    csv:
+      auto_detect_schema: true
+      data_quality_assessment: true
+      chunk_size: 10000
+    json:
+      deep_structure_analysis: true
+      schema_inference: true
+  
+  streaming:
+    kafka:
+      bootstrap_servers: ["localhost:9092"]
+      consumer_group: "semanticore"
+      batch_size: 100
+    webhook:
+      authentication: "hmac_sha256"
+      rate_limiting: true
+
+analytics:
+  trend_analysis: true
+  sentiment_analysis: true
+  entity_clustering: true
+  temporal_analysis: true
+  cross_source_correlation: true
+
+security:
+  encryption_at_rest: true
+  encryption_in_transit: true
+  access_control: "rbac"
+  audit_logging: true
+
+monitoring:
+  metrics_collection: true
+  performance_tracking: true
+  error_tracking: true
+  alerting: true
+```
+
+### 🐳 Docker Compose for Extended Features
+
+```yaml
+# docker-compose-extended.yml
+version: '3.8'
+
+services:
+  semanticore-extended:
+    image: semanticore/semanticore:extended
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - PINECONE_API_KEY=${PINECONE_API_KEY}
+      - NEO4J_URI=bolt://neo4j:7687
+    volumes:
+      - ./config:/app/config
+      - ./data:/app/data
+      - ./logs:/app/logs
+    depends_on:
+      - neo4j
+      - redis
+      - elasticsearch
+      - kafka
+
+  neo4j:
+    image: neo4j:5.0
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/password
+    volumes:
+      - neo4j_data:/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.0.0
+    ports:
+      - "9200:9200"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    ports:
+      - "9092:9092"
+    environment:
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+    depends_on:
+      - zookeeper
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    ports:
+      - "2181:2181"
+    environment:
+      - ZOOKEEPER_CLIENT_PORT=2181
+      - ZOOKEEPER_TICK_TIME=2000
+
+  processing-worker:
+    image: semanticore/processing-worker:latest
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - redis
+      - semanticore-extended
+
+volumes:
+  neo4j_data:
+  redis_data:
+  es_data:
+```
+
+---
+
+## 📈 Performance & Scaling
+
+### ⚡
