@@ -762,6 +762,282 @@ print(f"Issues found: {len(validation_report.issues)}")
 qa.enable_continuous_monitoring()
 ```
 
+
+## 🏢 Enterprise Knowledge Graph Features
+
+### 📋 Schema-First Knowledge Graph Construction
+
+Unlike other libraries that infer schemas, SemantiCore enforces predefined business schemas:
+
+```python
+from semanticore.schema import SchemaManager, BusinessEntity
+from pydantic import BaseModel
+from typing import List, Optional
+
+# Define your business schema upfront
+class Employee(BusinessEntity):
+    name: str
+    employee_id: str
+    department: str
+    role: str
+    manager: Optional[str] = None
+    email: str
+    hire_date: str
+
+class Department(BusinessEntity):
+    name: str
+    budget: float
+    head: str
+    location: str
+
+class Product(BusinessEntity):
+    name: str
+    sku: str
+    department: str
+    owner: str
+    price: float
+    launch_date: str
+
+# Initialize schema manager with your business entities
+schema_manager = SchemaManager()
+schema_manager.register_entities([Employee, Department, Product])
+
+# Process documents with schema enforcement
+core = SemantiCore(schema_manager=schema_manager)
+results = core.process_with_schema("hr_documents/", strict_mode=True)
+
+# Only entities matching your schema are extracted and validated
+print(f"Extracted {len(results.employees)} employees")
+print(f"Extracted {len(results.departments)} departments") 
+print(f"Schema violations: {len(results.violations)}")
+```
+
+### 🌱 Seed-Based Knowledge Graph Initialization
+
+Start with known entities and enhance with automated extraction:
+
+```python
+from semanticore.knowledge import SeedManager
+
+# Initialize with known business entities
+seed_manager = SeedManager()
+
+# Load seed data from various sources
+seed_manager.load_from_csv("employees.csv", entity_type="Employee")
+seed_manager.load_from_json("departments.json", entity_type="Department")
+seed_manager.load_from_database("products", connection_string="postgresql://...")
+
+# Seed the knowledge graph
+knowledge_graph = core.create_knowledge_graph(seed_data=seed_manager.get_seeds())
+
+# Process new documents - will match against seeded entities
+new_documents = ["meeting_notes.pdf", "project_reports/", "emails.mbox"]
+results = core.process_documents(new_documents, 
+                                knowledge_graph=knowledge_graph,
+                                enable_entity_linking=True)
+
+# Results show both seeded and newly discovered entities
+print(f"Seeded entities: {len(knowledge_graph.seeded_entities)}")
+print(f"Newly discovered: {len(results.new_entities)}")
+print(f"Linked to existing: {len(results.linked_entities)}")
+```
+
+### 🔄 Intelligent Duplicate Detection & Merging
+
+Automatic deduplication with configurable business rules:
+
+```python
+from semanticore.deduplication import EntityDeduplicator
+
+# Configure deduplication rules for each entity type
+dedup_config = {
+    "Employee": {
+        "match_fields": ["email", "employee_id"],
+        "fuzzy_fields": ["name"],
+        "similarity_threshold": 0.85,
+        "merge_strategy": "most_recent"
+    },
+    "Product": {
+        "match_fields": ["sku"],
+        "fuzzy_fields": ["name"],
+        "similarity_threshold": 0.90,
+        "merge_strategy": "highest_confidence"
+    },
+    "Department": {
+        "match_fields": ["name"],
+        "similarity_threshold": 0.95,
+        "merge_strategy": "manual_review"
+    }
+}
+
+# Initialize deduplicator
+deduplicator = EntityDeduplicator(config=dedup_config)
+
+# Process documents with automatic deduplication
+results = core.process_documents(
+    sources=["hr_data/", "finance_reports/", "project_docs/"],
+    deduplicator=deduplicator,
+    enable_auto_merge=True
+)
+
+# Review deduplication results
+print(f"Duplicates found: {len(results.duplicates)}")
+print(f"Auto-merged: {len(results.auto_merged)}")
+print(f"Requires manual review: {len(results.manual_review_needed)}")
+
+# Access detailed merge information
+for merge in results.auto_merged:
+    print(f"Merged {merge.entity_type}: {merge.canonical_name}")
+    print(f"  Sources: {', '.join(merge.source_documents)}")
+    print(f"  Confidence: {merge.confidence:.2%}")
+```
+
+### ⚠️ Conflict Detection & Source Traceability
+
+Flag contradictions with complete source tracking:
+
+```python
+from semanticore.conflicts import ConflictDetector
+
+# Configure conflict detection rules
+conflict_detector = ConflictDetector(
+    track_provenance=True,
+    conflict_fields={
+        "Employee": ["salary", "department", "role", "manager"],
+        "Product": ["price", "owner", "department"],
+        "Department": ["budget", "head", "location"]
+    },
+    confidence_threshold=0.7
+)
+
+# Process with conflict detection enabled
+results = core.process_documents(
+    sources=["q1_report.pdf", "hr_database.csv", "manager_updates.docx"],
+    conflict_detector=conflict_detector
+)
+
+# Review detected conflicts
+for conflict in results.conflicts:
+    print(f"\n🚨 CONFLICT DETECTED: {conflict.entity_name}")
+    print(f"Field: {conflict.field}")
+    print(f"Conflicting values:")
+    
+    for claim in conflict.claims:
+        print(f"  • '{claim.value}' from {claim.source_document}")
+        print(f"    Page: {claim.page_number}, Confidence: {claim.confidence:.2%}")
+        print(f"    Context: {claim.context}")
+    
+    print(f"Recommended action: {conflict.recommended_action}")
+
+# Export conflicts for manual resolution
+conflict_report = results.export_conflicts_report()
+conflict_report.save_to_excel("conflicts_review.xlsx")
+
+# Resolve conflicts programmatically or through UI
+resolution_rules = {
+    "Employee.salary": "use_most_recent",
+    "Product.price": "use_highest_confidence", 
+    "Department.budget": "require_manual_review"
+}
+
+resolved_conflicts = conflict_detector.resolve_conflicts(
+    results.conflicts, 
+    rules=resolution_rules
+)
+```
+
+### 📊 Business Rules & Validation Engine
+
+Implement custom business logic and constraints:
+
+```python
+from semanticore.validation import BusinessRuleEngine
+
+# Define business rules
+rules = BusinessRuleEngine()
+
+# Add validation rules
+rules.add_rule(
+    name="employee_department_exists",
+    condition="Employee.department must exist in Department entities",
+    severity="error"
+)
+
+rules.add_rule(
+    name="salary_range_check", 
+    condition="Employee.salary must be between $30,000 and $500,000",
+    severity="warning"
+)
+
+rules.add_rule(
+    name="product_owner_validation",
+    condition="Product.owner must be an existing Employee",
+    severity="error"
+)
+
+rules.add_rule(
+    name="department_budget_consistency",
+    condition="Department.budget should align with sum of employee salaries",
+    severity="info"
+)
+
+# Process with business rule validation
+results = core.process_documents(
+    sources=["company_data/"],
+    validation_engine=rules,
+    fail_on_errors=False
+)
+
+# Review validation results
+validation_report = results.validation_report
+
+print(f"Total violations: {len(validation_report.violations)}")
+print(f"Errors: {validation_report.errors}")
+print(f"Warnings: {validation_report.warnings}")
+print(f"Info: {validation_report.info}")
+
+# Get detailed violation information
+for violation in validation_report.violations:
+    print(f"\n❌ {violation.rule_name}")
+    print(f"Entity: {violation.entity_name} ({violation.entity_type})")
+    print(f"Issue: {violation.description}")
+    print(f"Source: {violation.source_document}")
+    print(f"Suggested fix: {violation.suggested_resolution}")
+```
+
+### 🎯 Interactive Conflict Resolution Dashboard
+
+Built-in UI for reviewing and resolving conflicts:
+
+```python
+from semanticore.ui import ConflictResolutionDashboard
+
+# Start interactive dashboard
+dashboard = ConflictResolutionDashboard(
+    knowledge_graph=knowledge_graph,
+    conflicts=results.conflicts,
+    port=8080
+)
+
+# Dashboard features:
+# - Side-by-side source comparison
+# - Confidence score visualization
+# - One-click conflict resolution
+# - Bulk resolution with rules
+# - Export resolved data
+
+dashboard.start()
+print("Dashboard available at http://localhost:8080")
+
+# Programmatic resolution after dashboard review
+resolved_data = dashboard.get_resolved_conflicts()
+knowledge_graph.apply_resolutions(resolved_data)
+```
+
+## 🎯 Advanced Use Cases
+
+### 🔐 Multi-Format Cybersecurity Intelligence
+
 ---
 
 ## 🤝 Community & Support
