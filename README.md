@@ -4,12 +4,10 @@
 
 # 🧠 SemantiCore
 
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
-[![PyPI version](https://badge.fury.io/py/semanticore.svg?style=for-the-badge)](https://badge.fury.io/py/semanticore)
-[![Downloads](https://pepy.tech/badge/semanticore?style=for-the-badge)](https://pepy.tech/project/semanticore)
-[![Docker](https://img.shields.io/badge/docker-ready-blue?style=for-the-badge&logo=docker&logoColor=white)](https://hub.docker.com/r/semanticore/semanticore)
-[![Kubernetes](https://img.shields.io/badge/kubernetes-ready-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)](https://kubernetes.io/)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PyPI version](https://badge.fury.io/py/semanticore.svg)](https://badge.fury.io/py/semanticore)
+[![Downloads](https://pepy.tech/badge/semanticore)](https://pepy.tech/project/semanticore)
 
 **🚀 Open Source Semantic Layer and Knowledge Engineering Toolkit**
 
