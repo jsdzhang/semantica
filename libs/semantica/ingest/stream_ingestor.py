@@ -17,6 +17,476 @@ Main Classes:
     - StreamMonitor: Stream health monitoring
 """
 
+import json
+import threading
+import time
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Any, Callable, Dict, List, Optional
+
+from ..utils.exceptions import ProcessingError, ValidationError
+from ..utils.logging import get_logger
+
+
+@dataclass
+class StreamMessage:
+    """Stream message representation."""
+    
+    content: Any
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    timestamp: datetime = field(default_factory=datetime.now)
+    source: str = ""
+    partition: Optional[int] = None
+    offset: Optional[int] = None
+
+
+class StreamProcessor:
+    """
+    Generic stream data processor.
+    
+    Base class for processing data from various
+    streaming sources with common functionality.
+    """
+    
+    def __init__(self, source_config: Dict[str, Any], **options):
+        """
+        Initialize stream processor.
+        
+        Args:
+            source_config: Source-specific configuration
+            **options: Processing options
+        """
+        self.logger = get_logger("stream_processor")
+        self.source_config = source_config
+        self.options = options
+        self.message_handler: Optional[Callable] = None
+        self.error_handler: Optional[Callable] = None
+        self.running: bool = False
+        self.thread: Optional[threading.Thread] = None
+        self._processed_count: int = 0
+        self._error_count: int = 0
+    
+    def process_message(self, message: Any) -> Dict[str, Any]:
+        """
+        Process individual stream message.
+        
+        Args:
+            message: Stream message to process
+            
+        Returns:
+            ProcessedData: Processed message data
+        """
+        try:
+            # Parse message content
+            if isinstance(message, bytes):
+                content = json.loads(message.decode('utf-8'))
+            elif isinstance(message, str):
+                content = json.loads(message)
+            elif isinstance(message, dict):
+                content = message
+            else:
+                content = {"raw": str(message)}
+            
+            # Extract metadata
+            metadata = content.get("metadata", {})
+            
+            # Apply transformations if configured
+            if self.options.get("transform"):
+                transform_fn = self.options["transform"]
+                content = transform_fn(content)
+            
+            # Validate data if configured
+            if self.options.get("validate"):
+                validate_fn = self.options["validate"]
+                if not validate_fn(content):
+                    raise ValidationError("Message validation failed")
+            
+            self._processed_count += 1
+            
+            return {
+                "content": content,
+                "metadata": metadata,
+                "processed_at": datetime.now().isoformat()
+            }
+            
+        except Exception as e:
+            self._error_count += 1
+            self.logger.error(f"Failed to process message: {e}")
+            
+            if self.error_handler:
+                self.error_handler(message, e)
+            else:
+                raise ProcessingError(f"Failed to process message: {e}")
+    
+    def start_consuming(self):
+        """Start consuming from stream."""
+        if self.running:
+            self.logger.warning("Processor already running")
+            return
+        
+        self.running = True
+        self.thread = threading.Thread(target=self._consume_loop, daemon=True)
+        self.thread.start()
+        self.logger.info("Stream processor started")
+    
+    def stop_consuming(self):
+        """Stop consuming from stream."""
+        self.running = False
+        if self.thread:
+            self.thread.join(timeout=5)
+        self.logger.info("Stream processor stopped")
+    
+    def set_message_handler(self, handler: Callable):
+        """Set message processing handler."""
+        self.message_handler = handler
+    
+    def set_error_handler(self, handler: Callable):
+        """Set error handling function."""
+        self.error_handler = handler
+    
+    def _consume_loop(self):
+        """Main consumption loop (to be overridden by subclasses)."""
+        while self.running:
+            try:
+                # This will be implemented by specific processors
+                time.sleep(0.1)
+            except Exception as e:
+                self.logger.error(f"Error in consumption loop: {e}")
+                if not self.running:
+                    break
+    
+    def get_stats(self) -> Dict[str, Any]:
+        """Get processor statistics."""
+        return {
+            "processed": self._processed_count,
+            "errors": self._error_count,
+            "running": self.running
+        }
+
+
+class KafkaProcessor(StreamProcessor):
+    """Kafka stream processor."""
+    
+    def __init__(self, topic: str, bootstrap_servers: List[str], **options):
+        """
+        Initialize Kafka processor.
+        
+        Args:
+            topic: Kafka topic name
+            bootstrap_servers: List of Kafka broker addresses
+            **options: Processing options
+        """
+        from kafka import KafkaConsumer
+        
+        source_config = {
+            "type": "kafka",
+            "topic": topic,
+            "bootstrap_servers": bootstrap_servers
+        }
+        super().__init__(source_config, **options)
+        
+        self.topic = topic
+        self.consumer = KafkaConsumer(
+            topic,
+            bootstrap_servers=bootstrap_servers,
+            value_deserializer=lambda m: json.loads(m.decode('utf-8')),
+            **options.get("consumer_config", {})
+        )
+    
+    def _consume_loop(self):
+        """Kafka consumption loop."""
+        while self.running:
+            try:
+                message_pack = self.consumer.poll(timeout_ms=1000)
+                for topic_partition, messages in message_pack.items():
+                    for message in messages:
+                        processed = self.process_message(message.value)
+                        if self.message_handler:
+                            self.message_handler(processed)
+            except Exception as e:
+                self.logger.error(f"Error consuming from Kafka: {e}")
+                if not self.running:
+                    break
+
+
+class RabbitMQProcessor(StreamProcessor):
+    """RabbitMQ stream processor."""
+    
+    def __init__(self, queue: str, connection_url: str, **options):
+        """
+        Initialize RabbitMQ processor.
+        
+        Args:
+            queue: RabbitMQ queue name
+            connection_url: RabbitMQ connection URL
+            **options: Processing options
+        """
+        import pika
+        
+        source_config = {
+            "type": "rabbitmq",
+            "queue": queue,
+            "connection_url": connection_url
+        }
+        super().__init__(source_config, **options)
+        
+        self.queue = queue
+        self.connection = pika.BlockingConnection(pika.URLParameters(connection_url))
+        self.channel = self.connection.channel()
+        self.channel.queue_declare(queue=queue, durable=options.get("durable", True))
+    
+    def _consume_loop(self):
+        """RabbitMQ consumption loop."""
+        def callback(ch, method, properties, body):
+            try:
+                processed = self.process_message(body)
+                if self.message_handler:
+                    self.message_handler(processed)
+                ch.basic_ack(delivery_tag=method.delivery_tag)
+            except Exception as e:
+                self.logger.error(f"Error processing RabbitMQ message: {e}")
+                ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
+        
+        self.channel.basic_consume(
+            queue=self.queue,
+            on_message_callback=callback
+        )
+        
+        try:
+            while self.running:
+                self.connection.process_data_events(time_limit=1)
+        except Exception as e:
+            self.logger.error(f"Error in RabbitMQ consumption: {e}")
+        finally:
+            if self.channel:
+                self.channel.close()
+            if self.connection:
+                self.connection.close()
+
+
+class KinesisProcessor(StreamProcessor):
+    """AWS Kinesis stream processor."""
+    
+    def __init__(self, stream_name: str, region: str, **options):
+        """
+        Initialize Kinesis processor.
+        
+        Args:
+            stream_name: Kinesis stream name
+            region: AWS region
+            **options: Processing options
+        """
+        import boto3
+        
+        source_config = {
+            "type": "kinesis",
+            "stream_name": stream_name,
+            "region": region
+        }
+        super().__init__(source_config, **options)
+        
+        self.stream_name = stream_name
+        self.kinesis = boto3.client('kinesis', region_name=region)
+        self.shard_iterator = None
+        
+        # Get shard iterator
+        response = self.kinesis.get_shard_iterator(
+            StreamName=stream_name,
+            ShardId=options.get("shard_id", "0"),
+            ShardIteratorType=options.get("shard_iterator_type", "LATEST")
+        )
+        self.shard_iterator = response['ShardIterator']
+    
+    def _consume_loop(self):
+        """Kinesis consumption loop."""
+        while self.running:
+            try:
+                response = self.kinesis.get_records(ShardIterator=self.shard_iterator)
+                
+                for record in response['Records']:
+                    processed = self.process_message(record['Data'])
+                    if self.message_handler:
+                        self.message_handler(processed)
+                
+                self.shard_iterator = response['NextShardIterator']
+                time.sleep(1)  # Avoid throttling
+                
+            except Exception as e:
+                self.logger.error(f"Error consuming from Kinesis: {e}")
+                if not self.running:
+                    break
+                time.sleep(5)
+
+
+class PulsarProcessor(StreamProcessor):
+    """Apache Pulsar stream processor."""
+    
+    def __init__(self, topic: str, service_url: str, **options):
+        """
+        Initialize Pulsar processor.
+        
+        Args:
+            topic: Pulsar topic name
+            service_url: Pulsar service URL
+            **options: Processing options
+        """
+        import pulsar
+        
+        source_config = {
+            "type": "pulsar",
+            "topic": topic,
+            "service_url": service_url
+        }
+        super().__init__(source_config, **options)
+        
+        self.topic = topic
+        self.client = pulsar.Client(service_url)
+        self.consumer = self.client.subscribe(
+            topic,
+            subscription_name=options.get("subscription_name", "semantica-consumer"),
+            consumer_type=pulsar.ConsumerType.Shared
+        )
+    
+    def _consume_loop(self):
+        """Pulsar consumption loop."""
+        while self.running:
+            try:
+                msg = self.consumer.receive(timeout_millis=1000)
+                try:
+                    processed = self.process_message(msg.data())
+                    if self.message_handler:
+                        self.message_handler(processed)
+                    self.consumer.acknowledge(msg)
+                except Exception as e:
+                    self.logger.error(f"Error processing Pulsar message: {e}")
+                    self.consumer.negative_acknowledge(msg)
+            except Exception as e:
+                if "timeout" not in str(e).lower():
+                    self.logger.error(f"Error consuming from Pulsar: {e}")
+                if not self.running:
+                    break
+
+
+class StreamMonitor:
+    """
+    Stream health and performance monitoring.
+    
+    Monitors stream processing health, performance
+    metrics, and error rates.
+    """
+    
+    def __init__(self, **config):
+        """
+        Initialize stream monitor.
+        
+        Args:
+            **config: Monitor configuration
+        """
+        self.logger = get_logger("stream_monitor")
+        self.config = config
+        self.processors: Dict[str, StreamProcessor] = {}
+        self.metrics: Dict[str, Dict[str, Any]] = {}
+        self.alert_thresholds = config.get("alert_thresholds", {
+            "error_rate": 0.1,  # 10% error rate
+            "max_lag": 1000     # Maximum message lag
+        })
+    
+    def monitor_processor(self, processor: StreamProcessor, name: str = None):
+        """
+        Monitor specific stream processor.
+        
+        Args:
+            processor: Stream processor to monitor
+            name: Processor name (optional)
+        """
+        if name is None:
+            name = processor.source_config.get("type", "unknown")
+        
+        self.processors[name] = processor
+        self.metrics[name] = {
+            "last_check": datetime.now(),
+            "processed": 0,
+            "errors": 0,
+            "healthy": True
+        }
+        self.logger.info(f"Started monitoring processor: {name}")
+    
+    def get_metrics(self, processor_name: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Get monitoring metrics.
+        
+        Args:
+            processor_name: Specific processor name
+            
+        Returns:
+            dict: Monitoring metrics
+        """
+        if processor_name:
+            if processor_name not in self.processors:
+                return {}
+            processor = self.processors[processor_name]
+            stats = processor.get_stats()
+            return {
+                processor_name: {
+                    **self.metrics.get(processor_name, {}),
+                    **stats
+                }
+            }
+        else:
+            # Return all metrics
+            all_metrics = {}
+            for name, processor in self.processors.items():
+                stats = processor.get_stats()
+                all_metrics[name] = {
+                    **self.metrics.get(name, {}),
+                    **stats
+                }
+            return all_metrics
+    
+    def check_health(self) -> Dict[str, Any]:
+        """
+        Check overall stream health.
+        
+        Returns:
+            dict: Health status
+        """
+        health_status = {
+            "overall": "healthy",
+            "processors": {},
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        unhealthy_count = 0
+        
+        for name, processor in self.processors.items():
+            stats = processor.get_stats()
+            metrics = self.metrics.get(name, {})
+            
+            # Calculate error rate
+            total = stats.get("processed", 0) + stats.get("errors", 0)
+            error_rate = stats.get("errors", 0) / total if total > 0 else 0
+            
+            is_healthy = (
+                processor.running and
+                error_rate < self.alert_thresholds["error_rate"]
+            )
+            
+            if not is_healthy:
+                unhealthy_count += 1
+            
+            health_status["processors"][name] = {
+                "healthy": is_healthy,
+                "running": processor.running,
+                "error_rate": error_rate,
+                "processed": stats.get("processed", 0),
+                "errors": stats.get("errors", 0)
+            }
+        
+        if unhealthy_count > 0:
+            health_status["overall"] = "unhealthy" if unhealthy_count == len(self.processors) else "degraded"
+        
+        return health_status
+
 
 class StreamIngestor:
     """
@@ -38,7 +508,7 @@ class StreamIngestor:
         start_streaming(): Start stream processing
     """
     
-    def __init__(self, config=None, **kwargs):
+    def __init__(self, config: Optional[Dict[str, Any]] = None, **kwargs):
         """
         Initialize stream ingestor.
         
@@ -46,210 +516,107 @@ class StreamIngestor:
             config: Stream ingestion configuration
             **kwargs: Additional configuration parameters
         """
-        # TODO: Initialize stream processors
-        # TODO: Setup stream monitor
-        # TODO: Configure connection pools
-        # TODO: Setup error handling
-        pass
+        self.logger = get_logger("stream_ingestor")
+        self.config = config or {}
+        self.config.update(kwargs)
+        
+        # Initialize stream processors dictionary
+        self.processors: Dict[str, StreamProcessor] = {}
+        
+        # Setup stream monitor
+        self.monitor = StreamMonitor(**self.config)
     
-    def ingest_kafka(self, topic, **options):
+    def ingest_kafka(self, topic: str, bootstrap_servers: List[str], **options) -> KafkaProcessor:
         """
         Ingest data from Kafka topic.
         
         Args:
             topic: Kafka topic name
+            bootstrap_servers: List of Kafka broker addresses
             **options: Processing options
             
         Returns:
             KafkaProcessor: Kafka stream processor
         """
-        # TODO: Initialize Kafka consumer
-        # TODO: Configure topic subscription
-        # TODO: Setup message processing
-        # TODO: Return processor instance
-        pass
+        processor = KafkaProcessor(topic, bootstrap_servers, **options)
+        self.processors[f"kafka_{topic}"] = processor
+        self.monitor.monitor_processor(processor, f"kafka_{topic}")
+        return processor
     
-    def ingest_pulsar(self, topic, **options):
+    def ingest_pulsar(self, topic: str, service_url: str, **options) -> PulsarProcessor:
         """
         Ingest data from Pulsar topic.
         
         Args:
             topic: Pulsar topic name
+            service_url: Pulsar service URL
             **options: Processing options
             
         Returns:
             PulsarProcessor: Pulsar stream processor
         """
-        # TODO: Initialize Pulsar consumer
-        # TODO: Configure topic subscription
-        # TODO: Setup message processing
-        # TODO: Return processor instance
-        pass
+        processor = PulsarProcessor(topic, service_url, **options)
+        self.processors[f"pulsar_{topic}"] = processor
+        self.monitor.monitor_processor(processor, f"pulsar_{topic}")
+        return processor
     
-    def ingest_rabbitmq(self, queue, **options):
+    def ingest_rabbitmq(self, queue: str, connection_url: str, **options) -> RabbitMQProcessor:
         """
         Ingest data from RabbitMQ queue.
         
         Args:
             queue: RabbitMQ queue name
+            connection_url: RabbitMQ connection URL
             **options: Processing options
             
         Returns:
             RabbitMQProcessor: RabbitMQ stream processor
         """
-        # TODO: Initialize RabbitMQ consumer
-        # TODO: Configure queue binding
-        # TODO: Setup message processing
-        # TODO: Return processor instance
-        pass
+        processor = RabbitMQProcessor(queue, connection_url, **options)
+        self.processors[f"rabbitmq_{queue}"] = processor
+        self.monitor.monitor_processor(processor, f"rabbitmq_{queue}")
+        return processor
     
-    def ingest_kinesis(self, stream_name, **options):
+    def ingest_kinesis(self, stream_name: str, region: str, **options) -> KinesisProcessor:
         """
         Ingest data from Kinesis stream.
         
         Args:
             stream_name: Kinesis stream name
+            region: AWS region
             **options: Processing options
             
         Returns:
             KinesisProcessor: Kinesis stream processor
         """
-        # TODO: Initialize Kinesis consumer
-        # TODO: Configure stream subscription
-        # TODO: Setup record processing
-        # TODO: Return processor instance
-        pass
+        processor = KinesisProcessor(stream_name, region, **options)
+        self.processors[f"kinesis_{stream_name}"] = processor
+        self.monitor.monitor_processor(processor, f"kinesis_{stream_name}")
+        return processor
     
-    def start_streaming(self, processors):
+    def start_streaming(self, processors: Optional[List[StreamProcessor]] = None):
         """
         Start processing multiple streams.
         
         Args:
-            processors: List of stream processors
+            processors: List of stream processors (if None, starts all)
         """
-        # TODO: Start all processors
-        # TODO: Setup coordination
-        # TODO: Handle failures
-        # TODO: Monitor performance
-        pass
-
-
-class StreamProcessor:
-    """
-    Generic stream data processor.
-    
-    Base class for processing data from various
-    streaming sources with common functionality.
-    """
-    
-    def __init__(self, source_config, **options):
-        """
-        Initialize stream processor.
+        if processors is None:
+            processors = list(self.processors.values())
         
-        Args:
-            source_config: Source-specific configuration
-            **options: Processing options
-        """
-        # TODO: Initialize source connection
-        # TODO: Setup message handlers
-        # TODO: Configure processing pipeline
-        # TODO: Setup error handling
-        pass
+        for processor in processors:
+            try:
+                processor.start_consuming()
+                self.logger.info(f"Started stream processor: {processor.source_config.get('type')}")
+            except Exception as e:
+                self.logger.error(f"Failed to start processor: {e}")
+                raise ProcessingError(f"Failed to start stream processor: {e}")
     
-    def process_message(self, message):
-        """
-        Process individual stream message.
-        
-        Args:
-            message: Stream message to process
-            
-        Returns:
-            ProcessedData: Processed message data
-        """
-        # TODO: Parse message content
-        # TODO: Apply transformations
-        # TODO: Extract metadata
-        # TODO: Validate data
-        # TODO: Return processed data
-        pass
-    
-    def start_consuming(self):
-        """
-        Start consuming from stream.
-        """
-        # TODO: Start consumption loop
-        # TODO: Process messages
-        # TODO: Handle errors
-        # TODO: Update metrics
-        pass
-    
-    def stop_consuming(self):
-        """
-        Stop consuming from stream.
-        """
-        # TODO: Stop consumption loop
-        # TODO: Cleanup resources
-        # TODO: Save state
-        pass
-
-
-class StreamMonitor:
-    """
-    Stream health and performance monitoring.
-    
-    Monitors stream processing health, performance
-    metrics, and error rates.
-    """
-    
-    def __init__(self, **config):
-        """
-        Initialize stream monitor.
-        
-        Args:
-            **config: Monitor configuration
-        """
-        # TODO: Setup metrics collection
-        # TODO: Initialize alerting
-        # TODO: Configure thresholds
-        # TODO: Setup reporting
-        pass
-    
-    def monitor_processor(self, processor):
-        """
-        Monitor specific stream processor.
-        
-        Args:
-            processor: Stream processor to monitor
-        """
-        # TODO: Track processor metrics
-        # TODO: Monitor error rates
-        # TODO: Check performance
-        # TODO: Generate alerts
-        pass
-    
-    def get_metrics(self, processor_name=None):
-        """
-        Get monitoring metrics.
-        
-        Args:
-            processor_name: Specific processor name
-            
-        Returns:
-            dict: Monitoring metrics
-        """
-        # TODO: Collect metrics
-        # TODO: Aggregate data
-        # TODO: Return metrics dict
-        pass
-    
-    def check_health(self):
-        """
-        Check overall stream health.
-        
-        Returns:
-            dict: Health status
-        """
-        # TODO: Check all processors
-        # TODO: Evaluate health status
-        # TODO: Return health report
-        pass
+    def stop_streaming(self):
+        """Stop all stream processors."""
+        for name, processor in self.processors.items():
+            try:
+                processor.stop_consuming()
+                self.logger.info(f"Stopped stream processor: {name}")
+            except Exception as e:
+                self.logger.error(f"Error stopping processor {name}: {e}")

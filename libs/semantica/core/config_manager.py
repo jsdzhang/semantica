@@ -20,11 +20,7 @@ import json
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
-try:
-    import yaml
-    YAML_AVAILABLE = True
-except ImportError:
-    YAML_AVAILABLE = False
+import yaml
 
 from ..utils.exceptions import ConfigurationError
 from ..utils.helpers import (
@@ -274,11 +270,6 @@ class ConfigManager:
         
         try:
             if suffix in (".yaml", ".yml"):
-                if not YAML_AVAILABLE:
-                    raise ConfigurationError(
-                        "YAML support not available. Install PyYAML: pip install pyyaml"
-                    )
-                
                 with open(file_path, "r", encoding="utf-8") as f:
                     config_dict = yaml.safe_load(f)
                     
