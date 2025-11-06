@@ -1,8 +1,34 @@
 """
 Context Retriever for Agents
 
-Retrieves relevant context for agents from memory, knowledge graphs,
-and vector stores to inform decision-making.
+This module provides comprehensive context retrieval capabilities for agents,
+retrieving relevant context from memory, knowledge graphs, and vector stores
+to inform decision-making. It supports hybrid retrieval combining multiple
+sources for optimal context relevance.
+
+Key Features:
+    - Retrieve context from multiple sources (memory, graph, vector)
+    - Hybrid retrieval (vector + graph + memory)
+    - Context relevance ranking
+    - Context aggregation and synthesis
+    - Ontology-aware context retrieval
+    - Real-time context updates
+    - Graph expansion for related entities
+    - Multi-hop relationship traversal
+
+Main Classes:
+    - RetrievedContext: Retrieved context item data structure
+    - ContextRetriever: Context retriever for hybrid retrieval
+
+Example Usage:
+    >>> from semantica.context import ContextRetriever
+    >>> retriever = ContextRetriever(memory_store=mem, knowledge_graph=kg, vector_store=vs)
+    >>> results = retriever.retrieve("Python programming", max_results=5)
+    >>> for result in results:
+    ...     print(result.content, result.score)
+
+Author: Semantica Contributors
+License: MIT
 """
 
 from typing import Any, Dict, List, Optional

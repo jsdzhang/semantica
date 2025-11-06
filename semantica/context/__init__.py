@@ -1,15 +1,36 @@
 """
 Context Engineering Module
 
-This module provides context engineering infrastructure for agents,
-formalizing context as a graph of connections to enable meaningful
-agent understanding and memory.
+This module provides comprehensive context engineering infrastructure for agents,
+formalizing context as a graph of connections to enable meaningful agent
+understanding and memory. It integrates RAG with knowledge graphs to provide
+persistent context for intelligent agents.
 
-Context engineering layers:
-- Prompting: Natural-language programming for agent goals
-- Memory: RAG with vector databases for context retrieval
-- Tools: MCP servers for consistent tool access
-- Graphs: Knowledge graphs for formalized context as connections
+Key Features:
+    - Context graph construction from entities and relationships
+    - Agent memory management with RAG integration
+    - Entity linking across sources with URI assignment
+    - Hybrid context retrieval (vector + graph + memory)
+    - Conversation history management
+    - Context accumulation and synthesis
+    - Graph-based context traversal and querying
+
+Main Classes:
+    - ContextGraphBuilder: Builds context graphs from various sources
+    - AgentMemory: Manages persistent agent memory with RAG
+    - EntityLinker: Links entities across sources with URIs
+    - ContextRetriever: Retrieves relevant context from multiple sources
+
+Example Usage:
+    >>> from semantica.context import ContextGraphBuilder, AgentMemory
+    >>> builder = ContextGraphBuilder()
+    >>> graph = builder.build_from_entities_and_relationships(entities, relationships)
+    >>> memory = AgentMemory(vector_store=vs, knowledge_graph=kg)
+    >>> memory_id = memory.store("User asked about Python", metadata={"type": "conversation"})
+    >>> results = memory.retrieve("Python", max_results=5)
+
+Author: Semantica Contributors
+License: MIT
 """
 
 from .context_graph import ContextGraphBuilder, ContextNode, ContextEdge

@@ -1,8 +1,33 @@
 """
 Agent Memory Manager
 
-Manages agent memory and context retrieval, integrating RAG
-with knowledge graphs to give agents persistent context.
+This module provides comprehensive agent memory management and context retrieval,
+integrating RAG (Retrieval-Augmented Generation) with knowledge graphs to give
+agents persistent context across conversations and interactions.
+
+Key Features:
+    - Persistent memory storage for agents
+    - Vector-based context retrieval
+    - Knowledge graph context integration
+    - Conversation history management
+    - Context accumulation over time
+    - Memory retrieval for agent decision-making
+    - Retention policy management
+    - Memory statistics and analytics
+
+Main Classes:
+    - MemoryItem: Memory item data structure
+    - AgentMemory: Agent memory manager with RAG integration
+
+Example Usage:
+    >>> from semantica.context import AgentMemory
+    >>> memory = AgentMemory(vector_store=vs, knowledge_graph=kg)
+    >>> memory_id = memory.store("User asked about Python", metadata={"type": "conversation"})
+    >>> results = memory.retrieve("Python", max_results=5)
+    >>> history = memory.get_conversation_history(conversation_id="conv_123")
+
+Author: Semantica Contributors
+License: MIT
 """
 
 from typing import Any, Dict, List, Optional, Union

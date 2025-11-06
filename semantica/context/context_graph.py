@@ -1,8 +1,36 @@
 """
-Context Graph Builder for Semantica framework.
+Context Graph Builder
 
-Formalizes context as a graph of connections, turning context
-from intuition into infrastructure. Context is connection.
+This module provides comprehensive context graph construction capabilities,
+formalizing context as a graph of connections. It turns context from intuition
+into infrastructure, enabling meaningful connections between concepts, entities,
+and conversations.
+
+Key Features:
+    - Builds context graphs from entities and relationships
+    - Creates meaningful connections between concepts
+    - Assigns URLs/URIs to entities for web-like context
+    - Formalizes context into graph structure
+    - Supports ontology-based context graphs
+    - Enables context traversal and querying
+    - Conversation-based graph construction
+    - Intent and sentiment extraction
+
+Main Classes:
+    - ContextNode: Context graph node data structure
+    - ContextEdge: Context graph edge data structure
+    - ContextGraphBuilder: Context graph builder for formalizing context
+
+Example Usage:
+    >>> from semantica.context import ContextGraphBuilder
+    >>> builder = ContextGraphBuilder()
+    >>> graph = builder.build_from_entities_and_relationships(entities, relationships)
+    >>> builder.add_node("node1", "entity", "Python programming")
+    >>> builder.add_edge("node1", "node2", "related_to", weight=0.9)
+    >>> neighbors = builder.get_neighbors("node1", max_hops=2)
+
+Author: Semantica Contributors
+License: MIT
 """
 
 from typing import Any, Dict, List, Optional, Set, Union

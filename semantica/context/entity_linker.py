@@ -1,8 +1,35 @@
 """
 Entity Linker for Context Engineering
 
-Links entities across sources to build the web of context,
-assigning each entity a URL and connecting them meaningfully.
+This module provides comprehensive entity linking capabilities for context
+engineering, linking entities across different sources to build the web of
+context. It assigns each entity a unique URL/URI and connects them meaningfully
+to enable semantic understanding.
+
+Key Features:
+    - Links entities across different sources
+    - Assigns unique identifiers (URLs/URIs) to entities
+    - Creates semantic connections between entities
+    - Builds entity connection web
+    - Supports cross-document entity linking
+    - Enables entity disambiguation and resolution
+    - Similarity-based entity matching
+    - Bidirectional entity linking
+
+Main Classes:
+    - EntityLink: Entity link data structure
+    - LinkedEntity: Linked entity with context
+    - EntityLinker: Entity linker for context engineering
+
+Example Usage:
+    >>> from semantica.context import EntityLinker
+    >>> linker = EntityLinker(knowledge_graph=kg)
+    >>> uri = linker.assign_uri("entity_1", "Python", "PROGRAMMING_LANGUAGE")
+    >>> linked_entities = linker.link("Python is a programming language", entities=entities)
+    >>> linker.link_entities("entity_1", "entity_2", "related_to", confidence=0.9)
+
+Author: Semantica Contributors
+License: MIT
 """
 
 from typing import Any, Dict, List, Optional, Set, Tuple
