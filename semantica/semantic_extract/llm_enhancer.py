@@ -1,8 +1,29 @@
 """
-LLM-based extraction enhancer for Semantica framework.
+LLM Enhancement Module
 
-This module provides LLM-based extraction capabilities
-using OpenAI, Anthropic, and other language models.
+This module provides LLM-based extraction enhancement capabilities using OpenAI,
+Anthropic, and other language models to improve entity and relation extraction quality.
+
+Key Features:
+    - Entity extraction enhancement using LLMs
+    - Relation extraction enhancement
+    - Multi-provider support (OpenAI, Anthropic)
+    - Configurable model selection
+    - API key management
+    - Graceful fallback when LLM unavailable
+
+Main Classes:
+    - LLMEnhancer: Main LLM enhancement coordinator
+    - LLMResponse: LLM response representation dataclass
+
+Example Usage:
+    >>> from semantica.semantic_extract import LLMEnhancer
+    >>> enhancer = LLMEnhancer(provider="openai", model="gpt-3.5-turbo")
+    >>> enhanced_entities = enhancer.enhance_entities(text, entities)
+    >>> enhanced_relations = enhancer.enhance_relations(text, relations)
+
+Author: Semantica Contributors
+License: MIT
 """
 
 from dataclasses import dataclass

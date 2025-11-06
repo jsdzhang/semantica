@@ -1,8 +1,29 @@
 """
-Named Entity Recognition extractor for Semantica framework.
+Named Entity Recognition Extractor Module
 
-This module provides NER capabilities using spaCy and transformers
-for entity identification and classification.
+This module provides core NER capabilities using spaCy and transformers for
+entity identification and classification, with fallback pattern-based extraction.
+
+Key Features:
+    - spaCy-based entity extraction
+    - Pattern-based fallback extraction
+    - Multiple entity type support
+    - Confidence scoring
+    - Batch processing
+    - Entity filtering by confidence
+
+Main Classes:
+    - NERExtractor: Core NER extractor
+    - Entity: Entity representation dataclass
+
+Example Usage:
+    >>> from semantica.semantic_extract import NERExtractor
+    >>> extractor = NERExtractor(model="en_core_web_sm")
+    >>> entities = extractor.extract_entities("Apple Inc. was founded in 1976.")
+    >>> filtered = extractor.filter_by_confidence(entities, min_confidence=0.8)
+
+Author: Semantica Contributors
+License: MIT
 """
 
 from dataclasses import dataclass, field

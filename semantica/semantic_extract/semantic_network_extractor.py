@@ -1,8 +1,32 @@
 """
-Semantic Network Extractor for Semantica framework.
+Semantic Network Extractor Module
 
-Extracts structured semantic networks from documents as part of the
+This module extracts structured semantic networks from documents, converting
+entities and relations into graph structures with nodes and edges. Part of the
 6-stage ontology generation pipeline (Stage 2: semantic network extraction).
+
+Key Features:
+    - Semantic network construction from entities and relations
+    - Node and edge creation
+    - Network analysis and metrics
+    - YAML export capabilities
+    - Connectivity analysis
+
+Main Classes:
+    - SemanticNetworkExtractor: Main network extractor
+    - SemanticNetwork: Semantic network representation dataclass
+    - SemanticNode: Network node representation dataclass
+    - SemanticEdge: Network edge representation dataclass
+
+Example Usage:
+    >>> from semantica.semantic_extract import SemanticNetworkExtractor
+    >>> extractor = SemanticNetworkExtractor()
+    >>> network = extractor.extract_network(text, entities, relations)
+    >>> analysis = extractor.analyze_network(network)
+    >>> yaml_str = extractor.export_to_yaml(network, "network.yaml")
+
+Author: Semantica Contributors
+License: MIT
 """
 
 from dataclasses import dataclass, field

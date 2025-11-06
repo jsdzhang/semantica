@@ -1,20 +1,34 @@
 """
 RDF Triple Extraction Module
 
-Handles extraction of RDF triples from text and structured data.
+This module provides comprehensive RDF triple extraction capabilities, enabling
+conversion of entities and relations into RDF triples with validation and
+serialization support.
 
 Key Features:
-    - RDF triple generation
+    - RDF triple generation from entities and relations
     - Subject-predicate-object extraction
     - Triple validation and quality checking
-    - RDF serialization support
+    - RDF serialization (Turtle, N-Triples, JSON-LD, RDF/XML)
     - Batch triple processing
+    - URI formatting and normalization
 
 Main Classes:
-    - TripleExtractor: Main triple extraction class
+    - TripleExtractor: Main triple extraction coordinator
     - TripleValidator: Triple validation engine
     - RDFSerializer: RDF serialization handler
     - TripleQualityChecker: Triple quality assessment
+    - Triple: RDF triple representation dataclass
+
+Example Usage:
+    >>> from semantica.semantic_extract import TripleExtractor
+    >>> extractor = TripleExtractor()
+    >>> triples = extractor.extract_triples(text, entities, relations)
+    >>> rdf_turtle = extractor.serialize_triples(triples, format="turtle")
+    >>> validated = extractor.validate_triples(triples)
+
+Author: Semantica Contributors
+License: MIT
 """
 
 from dataclasses import dataclass, field

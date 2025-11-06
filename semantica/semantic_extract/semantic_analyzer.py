@@ -1,20 +1,33 @@
 """
 Semantic Analysis Module
 
-Handles comprehensive semantic analysis of text and data.
+This module provides comprehensive semantic analysis capabilities including
+similarity calculation, role labeling, clustering, and feature extraction.
 
 Key Features:
-    - Semantic similarity analysis
-    - Semantic role labeling
+    - Semantic similarity analysis (Jaccard, cosine)
+    - Semantic role labeling (agent, patient, theme, location)
     - Semantic clustering and grouping
-    - Semantic relationship analysis
-    - Semantic quality assessment
+    - Semantic feature extraction
+    - Text quality assessment
 
 Main Classes:
-    - SemanticAnalyzer: Main semantic analysis class
+    - SemanticAnalyzer: Main semantic analysis coordinator
     - SimilarityAnalyzer: Semantic similarity analysis
     - RoleLabeler: Semantic role labeling
     - SemanticClusterer: Semantic clustering engine
+    - SemanticRole: Semantic role representation dataclass
+    - SemanticCluster: Semantic cluster representation dataclass
+
+Example Usage:
+    >>> from semantica.semantic_extract import SemanticAnalyzer
+    >>> analyzer = SemanticAnalyzer()
+    >>> similarity = analyzer.calculate_similarity("Apple Inc.", "Apple company")
+    >>> roles = analyzer.label_semantic_roles("John bought a car.")
+    >>> clusters = analyzer.cluster_semantically(texts)
+
+Author: Semantica Contributors
+License: MIT
 """
 
 from dataclasses import dataclass, field

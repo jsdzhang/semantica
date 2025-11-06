@@ -1,20 +1,33 @@
 """
 Named Entity Recognition Module
 
-Handles extraction and recognition of named entities from text.
+This module provides comprehensive named entity recognition capabilities for
+extracting and classifying entities from text with confidence scoring and
+custom type support.
 
 Key Features:
-    - Multi-type entity recognition
+    - Multi-type entity recognition (PERSON, ORG, GPE, DATE, etc.)
     - Entity classification and categorization
     - Entity confidence scoring
     - Custom entity type support
     - Batch entity processing
+    - Entity disambiguation
 
 Main Classes:
-    - NamedEntityRecognizer: Main NER class
+    - NamedEntityRecognizer: Main NER coordinator
     - EntityClassifier: Entity classification engine
     - EntityConfidenceScorer: Confidence scoring system
     - CustomEntityDetector: Custom entity detection
+
+Example Usage:
+    >>> from semantica.semantic_extract import NamedEntityRecognizer
+    >>> ner = NamedEntityRecognizer()
+    >>> entities = ner.extract_entities("Steve Jobs founded Apple in 1976.")
+    >>> classified = ner.classify_entities(entities)
+    >>> scored = ner.score_confidence(entities)
+
+Author: Semantica Contributors
+License: MIT
 """
 
 from dataclasses import dataclass, field

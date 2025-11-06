@@ -1,20 +1,33 @@
 """
 Event Detection Module
 
-Handles detection and extraction of events from text.
+This module provides comprehensive event detection and extraction capabilities,
+enabling identification of events, their participants, temporal information,
+and relationships between events.
 
 Key Features:
     - Event detection and classification
-    - Temporal event processing
+    - Temporal event processing and sorting
     - Event relationship extraction
     - Event confidence scoring
     - Custom event pattern detection
+    - Participant and location extraction
 
 Main Classes:
-    - EventDetector: Main event detection class
+    - EventDetector: Main event detection coordinator
     - EventClassifier: Event type classification
     - TemporalEventProcessor: Temporal event handling
     - EventRelationshipExtractor: Event relationship extraction
+    - Event: Event representation dataclass
+
+Example Usage:
+    >>> from semantica.semantic_extract import EventDetector
+    >>> detector = EventDetector()
+    >>> events = detector.detect_events("Apple was founded in 1976 by Steve Jobs.")
+    >>> classified = detector.classify_events(events)
+
+Author: Semantica Contributors
+License: MIT
 """
 
 import re

@@ -1,8 +1,31 @@
 """
-Extraction validator for Semantica framework.
+Extraction Validator Module
 
-This module provides quality validation for semantic extractions
-to ensure accuracy and consistency.
+This module provides comprehensive quality validation for semantic extractions,
+ensuring accuracy, consistency, and reliability of extracted entities and relations.
+
+Key Features:
+    - Entity validation with confidence checking
+    - Relation validation and consistency checking
+    - Quality scoring and metrics calculation
+    - Duplicate detection
+    - Confidence-based filtering
+    - Validation result reporting
+
+Main Classes:
+    - ExtractionValidator: Main validation coordinator
+    - ValidationResult: Validation result representation dataclass
+
+Example Usage:
+    >>> from semantica.semantic_extract import ExtractionValidator
+    >>> validator = ExtractionValidator()
+    >>> result = validator.validate_entities(entities)
+    >>> if result.valid:
+    ...     print(f"Quality score: {result.score}")
+    >>> filtered = validator.filter_by_confidence(entities, min_confidence=0.8)
+
+Author: Semantica Contributors
+License: MIT
 """
 
 from dataclasses import dataclass, field

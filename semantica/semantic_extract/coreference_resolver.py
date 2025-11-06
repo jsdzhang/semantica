@@ -1,20 +1,34 @@
 """
 Coreference Resolution Module
 
-Handles resolution of coreferences and pronoun references.
+This module provides comprehensive coreference resolution capabilities for resolving
+pronoun references and entity coreferences in text, enabling better understanding
+of entity mentions and references.
 
 Key Features:
-    - Pronoun resolution
+    - Pronoun resolution (he, she, it, they, etc.)
     - Entity coreference detection
     - Coreference chain construction
     - Ambiguity resolution
-    - Cross-document coreference
+    - Cross-document coreference support
+    - Mention extraction and tracking
 
 Main Classes:
-    - CoreferenceResolver: Main coreference resolution class
+    - CoreferenceResolver: Main coreference resolution coordinator
     - PronounResolver: Pronoun resolution engine
     - EntityCoreferenceDetector: Entity coreference detection
     - CoreferenceChainBuilder: Coreference chain construction
+    - Mention: Mention representation dataclass
+    - CoreferenceChain: Coreference chain representation dataclass
+
+Example Usage:
+    >>> from semantica.semantic_extract import CoreferenceResolver
+    >>> resolver = CoreferenceResolver()
+    >>> chains = resolver.resolve_coreferences("John went to the store. He bought milk.")
+    >>> pronouns = resolver.resolve_pronouns("Mary said she would come.")
+
+Author: Semantica Contributors
+License: MIT
 """
 
 from dataclasses import dataclass, field

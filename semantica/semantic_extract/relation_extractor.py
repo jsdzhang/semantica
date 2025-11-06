@@ -1,8 +1,30 @@
 """
-Relation extraction for Semantica framework.
+Relation Extraction Module
 
-This module provides relationship detection and extraction
-between entities in text documents.
+This module provides comprehensive relationship detection and extraction
+between entities in text documents using pattern matching and co-occurrence analysis.
+
+Key Features:
+    - Pattern-based relation extraction
+    - Co-occurrence based relation detection
+    - Multiple relation types (founded_by, located_in, works_for, etc.)
+    - Relation classification
+    - Relation validation
+    - Context extraction
+
+Main Classes:
+    - RelationExtractor: Main relation extractor
+    - Relation: Relation representation dataclass
+
+Example Usage:
+    >>> from semantica.semantic_extract import RelationExtractor
+    >>> extractor = RelationExtractor()
+    >>> relations = extractor.extract_relations("Apple was founded by Steve Jobs.", entities)
+    >>> classified = extractor.classify_relations(relations)
+    >>> validated = extractor.validate_relations(relations)
+
+Author: Semantica Contributors
+License: MIT
 """
 
 import re
