@@ -79,17 +79,45 @@ pip install -e ".[dev]"
 
 ## 🎯 Quick Start
 
+> **New User-Friendly API**: Semantica now supports lazy initialization and module-level `build()` functions. No need to call `initialize()` explicitly - the framework auto-initializes on first use. You can use `semantica.build()` or access submodules via dot notation like `semantica.kg.build()`, `semantica.ingest.build()`, etc.
+
+#### API Usage Patterns
+
+**Pattern 1: Module-level build (Simplest)**
+```python
+from semantica import build
+
+# Build knowledge base - auto-initializes
+result = build(["doc1.pdf", "doc2.docx"], embeddings=True, graph=True)
+```
+
+**Pattern 2: Dot notation access (Recommended for submodules)**
+```python
+import semantica
+
+# Access submodules via dot notation
+kg_result = semantica.kg.build(["doc1.pdf"], merge_entities=True)
+embeddings = semantica.embeddings.build(["text1", "text2"], data_type="text")
+ingested = semantica.ingest.build("documents/", source_type="directory")
+```
+
+**Pattern 3: Direct class usage (Advanced control)**
+```python
+from semantica.kg import GraphBuilder
+from semantica.embeddings import TextEmbedder
+
+# Use classes directly for fine-grained control
+builder = GraphBuilder(merge_entities=True)
+embedder = TextEmbedder(model_name="all-MiniLM-L6-v2")
+```
+
 ### 1. Basic Document Processing
 ```python
-from semantica import Semantica
+from semantica import build
 
-# Initialize the framework
-semantica = Semantica()
-semantica.initialize()
-
-# Build knowledge base from documents
+# Build knowledge base from documents (auto-initializes)
 documents = ["document1.pdf", "document2.docx", "document3.txt"]
-result = semantica.build_knowledge_base(
+result = build(
     documents,
     embeddings=True,
     graph=True,
@@ -117,12 +145,8 @@ kg_viz.visualize_network(knowledge_graph, output="html", file_path="knowledge_gr
 
 ### 2. Web Content Processing
 ```python
-from semantica import Semantica
+import semantica
 from semantica.ingest import WebIngestor
-
-# Initialize the framework
-semantica = Semantica()
-semantica.initialize()
 
 # Ingest web content
 web_ingestor = WebIngestor(
@@ -141,23 +165,26 @@ web_content = web_ingestor.ingest_url(url)
 sitemap_url = "https://example.com/sitemap.xml"
 pages = web_ingestor.crawl_sitemap(sitemap_url)
 
-# Build knowledge base from web content
+# Build knowledge base from web content using module-level build
 sources = [web_content.url for web_content in pages]
-result = semantica.build_knowledge_base(sources)
+result = semantica.build(sources)
+
+# Or use ingest module's build function
+result = semantica.ingest.build(sources)
 ```
 
 ### 3. Knowledge Graph Analytics
 ```python
-from semantica import Semantica
+import semantica
 from semantica.kg import GraphBuilder, GraphAnalyzer, CentralityCalculator, CommunityDetector
 
-# Initialize the framework
-semantica = Semantica()
-semantica.initialize()
-
-# Build knowledge graph
+# Build knowledge graph using module-level build
 sources = ["document1.pdf", "document2.pdf"]
-result = semantica.build_knowledge_base(sources, graph=True)
+result = semantica.build(sources, graph=True)
+kg_data = result["knowledge_graph"]
+
+# Or use kg module's build function directly
+result = semantica.kg.build(sources, merge_entities=True, resolve_conflicts=True)
 kg_data = result["knowledge_graph"]
 
 # Build graph object from extracted entities and relationships
@@ -252,6 +279,26 @@ print(f"Graph connectivity: {connectivity['is_connected']}")
 ### 1. Data Ingestion Examples
 
 #### File Ingestion
+
+**Option 1: Using module-level build function (Recommended)**
+```python
+import semantica
+
+# Simple approach - ingest files directly
+files = semantica.ingest.build(
+    "documents/",
+    source_type="directory",
+    recursive=True,
+    extensions=[".pdf", ".docx", ".txt"]
+)
+
+for file_obj in files:
+    print(f"File: {file_obj.path}")
+    print(f"Type: {file_obj.file_type}")
+    print(f"Size: {file_obj.size} bytes")
+```
+
+**Option 2: Using FileIngestor directly (Advanced)**
 ```python
 from semantica.ingest import FileIngestor
 from pathlib import Path
@@ -391,6 +438,25 @@ results = db_ingestor.execute_query(
 ### 2. Semantic Extraction Examples
 
 #### Entity Extraction
+
+**Option 1: Using module-level build function (Recommended)**
+```python
+import semantica
+
+text = "Apple Inc. is a technology company founded by Steve Jobs in Cupertino, California."
+
+# Extract entities using module-level function
+result = semantica.semantic_extract.build(text, extract_entities=True)
+entities = result.get("entities", [])
+
+for entity in entities:
+    print(f"Entity: {entity.get('text')}")
+    print(f"Type: {entity.get('type')}")
+    print(f"Confidence: {entity.get('confidence')}")
+    print()
+```
+
+**Option 2: Using NERExtractor directly (Advanced)**
 ```python
 from semantica.semantic_extract import NERExtractor, NamedEntityRecognizer
 
@@ -506,6 +572,26 @@ for event in events:
 ### 3. Embeddings Generation Examples
 
 #### Text Embeddings
+
+**Option 1: Using module-level build function (Recommended)**
+```python
+import semantica
+import numpy as np
+
+# Simple approach - generate embeddings directly
+texts = [
+    "First document text.",
+    "Second document text.",
+    "Third document text."
+]
+
+# Generate embeddings using module-level function
+result = semantica.embeddings.build(texts, data_type="text")
+embeddings = result["embeddings"]
+print(f"Batch embeddings shape: {embeddings.shape}")
+```
+
+**Option 2: Using TextEmbedder directly (Advanced)**
 ```python
 import numpy as np
 from semantica.embeddings import TextEmbedder, EmbeddingGenerator
@@ -586,6 +672,27 @@ print(f"Text-Image similarity: {similarity}")
 ### 4. Knowledge Graph Building Examples
 
 #### Building Knowledge Graph
+
+**Option 1: Using module-level build function (Recommended)**
+```python
+import semantica
+
+# Simple approach - build knowledge graph directly from documents
+documents = ["doc1.pdf", "doc2.pdf", "doc3.txt"]
+result = semantica.kg.build(
+    documents,
+    merge_entities=True,
+    entity_resolution_strategy="fuzzy",
+    resolve_conflicts=True,
+    enable_temporal=True
+)
+
+graph = result["knowledge_graph"]
+print(f"Total entities: {len(graph.get('entities', []))}")
+print(f"Total relationships: {len(graph.get('relationships', []))}")
+```
+
+**Option 2: Using GraphBuilder directly (Advanced)**
 ```python
 from semantica.kg import GraphBuilder, EntityResolver
 from semantica.semantic_extract import NERExtractor, RelationExtractor
@@ -794,7 +901,7 @@ csv_exporter.export_knowledge_graph(graph, "knowledge_graph.csv")
 ### 8. Complete End-to-End Example
 
 ```python
-from semantica import Semantica
+import semantica
 from semantica.ingest import FileIngestor
 from semantica.semantic_extract import NERExtractor, RelationExtractor
 from semantica.embeddings import EmbeddingGenerator
@@ -802,9 +909,7 @@ from semantica.kg import GraphBuilder
 from semantica.kg_qa import KGQualityAssessor
 from semantica.export import JSONExporter
 
-# Initialize framework
-semantica = Semantica()
-semantica.initialize()
+# No explicit initialization needed - framework auto-initializes on first use
 
 # Step 1: Ingest documents
 file_ingestor = FileIngestor()
@@ -1172,14 +1277,12 @@ temporal_viz.visualize_metrics_evolution(metrics_history, timestamps,
 #### Quick Visualization Example
 
 ```python
-from semantica import Semantica
+import semantica
 from semantica.visualization import KGVisualizer, EmbeddingVisualizer
 import numpy as np
 
-# Initialize framework and build knowledge graph
-semantica = Semantica()
-semantica.initialize()
-result = semantica.build_knowledge_base(["document.pdf"], graph=True, embeddings=True)
+# Build knowledge graph (auto-initializes)
+result = semantica.build(["document.pdf"], graph=True, embeddings=True)
 
 # Visualize knowledge graph
 kg_viz = KGVisualizer(layout="force", color_scheme="vibrant")
@@ -1205,7 +1308,8 @@ if "embeddings" in result:
 
 ### Basic Configuration
 ```python
-from semantica import Semantica, Config
+import semantica
+from semantica import Config
 
 # Create configuration
 config = Config({
@@ -1223,13 +1327,14 @@ config = Config({
     }
 })
 
-# Initialize with configuration
-semantica = Semantica(config=config)
+# Use configuration with build function
+result = semantica.build(["document.pdf"], config=config)
 ```
 
 ### Advanced Configuration
 ```python
-from semantica import Semantica, Config
+import semantica
+from semantica import Config
 
 # Advanced configuration
 config = Config({
@@ -1254,8 +1359,8 @@ config = Config({
     }
 })
 
-# Initialize with advanced configuration
-semantica = Semantica(config=config)
+# Use advanced configuration with build function
+result = semantica.build(["document.pdf"], config=config)
 ```
 
 ## 🚀 Performance
