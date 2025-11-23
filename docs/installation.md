@@ -218,8 +218,8 @@ It's recommended to use a virtual environment:
 | Component | Minimum | Recommended |
 |-----------|---------|-------------|
 | Python | 3.8 | 3.11+ |
-| RAM | 4 GB | 8 GB+ |
-| Disk Space | 2 GB | 5 GB+ |
+| RAM | Moderate | Ample for your dataset |
+| Disk Space | Sufficient for data | Generous storage |
 | OS | Windows/Linux/Mac | Linux/Mac |
 
 ## Next Steps

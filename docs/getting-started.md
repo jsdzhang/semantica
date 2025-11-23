@@ -56,7 +56,7 @@ Before installing Semantica, ensure you have:
 
 === "Source (Dev)"
     ```bash
-    git clone https://github.com/your-org/semantica.git
+    git clone https://github.com/Hawksight-AI/semantica.git
     cd semantica
     pip install -e .
     ```

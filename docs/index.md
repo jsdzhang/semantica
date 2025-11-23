@@ -93,7 +93,7 @@ flowchart TD
     ---
     - Vector search alone misses crucial relationships
     - No graph traversal for context expansion
-    - **30% lower accuracy** than hybrid approaches
+    - Significantly lower accuracy than hybrid approaches
     - Can't answer multi-hop questions
 
 -   **🔴 AI Agents Hallucinate**
@@ -180,7 +180,7 @@ flowchart TD
 
 ### Powers Next-Gen AI Applications
 
-- **GraphRAG**: Hybrid retrieval combining vector search + graph traversal for 30% better accuracy
+- **GraphRAG**: Hybrid retrieval combining vector search + graph traversal for improved accuracy
 - **AI Agents**: Ontology-constrained actions with semantic routing and persistent memory
 - **Multi-Agent Systems**: Shared semantic models for coordinated decision-making
 - **Knowledge Engineering**: Production-grade knowledge graphs with provenance and validation
@@ -262,7 +262,7 @@ $ semantica query "Who founded Apple?"
 
     ```bash
     # Clone the repository
-    git clone https://github.com/semantica-dev/semantica.git
+    git clone https://github.com/Hawksight-AI/semantica.git
     cd semantica
 
     # Install in editable mode with dev dependencies
@@ -371,7 +371,7 @@ Power GraphRAG applications with:
 
 - **Vector Search**: Semantic similarity using embeddings
 - **Graph Traversal**: Multi-hop reasoning for context expansion
-- **Hybrid Retrieval**: Combine vector + graph for 30% better accuracy
+- **Hybrid Retrieval**: Combine vector + graph for improved accuracy
 - **Temporal Queries**: Query knowledge at specific time points
 
 ---

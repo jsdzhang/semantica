@@ -56,8 +56,6 @@ The `ingest` module is the entry point for data. It handles the complexity of co
     - `EmailIngestor`: Process email messages
     - `RepoIngestor`: Git repository analysis
 
-    - `RepoIngestor`: Git repository analysis
-
 ```mermaid
 classDiagram
     class BaseIngestor {
@@ -104,8 +102,6 @@ Once data is ingested, the `parse` module extracts the raw text and metadata. It
     - `JSONParser`: Parse structured JSON data
     - `ExcelParser`: Process spreadsheets
     - `ImageParser`: OCR and image analysis
-    - `CodeParser`: Parse source code files
-
     - `CodeParser`: Parse source code files
 
 ```mermaid
@@ -195,8 +191,6 @@ The `kg` module constructs the graph from extracted entities and relationships, 
     - `CommunityDetector`: Detect communities in graphs
     - `ConnectivityAnalyzer`: Analyze graph connectivity
     - `TemporalQuery`: Query temporal knowledge graphs
-    - `Deduplicator`: Remove duplicate entities/relationships
-
     - `Deduplicator`: Remove duplicate entities/relationships
 
 ```mermaid
