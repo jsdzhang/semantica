@@ -103,14 +103,7 @@ nav:
     - Overview: getting-started.md
     - installation.md
     - quickstart.md
-  - Guides:
-    - concepts.md
-    - modules.md
-    - use-cases.md
-    - examples.md
-    - learning-more.md
-  - Cookbook: cookbook.md
-  - Reference:
+  - Docs:
     - Core: reference/core.md
     - Ingest: reference/ingest.md
     - Parse: reference/parse.md
@@ -126,8 +119,19 @@ nav:
     - Export: reference/export.md
     - Visualization: reference/visualization.md
     - Utils: reference/utils.md
+  - Guides:
+    - concepts.md
+    - modules.md
+    - use-cases.md
+    - examples.md
+    - learning-more.md
+  - Cookbook: cookbook.md
   - Resources:
     - community-projects.md
+    - community.md
+    - contributing.md
+    - architecture.md
+    - governance.md
     - citation.md
     - faq.md
     - license.md

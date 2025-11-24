@@ -14,11 +14,7 @@ authors = [
 maintainers = [
     {name = "Hawksight AI", email = "semantica-dev@users.noreply.github.com"}
 ]
-keywords = [
-    "semantic-layer", "knowledge-engineering", "nlp", "knowledge-graph",
-    "embeddings", "entity-extraction", "relationship-extraction", "rdf",
-    "ontology", "semantic-analysis", "ai", "machine-learning"
-]
+requires-python = ">=3.8"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -37,7 +33,18 @@ classifiers = [
     "Topic :: Database :: Database Engines/Servers",
     "Topic :: Internet :: WWW/HTTP :: Indexing/Search"
 ]
-requires-python = ">=3.8"
+keywords = [
+    "semantic-layer", "knowledge-engineering", "nlp", "knowledge-graph",
+    "embeddings", "entity-extraction", "relationship-extraction", "rdf",
+    "ontology", "semantic-analysis", "ai", "machine-learning"
+]
+[project.urls]
+Homepage = "https://github.com/Hawksight-AI/semantica"
+Documentation = "https://semantica.readthedocs.io"
+Repository = "https://github.com/Hawksight-AI/semantica"
+"Bug Tracker" = "https://github.com/Hawksight-AI/semantica/issues"
+Discussions = "https://github.com/Hawksight-AI/semantica/discussions"
+Discord = "https://discord.gg/semantica"
 dependencies = [
     "numpy>=1.21.0",
     "pandas>=1.3.0",
