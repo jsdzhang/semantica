@@ -6,6 +6,8 @@ name: Format Code
 on:
   pull_request:
     branches: [main, develop]
+  push:
+    branches: [main, develop]
   workflow_dispatch:
 
 permissions:
@@ -30,13 +32,22 @@ jobs:
           python -m pip install --upgrade pip
           pip install black isort
 
+      - name: Check formatting
+        if: github.event_name == 'pull_request'
+        run: |
+          black --check semantica/ || exit 1
+          isort --check-only semantica/ || exit 1
+
       - name: Format with black
+        if: github.event_name != 'pull_request'
         run: black semantica/
 
       - name: Sort imports with isort
+        if: github.event_name != 'pull_request'
         run: isort semantica/
 
       - name: Check for changes
+        if: github.event_name != 'pull_request'
         id: verify-changed-files
         run: |
           if [ -n "$(git status --porcelain)" ]; then
@@ -46,7 +57,7 @@ jobs:
           fi
 
       - name: Create Pull Request
-        if: steps.verify-changed-files.outputs.changed == 'true'
+        if: github.event_name != 'pull_request' && steps.verify-changed-files.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
