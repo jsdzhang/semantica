@@ -4,83 +4,170 @@ Welcome to the **Semantica Cookbook**!
 
 This collection of Jupyter notebooks is designed to take you from a beginner to an expert in building semantic AI applications. Whether you're looking for quick recipes or deep-dive tutorials, you'll find it here.
 
+!!! tip "How to use this Cookbook"
+    - **Beginners**: Start with the [Core Tutorials](#core-tutorials) to learn the basics.
+    - **Developers**: Check out [Advanced Concepts](#advanced-concepts) for deep dives into specific features.
+    - **Architects**: Explore [Industry Use Cases](#industry-use-cases) for end-to-end solutions.
+
+!!! note "Prerequisites"
+    Before running these notebooks, ensure you have:
+    - Python 3.8+ installed
+    - A basic understanding of Python and Jupyter
+    - An OpenAI API key (for most examples)
+
 ---
 
-## 🏁 Introduction
+## � Featured Recipes
 
-Start here if you are new to the framework. These notebooks cover the essentials.
+Hand-picked tutorials to show you the power of Semantica.
+
+<div class="grid cards" markdown>
+
+-   :material-robot: **GraphRAG Complete**
+    ---
+    Build a production-ready Graph Retrieval Augmented Generation system.
+    
+    **Topics**: RAG, LLMs, Vector Search, Graph Traversal
+    
+    **Difficulty**: Advanced
+    
+    [Open Notebook](cookbook/use_cases/advanced_rag/GraphRAG_Complete.ipynb)
+
+-   :material-graph: **Your First Knowledge Graph**
+    ---
+    Go from raw text to a queryable knowledge graph in 20 minutes.
+    
+    **Topics**: Extraction, Graph Construction, Visualization
+    
+    **Difficulty**: Beginner
+    
+    [Open Notebook](cookbook/introduction/Your_First_Knowledge_Graph.ipynb)
+
+-   :material-shield-alert: **Real-Time Anomaly Detection**
+    ---
+    Detect anomalies in streaming data using dynamic graphs.
+    
+    **Topics**: Streaming, Security, Dynamic Graphs
+    
+    **Difficulty**: Advanced
+    
+    [Open Notebook](cookbook/use_cases/cybersecurity/Anomaly_Detection_Real_Time.ipynb)
+
+</div>
+
+---
+
+## 🏁 Core Tutorials
+
+Essential guides to master the Semantica framework.
 
 <div class="grid cards" markdown>
 
 -   :material-hand-wave: **Welcome to Semantica**
     ---
-    An interactive introduction to the framework.
+    An interactive introduction to the framework's core philosophy.
+    
+    **Topics**: Framework Overview, Architecture
+    
+    **Difficulty**: Beginner
     
     [Open Notebook](cookbook/introduction/Welcome_to_Semantica.ipynb)
 
 -   :material-cog: **Configuration Basics**
     ---
-    Learn how to configure API keys and settings.
+    Learn how to configure API keys, environment variables, and settings.
+    
+    **Topics**: Configuration, API Keys, Env Vars
+    
+    **Difficulty**: Beginner
     
     [Open Notebook](cookbook/introduction/Configuration_Basics.ipynb)
 
--   :material-graph: **Your First Knowledge Graph**
-    ---
-    Build a simple graph from scratch.
-    
-    [Open Notebook](cookbook/introduction/Your_First_Knowledge_Graph.ipynb)
-
 -   :material-database-import: **Data Ingestion**
     ---
-    Loading data from files and web sources.
+    Techniques for loading data from local files, URLs, and APIs.
+    
+    **Topics**: Loaders, Connectors, Async IO
+    
+    **Difficulty**: Beginner
     
     [Open Notebook](cookbook/introduction/Data_Ingestion.ipynb)
 
 -   :material-file-document-outline: **Document Parsing**
     ---
-    Extracting text from PDFs, DOCX, and more.
+    Extracting clean text from complex formats like PDF, DOCX, and HTML.
+    
+    **Topics**: OCR, PDF Parsing, Text Extraction
+    
+    **Difficulty**: Beginner
     
     [Open Notebook](cookbook/introduction/Document_Parsing.ipynb)
 
 -   :material-broom: **Data Normalization**
     ---
-    Cleaning and preparing text.
+    Pipelines for cleaning, normalizing, and preparing text.
+    
+    **Topics**: Text Cleaning, Unicode, Formatting
+    
+    **Difficulty**: Beginner
     
     [Open Notebook](cookbook/introduction/Data_Normalization.ipynb)
 
 -   :material-account-search: **Entity Extraction**
     ---
-    Identifying people, places, and organizations.
+    Using NER to identify people, organizations, and custom entities.
+    
+    **Topics**: NER, Spacy, LLM Extraction
+    
+    **Difficulty**: Beginner
     
     [Open Notebook](cookbook/introduction/Entity_Extraction.ipynb)
 
 -   :material-relation-many-to-many: **Relation Extraction**
     ---
-    Finding connections between entities.
+    Discovering and classifying relationships between entities.
+    
+    **Topics**: Relation Classification, Dependency Parsing
+    
+    **Difficulty**: Beginner
     
     [Open Notebook](cookbook/introduction/Relation_Extraction.ipynb)
 
 -   :material-vector-square: **Embedding Generation**
     ---
-    Creating vector representations.
+    Creating and managing vector embeddings for semantic search.
+    
+    **Topics**: Embeddings, OpenAI, HuggingFace
+    
+    **Difficulty**: Intermediate
     
     [Open Notebook](cookbook/introduction/Embedding_Generation.ipynb)
 
 -   :material-database-search: **Vector Store**
     ---
-    Storing and searching vectors.
+    Setting up vector stores for similarity search and retrieval.
+    
+    **Difficulty**: Intermediate
     
     [Open Notebook](cookbook/introduction/Vector_Store.ipynb)
 
 -   :material-database-settings: **Graph Store**
     ---
-    Storing graphs in Neo4j, KuzuDB, or FalkorDB.
+    Persisting knowledge graphs in Neo4j, KuzuDB, or FalkorDB.
+    
+    **Topics**: Neo4j, Cypher, Persistence
+    
+    **Difficulty**: Intermediate
     
     [Open Notebook](cookbook/introduction/Graph_Store.ipynb)
 
 -   :material-sitemap: **Ontology**
     ---
-    Defining the structure of your knowledge.
+    Defining domain schemas and ontologies to structure your data.
+    
+    **Topics**: OWL, RDF, Schema Design
+    
+    **Difficulty**: Intermediate
     
     [Open Notebook](cookbook/introduction/Ontology.ipynb)
 
@@ -90,67 +177,107 @@ Start here if you are new to the framework. These notebooks cover the essentials
 
 ## 🧠 Advanced Concepts
 
-Deep dive into advanced features and customization.
+Deep dive into advanced features, customization, and complex workflows.
 
 <div class="grid cards" markdown>
 
 -   :material-flask: **Advanced Extraction**
     ---
-    Techniques for complex entity and relation extraction.
+    Custom extractors, LLM-based extraction, and complex pattern matching.
+    
+    **Topics**: Custom Models, Regex, LLMs
+    
+    **Difficulty**: Advanced
     
     [Open Notebook](cookbook/advanced/Advanced_Extraction.ipynb)
 
 -   :material-chart-network: **Advanced Graph Analytics**
     ---
-    In-depth graph analysis algorithms.
+    Centrality, community detection, and pathfinding algorithms.
+    
+    **Topics**: PageRank, Louvain, Shortest Path
+    
+    **Difficulty**: Advanced
     
     [Open Notebook](cookbook/advanced/Advanced_Graph_Analytics.ipynb)
 
 -   :material-monitor-dashboard: **Complete Visualization Suite**
     ---
-    Comprehensive guide to visualization tools.
+    Creating interactive, publication-ready visualizations of your graphs.
+    
+    **Topics**: PyVis, NetworkX, D3.js
+    
+    **Difficulty**: Intermediate
     
     [Open Notebook](cookbook/advanced/Complete_Visualization_Suite.ipynb)
 
 -   :material-scale-balance: **Conflict Resolution**
     ---
-    Advanced methods for resolving data conflicts.
+    Strategies for handling contradictory information from multiple sources.
+    
+    **Topics**: Truth Discovery, Voting, Confidence
+    
+    **Difficulty**: Advanced
     
     [Open Notebook](cookbook/advanced/Conflict_Resolution_Strategies.ipynb)
 
 -   :material-export: **Multi-Format Export**
     ---
-    Exporting data to various formats.
+    Exporting to RDF, OWL, JSON-LD, and NetworkX formats.
+    
+    **Topics**: Serialization, Interoperability
+    
+    **Difficulty**: Intermediate
     
     [Open Notebook](cookbook/advanced/Multi_Format_Export.ipynb)
 
 -   :material-source-merge: **Multi-Source Integration**
     ---
-    Integrating data from disparate sources.
+    Merging data from disparate sources into a unified graph.
+    
+    **Topics**: Entity Resolution, Merging, Fusion
+    
+    **Difficulty**: Advanced
     
     [Open Notebook](cookbook/advanced/Multi_Source_Data_Integration.ipynb)
 
 -   :material-pipe: **Pipeline Orchestration**
     ---
-    Building and managing complex pipelines.
+    Building robust, automated data processing pipelines.
+    
+    **Topics**: Workflows, Automation, Error Handling
+    
+    **Difficulty**: Advanced
     
     [Open Notebook](cookbook/advanced/Pipeline_Orchestration.ipynb)
 
 -   :material-brain: **Reasoning and Inference**
     ---
-    Applying logical reasoning to your graph.
+    Using logical reasoning to infer new knowledge from existing facts.
+    
+    **Topics**: Logic Rules, Inference Engines
+    
+    **Difficulty**: Advanced
     
     [Open Notebook](cookbook/advanced/Reasoning_and_Inference.ipynb)
 
 -   :material-layers: **Semantic Layer Construction**
     ---
-    Building a robust semantic layer.
+    Building a semantic layer over your data warehouse or lake.
+    
+    **Topics**: Semantic Layer, Data Warehouse
+    
+    **Difficulty**: Advanced
     
     [Open Notebook](cookbook/advanced/Semantic_Layer_Construction.ipynb)
 
 -   :material-clock-outline: **Temporal Knowledge Graphs**
     ---
-    Working with time-aware graphs.
+    Modeling and querying data that changes over time.
+    
+    **Topics**: Time Series, Temporal Logic
+    
+    **Difficulty**: Advanced
     
     [Open Notebook](cookbook/advanced/Temporal_Knowledge_Graphs.ipynb)
 
@@ -158,21 +285,9 @@ Deep dive into advanced features and customization.
 
 ---
 
-## 💡 Use Cases
+## 🏭 Industry Use Cases
 
-Real-world examples and applications across various industries.
-
-### Advanced RAG
-
-<div class="grid cards" markdown>
-
--   :material-robot: **GraphRAG Complete**
-    ---
-    End-to-end implementation of Graph Retrieval Augmented Generation.
-    
-    [Open Notebook](cookbook/use_cases/advanced_rag/GraphRAG_Complete.ipynb)
-
-</div>
+Real-world examples and end-to-end applications across various industries.
 
 ### Biomedical
 
@@ -180,69 +295,23 @@ Real-world examples and applications across various industries.
 
 -   :material-pill: **Drug Discovery Pipeline**
     ---
-    Accelerating drug discovery with knowledge graphs.
+    Accelerating drug discovery by connecting genes, proteins, and drugs.
+    
+    **Topics**: Bioinformatics, KG Construction
+    
+    **Difficulty**: Advanced
     
     [Open Notebook](cookbook/use_cases/biomedical/Drug_Discovery_Pipeline.ipynb)
 
 -   :material-dna: **Genomic Variant Analysis**
     ---
-    Analyzing genomic variants and their implications.
+    Analyzing genomic variants and their implications for disease.
+    
+    **Topics**: Genomics, Variant Calling
+    
+    **Difficulty**: Advanced
     
     [Open Notebook](cookbook/use_cases/biomedical/Genomic_Variant_Analysis.ipynb)
-
-</div>
-
-### Blockchain & Finance
-
-<div class="grid cards" markdown>
-
--   :material-bitcoin: **DeFi Protocol Intelligence**
-    ---
-    Analyzing decentralized finance protocols.
-    
-    [Open Notebook](cookbook/use_cases/blockchain/DeFi_Protocol_Intelligence.ipynb)
-
--   :material-finance: **Financial Data Integration**
-    ---
-    Merging financial data from multiple sources.
-    
-    [Open Notebook](cookbook/use_cases/finance/Financial_Data_Integration.ipynb)
-
--   :material-incognito: **Fraud Detection**
-    ---
-    Identifying fraudulent activities and patterns.
-    
-    [Open Notebook](cookbook/use_cases/finance/Fraud_Detection.ipynb)
-
--   :material-chart-line: **Market Intelligence**
-    ---
-    Gathering and analyzing market intelligence.
-    
-    [Open Notebook](cookbook/use_cases/finance/Market_Intelligence.ipynb)
-
-</div>
-
-### Cybersecurity
-
-<div class="grid cards" markdown>
-
--   :material-shield-alert: **Anomaly Detection**
-    ---
-    Detecting anomalies in real-time streams.
-    
-    [Open Notebook](cookbook/use_cases/cybersecurity/Anomaly_Detection_Real_Time.ipynb)
-
--   :material-shield-search: **Incident Analysis**
-    ---
-    Analyzing security incidents and breaches.
-    
-    [Open Notebook](cookbook/use_cases/cybersecurity/Incident_Analysis.ipynb)
-
--   :material-shield-link-variant: **Threat Correlation**
-    ---
-    Correlating threats across different vectors.
-    
-    [Open Notebook](cookbook/use_cases/cybersecurity/Threat_Correlation.ipynb)
 
 </div>
 
@@ -250,23 +319,233 @@ Real-world examples and applications across various industries.
 
 <div class="grid cards" markdown>
 
--   :material-hospital-box: **Clinical Reports**
+-   :material-hospital-box: **Clinical Reports Processing**
     ---
-    Processing and structuring clinical reports.
+    Processing and structuring unstructured clinical reports.
+    
+    **Topics**: NLP, Medical Records
+    
+    **Difficulty**: Intermediate
     
     [Open Notebook](cookbook/use_cases/healthcare/Clinical_Reports_Processing.ipynb)
 
 -   :material-virus: **Disease Network Analysis**
     ---
-    Analyzing disease networks and comorbidities.
+    Analyzing disease networks and comorbidities for population health.
+    
+    **Topics**: Disease Modeling, Comorbidity Networks
+    
+    **Difficulty**: Advanced
     
     [Open Notebook](cookbook/use_cases/healthcare/Disease_Network_Analysis.ipynb)
 
+-   :material-pill-multiple: **Drug Interactions Analysis**
+    ---
+    Identifying potential drug interactions and contraindications.
+    
+    **Topics**: Pharmacology, Drug Safety
+    
+    **Difficulty**: Advanced
+    
+    [Open Notebook](cookbook/use_cases/healthcare/Drug_Interactions_Analysis.ipynb)
+
+-   :material-robot-love: **Healthcare GraphRAG Hybrid**
+    ---
+    Hybrid RAG system for healthcare knowledge retrieval.
+    
+    **Topics**: RAG, Medical Knowledge, LLMs
+    
+    **Difficulty**: Advanced
+    
+    [Open Notebook](cookbook/use_cases/healthcare/Healthcare_GraphRAG_Hybrid.ipynb)
+
+-   :material-database-plus: **Medical Database Integration**
+    ---
+    Integrating multiple medical databases into unified knowledge graphs.
+    
+    **Topics**: Data Integration, Medical Databases
+    
+    **Difficulty**: Intermediate
+    
+    [Open Notebook](cookbook/use_cases/healthcare/Medical_Database_Integration.ipynb)
+
+-   :material-book-medical: **Medical Literature GraphRAG**
+    ---
+    Querying medical literature using GraphRAG for evidence-based insights.
+    
+    **Topics**: Literature Mining, Evidence-Based Medicine
+    
+    **Difficulty**: Advanced
+    
+    [Open Notebook](cookbook/use_cases/healthcare/Medical_Literature_GraphRAG.ipynb)
+
 -   :material-account-heart: **Patient Records Temporal**
     ---
-    Analyzing patient records over time.
+    Analyzing patient records over time to track health progression.
+    
+    **Topics**: Temporal Analysis, Patient Journeys
+    
+    **Difficulty**: Advanced
     
     [Open Notebook](cookbook/use_cases/healthcare/Patient_Records_Temporal.ipynb)
+
+</div>
+
+### Finance
+
+<div class="grid cards" markdown>
+
+-   :material-finance: **Financial Data Integration**
+    ---
+    Merging financial data from reports, news, and market feeds.
+    
+    **Topics**: Finance, Data Fusion
+    
+    **Difficulty**: Intermediate
+    
+    [Open Notebook](cookbook/use_cases/finance/Financial_Data_Integration.ipynb)
+
+-   :material-file-chart: **Financial Reports Analysis**
+    ---
+    Extracting insights from financial reports and earnings calls.
+    
+    **Topics**: Financial Analysis, NLP
+    
+    **Difficulty**: Intermediate
+    
+    [Open Notebook](cookbook/use_cases/finance/Financial_Reports_Analysis.ipynb)
+
+-   :material-incognito: **Fraud Detection**
+    ---
+    Identifying fraudulent activities and patterns in transaction networks.
+    
+    **Topics**: Anomaly Detection, Graph Mining
+    
+    **Difficulty**: Advanced
+    
+    [Open Notebook](cookbook/use_cases/finance/Fraud_Detection.ipynb)
+
+-   :material-chart-box: **Investment Analysis Hybrid RAG**
+    ---
+    AI-powered investment analysis using hybrid RAG approach.
+    
+    **Topics**: Investment Research, RAG, Financial Analysis
+    
+    **Difficulty**: Advanced
+    
+    [Open Notebook](cookbook/use_cases/finance/Investment_Analysis_Hybrid_RAG.ipynb)
+
+-   :material-chart-line: **Market Intelligence**
+    ---
+    Gathering and analyzing market intelligence for trading signals.
+    
+    **Topics**: Market Analysis, Sentiment Analysis
+    
+    **Difficulty**: Intermediate
+    
+    [Open Notebook](cookbook/use_cases/finance/Market_Intelligence.ipynb)
+
+-   :material-gavel: **Regulatory Compliance**
+    ---
+    Ensuring compliance with financial regulations using knowledge graphs.
+    
+    **Topics**: Compliance, Regulatory Analysis
+    
+    **Difficulty**: Advanced
+    
+    [Open Notebook](cookbook/use_cases/finance/Regulatory_Compliance.ipynb)
+
+</div>
+
+### Blockchain
+
+<div class="grid cards" markdown>
+
+-   :material-bitcoin: **DeFi Protocol Intelligence**
+    ---
+    Analyzing decentralized finance protocols and transaction flows.
+    
+    **Topics**: Blockchain, DeFi, Smart Contracts
+    
+    **Difficulty**: Advanced
+    
+    [Open Notebook](cookbook/use_cases/blockchain/DeFi_Protocol_Intelligence.ipynb)
+
+-   :material-network: **Transaction Network Analysis**
+    ---
+    Mapping and analyzing blockchain transaction networks.
+    
+    **Topics**: Blockchain Analytics, Network Analysis
+    
+    **Difficulty**: Advanced
+    
+    [Open Notebook](cookbook/use_cases/blockchain/Transaction_Network_Analysis.ipynb)
+
+</div>
+
+### Cybersecurity
+
+<div class="grid cards" markdown>
+
+-   :material-shield-alert: **Anomaly Detection Real-Time**
+    ---
+    Detecting anomalies in real-time network traffic streams.
+    
+    **Topics**: Network Security, Streaming
+    
+    **Difficulty**: Advanced
+    
+    [Open Notebook](cookbook/use_cases/cybersecurity/Anomaly_Detection_Real_Time.ipynb)
+
+-   :material-shield-search: **Incident Analysis**
+    ---
+    Analyzing security incidents and breaches using graph forensics.
+    
+    **Topics**: Incident Response, Forensics
+    
+    **Difficulty**: Intermediate
+    
+    [Open Notebook](cookbook/use_cases/cybersecurity/Incident_Analysis.ipynb)
+
+-   :material-shield-link-variant: **Threat Correlation**
+    ---
+    Correlating threats across different vectors to identify campaigns.
+    
+    **Topics**: Threat Intel, Correlation
+    
+    **Difficulty**: Advanced
+    
+    [Open Notebook](cookbook/use_cases/cybersecurity/Threat_Correlation.ipynb)
+
+-   :material-robot-angry: **Threat Intelligence Hybrid RAG**
+    ---
+    Combining RAG with threat intelligence for enhanced security insights.
+    
+    **Topics**: Threat Intelligence, RAG, Security
+    
+    **Difficulty**: Advanced
+    
+    [Open Notebook](cookbook/use_cases/cybersecurity/Threat_Intelligence_Hybrid_RAG.ipynb)
+
+-   :material-shield-plus: **Threat Intelligence Integration**
+    ---
+    Integrating threat feeds into a unified knowledge graph.
+    
+    **Topics**: STIX/TAXII, Threat Feeds, Integration
+    
+    **Difficulty**: Advanced
+    
+    [Open Notebook](cookbook/use_cases/cybersecurity/Threat_Intelligence_Integration.ipynb)
+
+-   :material-bug: **Vulnerability Tracking**
+    ---
+    Tracking and managing system vulnerabilities using knowledge graphs.
+    
+    **Topics**: CVE, Vulnerability Management
+    
+    **Difficulty**: Intermediate
+    
+    [Open Notebook](cookbook/use_cases/cybersecurity/Vulnerability_Tracking.ipynb)
 
 </div>
 
@@ -276,39 +555,171 @@ Real-world examples and applications across various industries.
 
 -   :material-account-network: **Criminal Network Analysis**
     ---
-    Analyze criminal networks with graph analytics.
+    Analyze criminal networks with graph analytics and key player detection.
+    
+    **Topics**: Forensics, Social Network Analysis
+    
+    **Difficulty**: Advanced
     
     [Open Notebook](cookbook/use_cases/intelligence/Criminal_Network_Analysis.ipynb)
 
--   :material-gavel: **Law Enforcement**
+-   :material-file-chart-outline: **Network Analysis Intelligence Reports**
     ---
-    Process forensic evidence and analyze case files.
+    Analyzing intelligence reports for network insights and patterns.
     
-    [Open Notebook](cookbook/use_cases/intelligence/Law_Enforcement_Forensics.ipynb)
-
--   :material-eye: **Intelligence Analysis**
-    ---
-    Comprehensive intelligence analysis using Orchestrator-Worker pattern.
+    **Topics**: Intelligence Analysis, Network Mapping
     
-    [Open Notebook](cookbook/use_cases/intelligence/Intelligence_Analysis.ipynb)
+    **Difficulty**: Advanced
+    
+    [Open Notebook](cookbook/use_cases/intelligence/Network_Analysis_Intelligence_Reports.ipynb)
 
 </div>
 
-### Renewable Energy & Supply Chain
+### Trading
+
+<div class="grid cards" markdown>
+
+-   :material-chart-areaspline: **Market Data Analysis**
+    ---
+    Analyzing trading market data for patterns and opportunities.
+    
+    **Topics**: Trading, Market Analysis
+    
+    **Difficulty**: Intermediate
+    
+    [Open Notebook](cookbook/use_cases/trading/Market_Data_Analysis.ipynb)
+
+-   :material-newspaper-variant: **News Sentiment Analysis**
+    ---
+    Analyzing news sentiment for trading signals and market predictions.
+    
+    **Topics**: Sentiment Analysis, Trading Signals
+    
+    **Difficulty**: Intermediate
+    
+    [Open Notebook](cookbook/use_cases/trading/News_Sentiment_Analysis.ipynb)
+
+-   :material-clock-fast: **Real-Time Market Data**
+    ---
+    Processing real-time market data for algorithmic trading.
+    
+    **Topics**: Real-Time Processing, Market Data
+    
+    **Difficulty**: Advanced
+    
+    [Open Notebook](cookbook/use_cases/trading/Real_Time_Market_Data.ipynb)
+
+-   :material-monitor-dashboard: **Real-Time Monitoring**
+    ---
+    Monitoring trading systems and positions in real-time.
+    
+    **Topics**: Monitoring, Real-Time Systems
+    
+    **Difficulty**: Advanced
+    
+    [Open Notebook](cookbook/use_cases/trading/Real_Time_Monitoring.ipynb)
+
+-   :material-shield-check: **Risk Assessment**
+    ---
+    Assessing trading risks using knowledge graphs and analytics.
+    
+    **Topics**: Risk Management, Portfolio Analysis
+    
+    **Difficulty**: Advanced
+    
+    [Open Notebook](cookbook/use_cases/trading/Risk_Assessment.ipynb)
+
+-   :material-history: **Strategy Backtesting**
+    ---
+    Backtesting trading strategies using historical data and graphs.
+    
+    **Topics**: Backtesting, Strategy Optimization
+    
+    **Difficulty**: Advanced
+    
+    [Open Notebook](cookbook/use_cases/trading/Strategy_Backtesting.ipynb)
+
+</div>
+
+### Renewable Energy
 
 <div class="grid cards" markdown>
 
 -   :material-wind-turbine: **Energy Market Analysis**
     ---
-    Analyzing trends in the energy market.
+    Analyzing trends and pricing in the renewable energy market.
+    
+    **Topics**: Energy, Time Series
+    
+    **Difficulty**: Intermediate
     
     [Open Notebook](cookbook/use_cases/renewable_energy/Energy_Market_Analysis.ipynb)
 
--   :material-truck-delivery: **Supply Chain Integration**
+-   :material-leaf: **Environmental Impact**
     ---
-    Integrating supply chain data.
+    Assessing environmental impact of energy projects and policies.
+    
+    **Topics**: Environmental Science, Impact Analysis
+    
+    **Difficulty**: Intermediate
+    
+    [Open Notebook](cookbook/use_cases/renewable_energy/Environmental_Impact.ipynb)
+
+-   :material-transmission-tower: **Grid Management**
+    ---
+    Optimizing power grid management and distribution.
+    
+    **Topics**: Grid Optimization, Energy Distribution
+    
+    **Difficulty**: Advanced
+    
+    [Open Notebook](cookbook/use_cases/renewable_energy/Grid_Management.ipynb)
+
+-   :material-solar-power: **Resource Optimization**
+    ---
+    Optimizing renewable energy resources and generation.
+    
+    **Topics**: Resource Management, Optimization
+    
+    **Difficulty**: Advanced
+    
+    [Open Notebook](cookbook/use_cases/renewable_energy/Resource_Optimization.ipynb)
+
+-   :material-truck-cargo-container: **Supply Chain Analysis**
+    ---
+    Analyzing the renewable energy supply chain for optimization.
+    
+    **Topics**: Supply Chain, Energy Sector
+    
+    **Difficulty**: Intermediate
+    
+    [Open Notebook](cookbook/use_cases/renewable_energy/Supply_Chain_Analysis.ipynb)
+
+</div>
+
+### Supply Chain
+
+<div class="grid cards" markdown>
+
+-   :material-truck-delivery: **Supply Chain Data Integration**
+    ---
+    Integrating supply chain data to optimize logistics and reduce risk.
+    
+    **Topics**: Logistics, Risk Management
+    
+    **Difficulty**: Advanced
     
     [Open Notebook](cookbook/use_cases/supply_chain/Supply_Chain_Data_Integration.ipynb)
+
+-   :material-alert-octagon: **Supply Chain Risk Management**
+    ---
+    Managing and mitigating supply chain risks using knowledge graphs.
+    
+    **Topics**: Risk Management, Supply Chain Resilience
+    
+    **Difficulty**: Advanced
+    
+    [Open Notebook](cookbook/use_cases/supply_chain/Supply_Chain_Risk_Management.ipynb)
 
 </div>
 
@@ -333,4 +744,10 @@ To run these notebooks locally:
 3.  **Launch Jupyter**:
     ```bash
     jupyter notebook
+    ```
+
+!!! tip "Using Docker"
+    You can also run the cookbook using Docker:
+    ```bash
+    docker run -p 8888:8888 hawksight/semantica-cookbook
     ```

@@ -43,7 +43,7 @@ Real-world examples and use cases for Semantica.
 
 ### Example 1: Basic Knowledge Graph
 
-**Difficulty**: Beginner | **Time**: 5 min
+**Difficulty**: Beginner
 
 Build a knowledge graph from a single document.
 
@@ -66,7 +66,7 @@ print(f"Relationships: {len(kg['relationships'])}")
 
 ### Example 2: Entity Extraction
 
-**Difficulty**: Beginner | **Time**: 5 min
+**Difficulty**: Beginner
 
 Extract entities from text using Named Entity Recognition.
 
@@ -83,7 +83,7 @@ for entity in entities["entities"]:
 
 ### Example 3: Multi-Source Integration
 
-**Difficulty**: Beginner | **Time**: 5 min
+**Difficulty**: Beginner
 
 Combine data from multiple sources into a unified knowledge graph.
 
@@ -106,7 +106,7 @@ print(f"Unified graph: {len(result['knowledge_graph']['entities'])} entities")
 
 ### Example 4: Conflict Resolution
 
-**Difficulty**: Intermediate | **Time**: 15 min
+**Difficulty**: Intermediate
 
 Resolve conflicts in data from multiple sources.
 
@@ -125,7 +125,7 @@ resolved = resolver.resolve_conflicts(conflicts)
 
 ### Example 5: Custom Configuration
 
-**Difficulty**: Intermediate | **Time**: 15 min
+**Difficulty**: Intermediate
 
 Use custom configuration for specific use cases.
 
@@ -145,7 +145,7 @@ result = semantica.build_knowledge_base(["document.pdf"])
 
 ### Example 6: Incremental Graph Building
 
-**Difficulty**: Intermediate | **Time**: 15 min
+**Difficulty**: Intermediate
 
 Build knowledge graph incrementally.
 
@@ -168,7 +168,7 @@ merged_kg = semantica.kg.merge([kg1, kg2])
 
 ### Example 7: Graph Store (Persistent Storage)
 
-**Difficulty**: Intermediate | **Time**: 30 min
+**Difficulty**: Intermediate
 
 Store and query knowledge graphs in a persistent graph database like Neo4j.
 
@@ -194,7 +194,7 @@ store.close()
 
 ### Example 8: FalkorDB for Real-Time Applications
 
-**Difficulty**: Intermediate | **Time**: 25 min
+**Difficulty**: Intermediate
 
 Ultra-fast graph queries for LLM applications using FalkorDB.
 
@@ -220,7 +220,7 @@ store.close()
 
 ### Example 9: Streaming Data Processing
 
-**Difficulty**: Advanced | **Time**: 45 min
+**Difficulty**: Advanced
 
 Process data streams in real-time.
 
@@ -242,7 +242,7 @@ for batch in stream_ingestor.stream(batch_size=100):
 
 ### Example 10: Batch Processing Large Datasets
 
-**Difficulty**: Intermediate | **Time**: 30 min
+**Difficulty**: Intermediate
 
 Process large datasets efficiently with batching.
 

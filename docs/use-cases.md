@@ -42,7 +42,7 @@ Semantica is designed to solve complex data challenges across various domains. T
     
     **Goal**: Ingest PDFs, extract entities (Authors, Concepts, Methods), and build a citation network.
     
-    **Difficulty**: Beginner | **Time**: 30 min
+    **Difficulty**: Beginner
 
 -   :material-dna: **Biomedical Knowledge Graphs**
     ---
@@ -50,7 +50,7 @@ Semantica is designed to solve complex data challenges across various domains. T
     
     **Goal**: Connect genes, proteins, drugs, and diseases from scientific literature and databases.
     
-    **Difficulty**: Intermediate | **Time**: 1-2 hours
+    **Difficulty**: Intermediate
 
 </div>
 
@@ -276,7 +276,7 @@ ontology = ontology_gen.generate_from_graph(kg)
 !!! abstract "Use Case"
     Analyze contracts and legal texts to extract clauses, identify relationships, and understand document structure.
 
-**Difficulty**: Intermediate | **Time**: 1-2 hours | **Domain**: Legal
+**Difficulty**: Intermediate| **Domain**: Legal
 
 **Prerequisites**:
 - Legal document samples (contracts, agreements)
@@ -309,7 +309,7 @@ print(f"Found {len(clause_rels)} clause relationships")
 !!! abstract "Use Case"
     Analyze social media content to extract sentiment, trends, and relationships between users and topics.
 
-**Difficulty**: Beginner | **Time**: 30 min | **Domain**: Social Media
+**Difficulty**: Beginner| **Domain**: Social Media
 
 **Prerequisites**:
 - Social media data (JSON, CSV)
@@ -341,7 +341,7 @@ print(f"Hashtags: {len(hashtags)}")
 !!! abstract "Use Case"
     Build a knowledge base from support tickets, documentation, and FAQs to improve customer service.
 
-**Difficulty**: Beginner | **Time**: 30 min | **Domain**: Customer Support
+**Difficulty**: Beginner| **Domain**: Customer Support
 
 **Prerequisites**:
 - Support tickets or documentation

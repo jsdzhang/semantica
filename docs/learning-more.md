@@ -15,7 +15,7 @@ Additional resources, tutorials, and advanced learning materials for Semantica.
     ---
     Perfect for those new to Semantica and knowledge graphs.
     
-    **Time**: 1-2 hours
+
     
     [Start Path](#beginner-path-1-2-hours)
 
@@ -23,7 +23,7 @@ Additional resources, tutorials, and advanced learning materials for Semantica.
     ---
     For users comfortable with basics who want to build production applications.
     
-    **Time**: 4-6 hours
+
     
     [Start Path](#intermediate-path-4-6-hours)
 
@@ -31,7 +31,7 @@ Additional resources, tutorials, and advanced learning materials for Semantica.
     ---
     For experienced users building enterprise applications.
     
-    **Time**: 8+ hours
+
     
     [Start Path](#advanced-path-8-hours)
 
