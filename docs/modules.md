@@ -1,135 +1,29 @@
 # Modules & Architecture
 
-Semantica is built with a modular architecture, designed to be flexible and extensible. This guide provides an overview of the key modules and their responsibilities.
+Semantica is built with a modular architecture, designed to be flexible, extensible, and scalable. This guide provides a comprehensive overview of the key modules, their responsibilities, and how they interact to build powerful semantic applications.
 
 !!! info "About This Guide"
-    This guide covers all 13 core modules in Semantica, their purposes, architecture, usage patterns, and how they integrate together.
+    This guide covers all 13 core modules in Semantica, organized by their functional layer. It details their purpose, key features, usage patterns, and configuration options.
 
 ---
 
-## Table of Contents
+## Module Overview
 
-- [Prerequisites](#prerequisites)
-- [Module Dependency Diagram](#module-dependency-diagram)
-- [Module Selection Guide](#module-selection-guide)
-- [Core Modules](#core-modules)
-- [Integration Patterns](#integration-patterns)
-- [Performance Considerations](#performance-considerations)
+Semantica's modules are organized into five logical layers. You can use these modules independently or combine them into a complete pipeline.
 
----
-
-## Prerequisites
-
-Before reading this guide, you should:
-
-- Understand basic Python programming
-- Be familiar with the [Core Concepts](concepts.md)
-- Have Semantica installed (see [Installation Guide](installation.md))
-- Understand basic data structures and algorithms
+| Layer | Modules | Description |
+| :--- | :--- | :--- |
+| **Input Layer** | [Ingest](#1-ingest-module), [Parse](#2-parse-module), [Normalize](#3-normalize-module) | Handles data ingestion, parsing, and cleaning from various sources. |
+| **Core Processing** | [Semantic Extract](#4-semantic-extract-module), [Knowledge Graph](#5-knowledge-graph-kg-module), [Ontology](#10-ontology-module), [Reasoning](#9-reasoning-module) | The "brain" of the system. Extracts meaning, builds graphs, and infers new knowledge. |
+| **Storage & Embeddings** | [Embeddings](#6-embeddings-module), [Vector Store](#7-vector-store-module), [Graph Store](#8-graph-store-module) | Manages persistent storage and retrieval of vectors and graphs. |
+| **Output Layer** | [Export](#11-export-module), [Visualization](#12-visualization-module) | Tools for visualizing data and exporting it to external systems. |
+| **Orchestration** | [Pipeline](#13-pipeline-module) | Manages workflows, execution, and resource scheduling. |
 
 ---
 
-## Module Dependency Diagram
+## Input Layer
 
-The following diagram shows how modules depend on and interact with each other:
-
-```mermaid
-graph TB
-    subgraph Input["Input Layer"]
-        Ingest[Ingest Module]
-        Parse[Parse Module]
-        Norm[Normalize Module]
-    end
-    
-    subgraph Core["Core Processing"]
-        Extract[Semantic Extract]
-        KG[Knowledge Graph]
-        Onto[Ontology]
-    end
-    
-    subgraph Storage["Storage Layer"]
-        VS[Vector Store]
-        TS[Triple Store]
-        GS[Graph Store]
-    end
-    
-    subgraph Output["Output Layer"]
-        Export[Export Module]
-        Viz[Visualization]
-        Reason[Reasoning]
-    end
-    
-    subgraph Support["Support Modules"]
-        Embed[Embeddings]
-        Pipeline[Pipeline]
-    end
-    
-    Ingest --> Parse
-    Parse --> Norm
-    Norm --> Extract
-    Extract --> KG
-    KG --> Onto
-    KG --> VS
-    KG --> TS
-    KG --> GS
-    Extract --> Embed
-    Embed --> VS
-    KG --> Export
-    KG --> Viz
-    KG --> Reason
-    Onto --> KG
-    Pipeline --> Ingest
-    Pipeline --> Parse
-    Pipeline --> Extract
-    Pipeline --> KG
-    
-    style Ingest fill:#e1f5fe,stroke:#01579b
-    style Extract fill:#e8f5e9,stroke:#1b5e20
-    style KG fill:#fff3e0,stroke:#ef6c00,stroke-width:3px
-    style VS fill:#f3e5f5,stroke:#7b1fa2
-    style Pipeline fill:#ffebee,stroke:#c62828
-```
-
----
-
-## Module Selection Guide
-
-Use this flowchart to determine which modules you need for your use case:
-
-```mermaid
-flowchart TD
-    Start[What do you want to do?] --> Q1{Process Documents?}
-    Q1 -->|Yes| Ingest[Ingest, Parse, Normalize]
-    Q1 -->|No| Q2{Extract Knowledge?}
-    
-    Q2 -->|Yes| Extract[Semantic Extract, KG]
-    Q2 -->|No| Q3{Store Data?}
-    
-    Q3 -->|Vectors| VS[Embeddings, Vector Store]
-    Q3 -->|Graph| GS[Graph Store]
-    Q3 -->|Triples| TS[Triple Store]
-    Q3 -->|No| Q4{Visualize?}
-    
-    Q4 -->|Yes| Viz[Visualization]
-    Q4 -->|No| Q5{Export?}
-    
-    Q5 -->|Yes| Export[Export]
-    Q5 -->|No| Q6{Reason/Infer?}
-    
-    Q6 -->|Yes| Reason[Reasoning]
-    Q6 -->|No| Onto[Ontology]
-    
-    style Ingest fill:#e1f5fe
-    style Extract fill:#e8f5e9
-    style VS fill:#f3e5f5
-    style GS fill:#fff3e0
-```
-
----
-
-## Core Modules
-
-Semantica is organized into 13 core modules. Below is a detailed breakdown of each.
+These modules are responsible for getting data into the system and preparing it for processing.
 
 ### 1. Ingest Module
 
@@ -207,15 +101,6 @@ mcp_docs = mcp_ingestor.ingest("https://your-mcp-server.com")
 | `timeout`      | `int`       | `30`    | Request timeout in seconds           |
 | `user_agent`   | `str`       | `None`  | Custom user agent for web requests   |
 
-**Common Use Cases**:
-
-- Processing document collections
-- Scraping websites for content
-- Extracting data from databases
-- Processing email archives
-- Real-time data streaming
-- Integrating with MCP servers
-
 **API Reference**: [Ingest Module](reference/ingest.md)
 
 ### 2. Parse Module
@@ -278,13 +163,6 @@ for doc in parsed_docs:
 | `ocr_enabled`   | `bool` | `False` | Enable OCR for images            |
 | `extract_tables`| `bool` | `True`  | Extract tables from documents    |
 | `extract_images`| `bool` | `False` | Extract and process images       |
-
-**Common Use Cases**:
-- Extracting text from PDFs
-- Parsing spreadsheets
-- OCR from scanned documents
-- Extracting web content
-- Parsing code repositories
 
 **API Reference**: [Parse Module](reference/parse.md)
 
@@ -349,14 +227,13 @@ for doc in normalized:
 | `normalize_numbers`  | `bool` | `True`  | Normalize numeric values      |
 | `detect_language`    | `bool` | `False` | Detect document language      |
 
-**Common Use Cases**:
-- Cleaning noisy text data
-- Standardizing date formats
-- Normalizing entity names
-- Multi-language support
-- Number format standardization
-
 **API Reference**: [Normalize Module](reference/normalize.md)
+
+---
+
+## Core Processing Layer
+
+These modules form the intelligence of Semantica, extracting meaning, building relationships, and inferring new knowledge.
 
 ### 4. Semantic Extract Module
 
@@ -420,13 +297,6 @@ for rel in relationships[:5]:
 | `model`               | `str`       | `None`  | Model name for ML/LLM methods   |
 | `confidence_threshold`| `float`     | `0.5`   | Minimum confidence score         |
 | `custom_entity_types`| `List[str]` | `[]`    | Custom entity types              |
-
-**Common Use Cases**:
-- Named entity recognition
-- Relationship extraction
-- Semantic analysis
-- Knowledge extraction
-- Information extraction
 
 **API Reference**: [Semantic Extract Module](reference/semantic_extract.md)
 
@@ -500,14 +370,140 @@ print(f"Communities: {metrics['communities']}")
 | `temporal`        | `bool` | `False`       | Enable temporal graph support        |
 | `merge_duplicates`| `bool` | `True`        | Automatically merge duplicate entities|
 
-**Common Use Cases**:
-- Building knowledge graphs
-- Graph analytics
-- Community detection
-- Temporal analysis
-- Relationship modeling
-
 **API Reference**: [Knowledge Graph Module](reference/kg.md)
+
+### 9. Reasoning Module
+
+!!! abstract "Purpose"
+    Goes beyond simple retrieval to infer new facts and validate existing knowledge using logical rules.
+
+**Key Features**:
+- Forward and backward chaining
+- Rule-based inference
+- Deductive and abductive reasoning
+- Explanation generation
+- RETE algorithm support
+- Custom rule definition
+
+**Input/Output Specification**:
+
+| Input           | Type                | Description                          |
+| :-------------- | :------------------ | :----------------------------------- |
+| `knowledge_graph`| `KnowledgeGraph`   | Input knowledge graph                |
+| `rules`         | `List[Rule]`       | Inference rules                      |
+| `method`        | `str`              | Reasoning method                     |
+
+| Output        | Type                | Description                          |
+| :------------ | :------------------ | :----------------------------------- |
+| `new_facts`   | `List[Fact]`        | Inferred facts                       |
+| `explanations`| `List[Explanation]`  | Reasoning explanations               |
+
+**Components**:
+- `InferenceEngine`: Main inference orchestrator
+- `RuleManager`: Manage inference rules
+- `DeductiveReasoner`: Deductive reasoning
+- `AbductiveReasoner`: Abductive reasoning
+- `ExplanationGenerator`: Generate explanations for inferences
+- `RETEEngine`: RETE algorithm for rule matching
+
+**Complete Code Example**:
+
+```python
+from semantica.reasoning import InferenceEngine, RuleManager
+
+inference_engine = InferenceEngine()
+rule_manager = RuleManager()
+
+# Define rules
+rules = [
+    "IF Person worksFor Company AND Company locatedIn City THEN Person livesIn City",
+    "IF Person hasFriend Person2 AND Person2 hasFriend Person3 THEN Person knows Person3"
+]
+
+rule_manager.add_rules(rules)
+
+# Perform inference
+new_facts = inference_engine.forward_chain(kg, rule_manager)
+print(f"Inferred {len(new_facts)} new facts")
+
+# Get explanations
+for fact in new_facts:
+    explanation = inference_engine.explain(fact)
+    print(f"{fact}: {explanation}")
+```
+
+**Configuration Options**:
+
+| Option          | Type   | Default           | Description                  |
+| :-------------- | :----- | :---------------- | :--------------------------- |
+| `method`        | `str`  | `"forward_chain"` | Reasoning method             |
+| `max_iterations`| `int`  | `100`             | Maximum inference iterations |
+
+**API Reference**: [Reasoning Module](reference/reasoning.md)
+
+### 10. Ontology Module
+
+!!! abstract "Purpose"
+    Defines the schema and structure of your knowledge domain, ensuring consistency and enabling interoperability.
+
+**Key Features**:
+- Automatic ontology generation (6-stage pipeline)
+- OWL/RDF export
+- Class and property inference
+- Ontology validation
+- Symbolic reasoning (HermiT, Pellet)
+- Version management
+
+**Input/Output Specification**:
+
+| Input           | Type              | Description                          |
+| :-------------- | :---------------- | :----------------------------------- |
+| `knowledge_graph`| `KnowledgeGraph` | Input knowledge graph                |
+| `base_uri`      | `str`             | Base URI for ontology                |
+
+| Output      | Type        | Description                          |
+| :---------- | :---------- | :----------------------------------- |
+| `ontology`  | `Ontology`  | Generated ontology                   |
+| `owl_content`| `str`      | OWL/Turtle format                    |
+
+**Components**:
+- `OntologyGenerator`: Generate ontologies from knowledge graphs
+- `OntologyValidator`: Validate ontology structure
+- `OWLGenerator`: Generate OWL format ontologies
+- `PropertyGenerator`: Generate ontology properties
+- `ClassInferrer`: Infer ontology classes
+
+**Complete Code Example**:
+
+```python
+from semantica.ontology import OntologyGenerator
+
+generator = OntologyGenerator(base_uri="https://example.org/ontology/")
+ontology = generator.generate_from_graph(kg)
+
+# Validate ontology
+validator = generator.validate(ontology)
+print(f"Valid: {validator.is_valid}")
+
+# Export to OWL
+owl_content = generator.export_owl(ontology, format="turtle")
+print(f"Generated {len(owl_content)} lines of OWL")
+```
+
+**Configuration Options**:
+
+| Option    | Type   | Default    | Description                  |
+| :-------- | :----- | :--------- | :--------------------------- |
+| `base_uri`| `str`  | `None`     | Base URI for ontology        |
+| `reasoner`| `str`  | `"hermit"` | Reasoner (hermit/pellet)     |
+
+**API Reference**: [Ontology Module](reference/ontology.md)
+
+---
+
+## Storage & Embeddings Layer
+
+These modules handle the persistence and retrieval of data, both as vectors and as graphs.
 
 ### 6. Embeddings Module
 
@@ -569,12 +565,6 @@ print(f"Similarity: {similarity:.3f}")
 | `batch_size`| `int`  | `100`       | Batch size for processing    |
 | `cache`     | `bool` | `True`      | Enable caching               |
 
-**Common Use Cases**:
-- Semantic search
-- Similarity calculation
-- RAG applications
-- Clustering and classification
-
 **API Reference**: [Embeddings Module](reference/embeddings.md)
 
 ### 7. Vector Store Module
@@ -635,12 +625,6 @@ for result in results:
 | `backend`      | `str`  | `"faiss"` | Vector store backend         |
 | `index_type`   | `str`  | `"flat"`  | FAISS index type             |
 | `hybrid_search`| `bool` | `True`    | Enable hybrid search          |
-
-**Common Use Cases**:
-- Semantic search
-- Document retrieval
-- RAG applications
-- Similarity matching
 
 **API Reference**: [Vector Store Module](reference/vector_store.md)
 
@@ -716,153 +700,13 @@ node = create_node(labels=["Entity"], properties={"name": "Test"})
 | `uri`      | `str`  | `None`    | Database connection URI      |
 | `database` | `str`  | `"neo4j"` | Database name                |
 
-**Common Use Cases**:
-- Persistent graph storage
-- Complex graph queries
-- Graph analytics
-- Production deployments
-- High-performance applications
-
 **API Reference**: [Graph Store Module](reference/graph_store.md)
 
-### 9. Reasoning Module
+---
 
-!!! abstract "Purpose"
-    Goes beyond simple retrieval to infer new facts and validate existing knowledge using logical rules.
+## Output Layer
 
-**Key Features**:
-- Forward and backward chaining
-- Rule-based inference
-- Deductive and abductive reasoning
-- Explanation generation
-- RETE algorithm support
-- Custom rule definition
-
-**Input/Output Specification**:
-
-| Input           | Type                | Description                          |
-| :-------------- | :------------------ | :----------------------------------- |
-| `knowledge_graph`| `KnowledgeGraph`   | Input knowledge graph                |
-| `rules`         | `List[Rule]`       | Inference rules                      |
-| `method`        | `str`              | Reasoning method                     |
-
-| Output        | Type                | Description                          |
-| :------------ | :------------------ | :----------------------------------- |
-| `new_facts`   | `List[Fact]`        | Inferred facts                       |
-| `explanations`| `List[Explanation]`  | Reasoning explanations               |
-
-**Components**:
-- `InferenceEngine`: Main inference orchestrator
-- `RuleManager`: Manage inference rules
-- `DeductiveReasoner`: Deductive reasoning
-- `AbductiveReasoner`: Abductive reasoning
-- `ExplanationGenerator`: Generate explanations for inferences
-- `RETEEngine`: RETE algorithm for rule matching
-
-**Complete Code Example**:
-
-```python
-from semantica.reasoning import InferenceEngine, RuleManager
-
-inference_engine = InferenceEngine()
-rule_manager = RuleManager()
-
-# Define rules
-rules = [
-    "IF Person worksFor Company AND Company locatedIn City THEN Person livesIn City",
-    "IF Person hasFriend Person2 AND Person2 hasFriend Person3 THEN Person knows Person3"
-]
-
-rule_manager.add_rules(rules)
-
-# Perform inference
-new_facts = inference_engine.forward_chain(kg, rule_manager)
-print(f"Inferred {len(new_facts)} new facts")
-
-# Get explanations
-for fact in new_facts:
-    explanation = inference_engine.explain(fact)
-    print(f"{fact}: {explanation}")
-```
-
-**Configuration Options**:
-
-| Option          | Type   | Default           | Description                  |
-| :-------------- | :----- | :---------------- | :--------------------------- |
-| `method`        | `str`  | `"forward_chain"` | Reasoning method             |
-| `max_iterations`| `int`  | `100`             | Maximum inference iterations |
-
-**Common Use Cases**:
-- Logical inference
-- Fact discovery
-- Knowledge validation
-- Rule-based systems
-
-**API Reference**: [Reasoning Module](reference/reasoning.md)
-
-### 10. Ontology Module
-
-!!! abstract "Purpose"
-    Defines the schema and structure of your knowledge domain, ensuring consistency and enabling interoperability.
-
-**Key Features**:
-- Automatic ontology generation (6-stage pipeline)
-- OWL/RDF export
-- Class and property inference
-- Ontology validation
-- Symbolic reasoning (HermiT, Pellet)
-- Version management
-
-**Input/Output Specification**:
-
-| Input           | Type              | Description                          |
-| :-------------- | :---------------- | :----------------------------------- |
-| `knowledge_graph`| `KnowledgeGraph` | Input knowledge graph                |
-| `base_uri`      | `str`             | Base URI for ontology                |
-
-| Output      | Type        | Description                          |
-| :---------- | :---------- | :----------------------------------- |
-| `ontology`  | `Ontology`  | Generated ontology                   |
-| `owl_content`| `str`      | OWL/Turtle format                    |
-
-**Components**:
-- `OntologyGenerator`: Generate ontologies from knowledge graphs
-- `OntologyValidator`: Validate ontology structure
-- `OWLGenerator`: Generate OWL format ontologies
-- `PropertyGenerator`: Generate ontology properties
-- `ClassInferrer`: Infer ontology classes
-
-**Complete Code Example**:
-
-```python
-from semantica.ontology import OntologyGenerator
-
-generator = OntologyGenerator(base_uri="https://example.org/ontology/")
-ontology = generator.generate_from_graph(kg)
-
-# Validate ontology
-validator = generator.validate(ontology)
-print(f"Valid: {validator.is_valid}")
-
-# Export to OWL
-owl_content = generator.export_owl(ontology, format="turtle")
-print(f"Generated {len(owl_content)} lines of OWL")
-```
-
-**Configuration Options**:
-
-| Option    | Type   | Default    | Description                  |
-| :-------- | :----- | :--------- | :--------------------------- |
-| `base_uri`| `str`  | `None`     | Base URI for ontology        |
-| `reasoner`| `str`  | `"hermit"` | Reasoner (hermit/pellet)     |
-
-**Common Use Cases**:
-- Schema definition
-- Data integration
-- Consistency validation
-- Semantic web applications
-
-**API Reference**: [Ontology Module](reference/ontology.md)
+These modules handle the export and visualization of your data.
 
 ### 11. Export Module
 
@@ -922,12 +766,6 @@ csv_exporter.export(kg, "output.csv")
 | `format`         | `str`  | `"json"`   | Export format                |
 | `include_metadata`| `bool`| `True`     | Include metadata             |
 | `pretty_print`   | `bool` | `False`    | Pretty print JSON            |
-
-**Common Use Cases**:
-- Data portability
-- Integration with other tools
-- Backup and archival
-- Data analysis
 
 **API Reference**: [Export Module](reference/export.md)
 
@@ -993,13 +831,13 @@ embed_visualizer.visualize(
 | `layout`       | `str`  | `"force"`  | Graph layout algorithm       |
 | `max_nodes`    | `int`  | `1000`     | Maximum nodes to visualize   |
 
-**Common Use Cases**:
-- Graph exploration
-- Data analysis
-- Quality assessment
-- Presentation and reporting
-
 **API Reference**: [Visualization Module](reference/visualization.md)
+
+---
+
+## Orchestration
+
+This layer connects all other modules into a cohesive workflow.
 
 ### 13. Pipeline Module
 
@@ -1060,12 +898,6 @@ print(f"Processed {len(result.documents)} documents")
 | `parallel`       | `bool` | `False` | Enable parallel execution     |
 | `max_workers`    | `int`  | `4`     | Maximum parallel workers      |
 | `retry_on_failure`| `bool`| `True`  | Retry failed steps            |
-
-**Common Use Cases**:
-- End-to-end workflows
-- Performance optimization
-- Error handling
-- Batch processing
 
 **API Reference**: [Pipeline Module](reference/pipeline.md)
 

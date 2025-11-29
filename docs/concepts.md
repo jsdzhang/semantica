@@ -7,117 +7,7 @@ Understand the fundamental concepts behind Semantica. This guide covers the theo
 
 ---
 
-## Table of Contents
 
-- [Prerequisites](#prerequisites)
-- [Learning Objectives](#learning-objectives)
-- [Concept Map](#concept-map)
-- [Core Concepts](#core-concepts)
-  - [Knowledge Graphs](#1-knowledge-graphs)
-  - [Entity Extraction (NER)](#2-entity-extraction-ner)
-  - [Relationship Extraction](#3-relationship-extraction)
-  - [Embeddings](#4-embeddings)
-  - [Temporal Graphs](#5-temporal-graphs)
-  - [GraphRAG](#6-graphrag)
-  - [Ontology](#7-ontology)
-  - [Quality Assurance](#8-quality-assurance)
-  - [Deduplication & Entity Resolution](#9-deduplication--entity-resolution)
-  - [Data Normalization](#10-data-normalization)
-  - [Conflict Detection](#11-conflict-detection)
-- [Comparison Tables](#comparison-tables)
-- [Best Practices](#best-practices)
-- [Troubleshooting](#troubleshooting)
-
----
-
-## Prerequisites
-
-Before diving into the core concepts, you should have:
-
-- Basic understanding of Python programming
-- Familiarity with data structures (lists, dictionaries, graphs)
-- General knowledge of machine learning concepts (helpful but not required)
-- Understanding of text processing basics
-
-!!! tip "New to Knowledge Graphs?"
-    If you're completely new to knowledge graphs, start with the [Getting Started Guide](getting-started.md) and [Quickstart Tutorial](quickstart.md) before reading this guide.
-
----
-
-## Learning Objectives
-
-By the end of this guide, you will understand:
-
-- What knowledge graphs are and how they represent information
-- How entity and relationship extraction works
-- The role of embeddings in semantic understanding
-- How temporal graphs track changes over time
-- How GraphRAG enhances LLM applications
-- The importance of ontologies and quality assurance
-- How to resolve conflicts and deduplicate entities
-- When to use each concept in your applications
-
----
-
-## Concept Map
-
-The following diagram shows how the core concepts in Semantica relate to each other:
-
-```mermaid
-graph TB
-    subgraph Data["Data Sources"]
-        Raw[Raw Data]
-    end
-    
-    subgraph Processing["Processing Pipeline"]
-        Ingest[Ingestion]
-        Parse[Parsing]
-        Norm[Normalization]
-        Extract[Entity/Relation Extraction]
-    end
-    
-    subgraph Core["Core Concepts"]
-        KG[Knowledge Graph]
-        Embed[Embeddings]
-        Temp[Temporal Graphs]
-        Onto[Ontology]
-    end
-    
-    subgraph Quality["Quality Assurance"]
-        Dedup[Deduplication]
-        Conflict[Conflict Detection]
-        QA[Quality Metrics]
-    end
-    
-    subgraph Application["Applications"]
-        GraphRAG[GraphRAG]
-        Search[Semantic Search]
-        Reason[Reasoning]
-    end
-    
-    Raw --> Ingest
-    Ingest --> Parse
-    Parse --> Norm
-    Norm --> Extract
-    Extract --> KG
-    Extract --> Embed
-    KG --> Temp
-    KG --> Onto
-    KG --> Dedup
-    KG --> Conflict
-    Dedup --> QA
-    Conflict --> QA
-    KG --> GraphRAG
-    Embed --> Search
-    KG --> Reason
-    Onto --> QA
-    
-    style KG fill:#e3f2fd,stroke:#1565c0,stroke-width:3px
-    style Embed fill:#fff3e0,stroke:#ef6c00,stroke-width:2px
-    style GraphRAG fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
-```
-
----
 
 ## Core Concepts
 
@@ -126,23 +16,29 @@ graph TB
 !!! abstract "Definition"
     A **knowledge graph** is a structured representation of entities (nodes) and their relationships (edges) with properties and attributes. It transforms unstructured data into a queryable, interconnected knowledge base.
 
-**Key Components**:
+<div class="grid cards" markdown>
 
-- **Nodes (Entities)**: Represent real-world objects, concepts, or events
-    - Examples: People, Organizations, Locations, Concepts
-- **Edges (Relationships)**: Represent connections between entities
-    - Examples: `works_for`, `located_in`, `founded_by`, `causes`
-- **Properties**: Attributes of entities and relationships
-    - Examples: Name, Date, Confidence Score, Source
-- **Metadata**: Additional information about the data
-    - Examples: Source documents, timestamps, extraction methods
+-   **Nodes (Entities)**
+    ---
+    Represent real-world objects, concepts, or events.
+    *Examples*: People, Organizations, Locations, Concepts
 
-??? info "Deep Dive: Graph Theory Basics"
-    At its core, a knowledge graph is a directed multigraph $G = (V, E)$ where:
-    - $V$ is a set of vertices (entities)
-    - $E$ is a set of edges (relationships)
-    - Edges are directed: $(u, v) \in E$ implies a relationship from $u$ to $v$
-    - Multigraph property allows multiple edges between the same pair of vertices (e.g., "Friend" and "Colleague")
+-   **Edges (Relationships)**
+    ---
+    Represent connections between entities.
+    *Examples*: `works_for`, `located_in`, `founded_by`, `causes`
+
+-   **Properties**
+    ---
+    Attributes of entities and relationships.
+    *Examples*: Name, Date, Confidence Score, Source
+
+-   **Metadata**
+    ---
+    Additional information about the data.
+    *Examples*: Source documents, timestamps, extraction methods
+
+</div>
 
 **Visual Example**:
 
@@ -185,14 +81,6 @@ print(f"Relationships: {len(kg['relationships'])}")
 for entity in kg['entities'][:5]:
     print(f"- {entity.get('text', 'N/A')}: {entity.get('type', 'N/A')}")
 ```
-
-**When to Use**:
-
-- You need to model complex relationships between entities
-- You want to query data using graph patterns
-- You need to track how information changes over time
-- You're building a semantic search or RAG application
-- You need to integrate data from multiple sources
 
 **Related Modules**:
 
@@ -262,35 +150,6 @@ for entity in kg['entities'][:5]:
     ner = NamedEntityRecognizer(method="llm", model="gpt-4")
     entities = ner.extract_entities(text)
     ```
-
-**Practical Example**:
-
-```python
-from semantica.semantic_extract import NamedEntityRecognizer
-
-# Initialize NER
-ner = NamedEntityRecognizer()
-
-# Extract entities from text
-text = """
-Apple Inc. was founded by Steve Jobs in Cupertino, California in 1976.
-The company designs and manufactures consumer electronics and software.
-Tim Cook is the current CEO of Apple.
-"""
-
-entities = ner.extract_entities(text)
-
-print("Extracted Entities:")
-for entity in entities:
-    print(f"  - {entity.text} ({entity.label}) - Confidence: {entity.confidence:.2f}")
-```
-
-**When to Use**:
-
-- You need to identify key entities in unstructured text
-- You're building a knowledge graph from documents
-- You want to extract structured information from text
-- You need to categorize mentions in your data
 
 **Related Modules**:
 - [`semantic_extract` Module](reference/semantic_extract.md) - Entity and relationship extraction
@@ -363,32 +222,6 @@ graph LR
     style F fill:#e3f2fd
 ```
 
-**Practical Example**:
-
-```python
-from semantica.semantic_extract import NamedEntityRecognizer, RelationExtractor
-
-# Extract entities first
-ner = NamedEntityRecognizer()
-entities = ner.extract_entities(text)
-
-# Extract relationships
-rel_extractor = RelationExtractor()
-relationships = rel_extractor.extract_relations(text, entities=entities)
-
-print("Extracted Relationships:")
-for rel in relationships:
-    print(f"  {rel.subject.text} --[{rel.predicate}]--> {rel.object.text}")
-    print(f"    Confidence: {rel.confidence:.2f}, Source: {rel.source}")
-```
-
-**When to Use**:
-
-- You need to connect entities in your knowledge graph
-- You want to understand how entities relate to each other
-- You're building a semantic network
-- You need to model complex relationships
-
 **Related Modules**:
 - [`semantic_extract` Module](reference/semantic_extract.md) - Relationship extraction
 - [`kg` Module](reference/kg.md) - Building graphs from relationships
@@ -428,39 +261,6 @@ Embedding: [0.123, -0.456, 0.789, ..., 0.234]  # (vector of 1536 dimensions)
 | **HuggingFace** | sentence-transformers | 384-768 | Medium | Free | Development, open source |
 | **Local** | Various | Variable | Slow | Free | Privacy, offline use |
 
-**Practical Example**:
-
-```python
-from semantica.embeddings import EmbeddingGenerator
-
-# Initialize embedding generator
-generator = EmbeddingGenerator(
-    provider="openai",
-    model="text-embedding-3-small"
-)
-
-# Generate embeddings
-texts = [
-    "Machine learning is a subset of artificial intelligence",
-    "Deep learning uses neural networks",
-    "Python is a programming language"
-]
-
-embeddings = generator.generate(texts)
-
-# Find similar texts
-similarity = generator.similarity(embeddings[0], embeddings[1])
-print(f"Similarity: {similarity:.2f}")  # High similarity
-```
-
-**When to Use**:
-
-- You need semantic search capabilities
-- You want to find similar documents or concepts
-- You're building a RAG application
-- You need to cluster or classify text
-- You want to measure semantic similarity
-
 **Related Modules**:
 - [`embeddings` Module](reference/embeddings.md) - Embedding generation
 - [`vector_store` Module](reference/vector_store.md) - Vector storage and search
@@ -493,45 +293,6 @@ timeline
     2023 : Entity C properties updated
          : Relationship A->B expired
 ```
-
-**Practical Example**:
-
-```python
-from semantica import Semantica
-
-semantica = Semantica(temporal=True)
-
-# Build temporal knowledge graph
-result = semantica.build_knowledge_base(
-    sources=["historical_data.pdf"],
-    temporal=True
-)
-
-kg = result["knowledge_graph"]
-
-# Query graph at specific time
-historical_state = semantica.kg.query_at_time(
-    kg,
-    timestamp="2022-01-01",
-    query="MATCH (e:Entity) RETURN e"
-)
-
-# Track entity changes
-changes = semantica.kg.get_entity_history(
-    kg,
-    entity_id="entity_123",
-    start_time="2020-01-01",
-    end_time="2023-12-31"
-)
-```
-
-**When to Use**:
-
-- You need to track how information changes over time
-- You're analyzing historical data
-- You need to query past states of your knowledge
-- You're building time-aware applications
-- You need to detect trends and patterns over time
 
 **Related Modules**:
 - [`kg` Module](reference/kg.md) - Temporal graph support
@@ -583,39 +344,6 @@ flowchart TD
 | **Complex Queries** | Limited | Excellent |
 | **Relationship Awareness** | No | Yes |
 
-**Practical Example**:
-
-```python
-from semantica import Semantica
-
-semantica = Semantica()
-
-# Build knowledge base with graph
-result = semantica.build_knowledge_base(
-    sources=["documents/"],
-    embeddings=True,
-    graph=True
-)
-
-# Use GraphRAG for querying
-answer = semantica.graphrag.query(
-    query="What is the relationship between Company A and Company B?",
-    knowledge_graph=result["knowledge_graph"],
-    embeddings=result["embeddings"],
-    top_k=5
-)
-
-print(answer)
-```
-
-**When to Use**:
-
-- You're building a RAG application
-- You need accurate, context-aware answers
-- You want to reduce LLM hallucinations
-- You need to answer complex, multi-hop questions
-- You need relationship-aware retrieval
-
 **Related Modules**:
 - [`kg` Module](reference/kg.md) - Knowledge graph construction
 - [`vector_store` Module](reference/vector_store.md) - Vector search
@@ -658,34 +386,6 @@ classDiagram
     Company --> Location : locatedIn
 ```
 
-**Practical Example**:
-
-```python
-from semantica.ontology import OntologyGenerator
-
-# Generate ontology from knowledge graph
-generator = OntologyGenerator()
-
-ontology = generator.generate_from_graph(
-    knowledge_graph=kg,
-    base_uri="https://example.org/ontology/"
-)
-
-# Validate ontology
-validator = generator.validate(ontology)
-
-# Export to OWL
-generator.export_owl(ontology, "output.owl")
-```
-
-**When to Use**:
-
-- You need to define a consistent schema for your domain
-- You want to ensure data consistency
-- You're integrating with other systems
-- You need to enforce constraints and rules
-- You want to enable reasoning
-
 **Related Modules**:
 - [`ontology` Module](reference/ontology.md) - Ontology generation and management
 - [`kg` Module](reference/kg.md) - Knowledge graph construction
@@ -706,33 +406,6 @@ generator.export_owl(ontology, "output.owl")
 | **Accuracy** | Correctness of extracted information | Precision, recall, F1-score |
 | **Coverage** | Breadth of domain coverage | Entity diversity, relationship types |
 | **Freshness** | How up-to-date the data is | Last update timestamp, staleness |
-
-**Quality Metrics Example**:
-
-```python
-from semantica.kg_qa import KGQualityAssessor
-
-# Assess knowledge graph quality
-assessor = KGQualityAssessor()
-metrics = assessor.assess(kg)
-
-print(f"Completeness: {metrics.completeness:.2%}")
-print(f"Consistency: {metrics.consistency:.2%}")
-print(f"Accuracy: {metrics.accuracy:.2%}")
-print(f"Coverage: {metrics.coverage:.2%}")
-
-# Get quality report
-report = assessor.generate_report(kg)
-print(report)
-```
-
-**When to Use**:
-
-- You need to validate your knowledge graph
-- You want to ensure data quality
-- You're preparing data for production
-- You need to identify data issues
-- You want to measure improvement over time
 
 **Related Modules**:
 - [`kg_qa` Module](reference/evals.md) - Quality assurance and evaluation
@@ -755,36 +428,6 @@ print(report)
 
 Deduplication works by calculating similarity between entities. If similarity exceeds a threshold, entities are merged; otherwise, they remain separate.
 
-**Practical Example**:
-
-```python
-from semantica.deduplication import Deduplicator
-
-# Initialize deduplicator
-deduplicator = Deduplicator(
-    similarity_threshold=0.85,
-    method="embedding"
-)
-
-# Detect duplicates
-duplicates = deduplicator.detect_duplicates(kg)
-
-# Merge duplicates
-merged_kg = deduplicator.merge(kg, duplicates)
-
-print(f"Original entities: {len(kg['entities'])}")
-print(f"Merged entities: {len(merged_kg['entities'])}")
-print(f"Duplicates found: {len(duplicates)}")
-```
-
-**When to Use**:
-
-- You're integrating data from multiple sources
-- You have variations in entity names
-- You want to reduce graph redundancy
-- You need to improve query accuracy
-- You're cleaning your knowledge graph
-
 **Related Modules**:
 - [`deduplication` Module](../semantica/deduplication/deduplication_usage.md) - Deduplication and merging
 - [`embeddings` Module](reference/embeddings.md) - Similarity calculation
@@ -795,14 +438,6 @@ print(f"Duplicates found: {len(duplicates)}")
 
 !!! abstract "Definition"
     **Data Normalization** is the process of cleaning and standardizing data into a consistent format, ensuring uniformity across your knowledge graph.
-
-**Normalization Steps**:
-
-1. **Text Cleaning**: Remove noise, fix encoding issues
-2. **Entity Normalization**: Standardize entity names and formats
-3. **Date Normalization**: Convert dates to ISO format
-4. **Number Normalization**: Standardize numeric formats
-5. **Language Detection**: Identify and handle multiple languages
 
 **Normalization Pipeline**:
 
@@ -817,36 +452,6 @@ flowchart LR
     style Raw fill:#ffcdd2
     style Normalized fill:#c8e6c9
 ```
-
-**Practical Example**:
-
-```python
-from semantica.normalize import TextNormalizer
-
-# Initialize normalizer
-normalizer = TextNormalizer()
-
-# Normalize text
-raw_text = "Apple Inc. was founded on April 1, 1976 in Cupertino, CA."
-normalized = normalizer.normalize(raw_text)
-
-# Normalize entities
-entities = [
-    {"text": "Apple Inc.", "type": "ORG"},
-    {"text": "apple inc", "type": "ORG"},  # Duplicate with different case
-]
-
-normalized_entities = normalizer.normalize_entities(entities)
-# Result: Both normalized to "Apple Inc."
-```
-
-**When to Use**:
-
-- You have inconsistent data formats
-- You're processing data from multiple sources
-- You need to standardize entity names
-- You want to improve extraction accuracy
-- You're preparing data for deduplication
 
 **Related Modules**:
 - [`normalize` Module](reference/normalize.md) - Data normalization
@@ -905,36 +510,6 @@ normalized_entities = normalizer.normalize_entities(entities)
     resolved = resolver.resolve(conflicts)
     ```
 
-**Practical Example**:
-
-```python
-from semantica.conflicts import ConflictDetector, ConflictResolver
-
-# Detect conflicts
-detector = ConflictDetector()
-conflicts = detector.detect(kg)
-
-print(f"Found {len(conflicts)} conflicts")
-
-# Resolve conflicts
-resolver = ConflictResolver(strategy="voting")
-resolved_kg = resolver.resolve_conflicts(kg, conflicts)
-
-# Investigate specific conflicts
-for conflict in conflicts[:5]:
-    print(f"Conflict: {conflict.entity}")
-    print(f"  Sources: {conflict.sources}")
-    print(f"  Values: {conflict.values}")
-```
-
-**When to Use**:
-
-- You're integrating data from multiple sources
-- You have conflicting information
-- You need to ensure data consistency
-- You want to track data provenance
-- You're building a reliable knowledge base
-
 **Related Modules**:
 - [`conflicts` Module](../semantica/conflicts/conflicts_usage.md) - Conflict detection and resolution
 - [`kg_qa` Module](reference/evals.md) - Quality assurance
@@ -947,24 +522,20 @@ for conflict in conflicts[:5]:
 
 | Provider | Model | Dimensions | Speed | Cost | Accuracy | Best For |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| Provider      | Model                  | Dimensions | Speed   | Cost  | Accuracy | Best For                    |
-| :------------ | :--------------------- | :--------- | :------ | :---- | :------- | :-------------------------- |
-| **OpenAI**    | text-embedding-3-large  | 3072       | Fast    | Paid  | High     | Production, high accuracy   |
-| **OpenAI**    | text-embedding-3-small  | 1536       | Fast    | Paid  | High     | Balanced performance        |
-| **Cohere**    | embed-english-v3.0      | 1024       | Fast    | Paid  | High     | Multilingual support        |
-| **HuggingFace**| all-MiniLM-L6-v2       | 384        | Medium  | Free  | Medium   | Development, open source    |
-| **Local**     | sentence-transformers   | 384-768    | Slow    | Free  | Medium   | Privacy, offline use        |
+| **OpenAI** | text-embedding-3-large | 3072 | Fast | Paid | High | Production, high accuracy |
+| **OpenAI** | text-embedding-3-small | 1536 | Fast | Paid | High | Balanced performance |
+| **Cohere** | embed-english-v3.0 | 1024 | Fast | Paid | High | Multilingual support |
+| **HuggingFace** | all-MiniLM-L6-v2 | 384 | Medium | Free | Medium | Development, open source |
+| **Local** | sentence-transformers | 384-768 | Slow | Free | Medium | Privacy, offline use |
 
 ### Graph Backend Comparison
 
 | Backend | Type | Speed | Scalability | Query Language | Best For |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Backend    | Type        | Speed     | Scalability | Query Language | Best For                          |
-| :--------- | :---------- | :-------- | :---------- | :------------- | :-------------------------------- |
-| **NetworkX**| In-memory  | Fast      | Small-medium| Python API     | Development, small graphs         |
-| **Neo4j**   | Database   | Medium    | Large       | Cypher         | Production, complex queries       |
-| **KuzuDB**  | Embedded   | Fast      | Medium      | Cypher         | Embedded applications             |
-| **FalkorDB**| Redis-based| Very Fast | Large       | Cypher         | Real-time, high throughput        |
+| **NetworkX**| In-memory | Fast | Small-medium | Python API | Development, small graphs |
+| **Neo4j** | Database | Medium | Large | Cypher | Production, complex queries |
+| **KuzuDB** | Embedded | Fast | Medium | Cypher | Embedded applications |
+| **FalkorDB**| Redis-based| Very Fast | Large | Cypher | Real-time, high throughput |
 
 ---
 

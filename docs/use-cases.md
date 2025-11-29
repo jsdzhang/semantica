@@ -7,59 +7,6 @@ Semantica is designed to solve complex data challenges across various domains. T
 
 ---
 
-## Table of Contents
-
-- [Choosing the Right Use Case](#choosing-the-right-use-case)
-- [Use Case Comparison](#use-case-comparison)
-- [Research & Science](#research--science)
-- [Finance & Trading](#finance--trading)
-- [Healthcare & Life Sciences](#healthcare--life-sciences)
-- [Security & Intelligence](#security--intelligence)
-- [Industry & Operations](#industry--operations)
-- [Advanced AI Patterns](#advanced-ai-patterns)
-- [New Use Cases](#new-use-cases)
-
----
-
-## Choosing the Right Use Case
-
-Use this decision tree to find the use case that best fits your needs:
-
-```mermaid
-flowchart TD
-    Start[What is your domain?] --> Q1{Research/Academic?}
-    Q1 -->|Yes| Research[Research Paper Analysis<br/>Biomedical Knowledge Graphs]
-    Q1 -->|No| Q2{Finance/Trading?}
-    
-    Q2 -->|Yes| Finance[Financial Market Intelligence<br/>Algorithmic Trading<br/>Blockchain Analytics]
-    Q2 -->|No| Q3{Healthcare?}
-    
-    Q3 -->|Yes| Healthcare[Medical Record Analysis<br/>Patient Journey Mapping]
-    Q3 -->|No| Q4{Security/Intelligence?}
-    
-    Q4 -->|Yes| Security[Cybersecurity Threat Intelligence<br/>OSINT<br/>Fraud Detection]
-    Q4 -->|No| Q5{Industry/Operations?}
-    
-    Q5 -->|Yes| Industry[Supply Chain Optimization<br/>Renewable Energy Management]
-    Q5 -->|No| Q6{AI/ML Applications?}
-    
-    Q6 -->|Yes| AI[GraphRAG<br/>Corporate Intelligence<br/>Legal Document Review]
-    Q6 -->|No| Q7{Other?}
-    
-    Q7 -->|Legal| Legal[Legal Document Analysis]
-    Q7 -->|Social Media| Social[Social Media Analysis]
-    Q7 -->|Support| Support[Customer Support Knowledge Base]
-    
-    style Research fill:#e1f5fe,stroke:#01579b
-    style Finance fill:#fff3e0,stroke:#ef6c00
-    style Healthcare fill:#e8f5e9,stroke:#2e7d32
-    style Security fill:#ffebee,stroke:#c62828
-    style Industry fill:#f3e5f5,stroke:#7b1fa2
-    style AI fill:#e0f2f1,stroke:#00695c
-```
-
----
-
 ## Use Case Comparison
 
 | Use Case                          | Difficulty    | Time        | Domain      | Key Features                                    |
@@ -83,54 +30,37 @@ flowchart TD
 - **Intermediate**: Some domain knowledge helpful
 - **Advanced**: Requires domain expertise and advanced Semantica features
 
+---
+
 ## Research & Science
 
-### Research Paper Analysis
+<div class="grid cards" markdown>
 
-!!! abstract "Use Case"
+-   :material-school: **Research Paper Analysis**
+    ---
     Extract structured knowledge from academic papers to discover trends, relationships, and key concepts.
+    
+    **Goal**: Ingest PDFs, extract entities (Authors, Concepts, Methods), and build a citation network.
+    
+    **Difficulty**: Beginner | **Time**: 30 min
 
-**Difficulty**: Beginner  
-**Time**: 30 minutes  
-**Domain**: Research
+-   :material-dna: **Biomedical Knowledge Graphs**
+    ---
+    Accelerate drug discovery and understand disease pathways by connecting genes, proteins, drugs, and diseases.
+    
+    **Goal**: Connect genes, proteins, drugs, and diseases from scientific literature and databases.
+    
+    **Difficulty**: Intermediate | **Time**: 1-2 hours
+
+</div>
+
+### Research Paper Analysis Implementation
 
 **Prerequisites**:
 - Semantica installed
-- Python 3.8+
 - Sample research papers (PDF format)
-- OpenAI API key (optional, for LLM-based extraction)
 
-**Goal**: Ingest PDFs, extract entities (Authors, Concepts, Methods), and build a citation network.
-
-**Step-by-Step Implementation**:
-
-1. **Install and Import**
-   ```python
-   from semantica import Semantica
-   ```
-
-2. **Initialize Semantica**
-   ```python
-   semantica = Semantica()
-   ```
-
-3. **Build Knowledge Base**
-   ```python
-   result = semantica.build_knowledge_base(
-       sources=["papers/paper1.pdf", "papers/paper2.pdf"],
-       embeddings=True,
-       graph=True
-   )
-   ```
-
-4. **Analyze Results**
-   ```python
-   kg = result["knowledge_graph"]
-   print(f"Extracted {len(kg['entities'])} entities")
-   print(f"Created {len(kg['relationships'])} relationships")
-   ```
-
-**Complete Code Example**:
+**Code Example**:
 
 ```python
 from semantica import Semantica
@@ -143,120 +73,47 @@ semantica = Semantica()
 result = semantica.build_knowledge_base(
     sources=[
         "papers/machine_learning_survey.pdf",
-        "papers/deep_learning_review.pdf",
-        "papers/nlp_advances.pdf"
+        "papers/deep_learning_review.pdf"
     ],
     embeddings=True,
     graph=True,
     normalize=True
 )
 
-# Access results
-kg = result["knowledge_graph"]
-embeddings = result["embeddings"]
-
-# Filter entities by type
-authors = [e for e in kg['entities'] if e.get('type') == 'PERSON']
-concepts = [e for e in kg['entities'] if e.get('type') == 'CONCEPT']
-methods = [e for e in kg['entities'] if e.get('type') == 'METHOD']
-
-print(f"Authors: {len(authors)}")
-print(f"Concepts: {len(concepts)}")
-print(f"Methods: {len(methods)}")
-
 # Visualize citation network
+kg = result["knowledge_graph"]
 visualizer = KGVisualizer()
-visualizer.visualize(
-    kg,
-    output_format="html",
-    output_path="citation_network.html"
-)
-
-# Export for analysis
-semantica.export.to_json(kg, "research_kg.json")
+visualizer.visualize(kg, output_path="citation_network.html")
 ```
 
-**Expected Output**:
-```
-Authors: 45
-Concepts: 120
-Methods: 30
-Relationships: 200
-```
-
-**Next Steps**:
-- [:material-arrow-right: View Cookbook](cookbook/use_cases/biomedical/index.ipynb)
-- [Explore Graph Analytics](reference/kg.md#graph-analytics)
-- [Learn about Visualization](reference/visualization.md)
-
----
-
-### Biomedical Knowledge Graphs
-
-!!! abstract "Use Case"
-    Accelerate drug discovery and understand disease pathways by connecting genes, proteins, drugs, and diseases.
-
-**Difficulty**: Intermediate  
-**Time**: 1-2 hours  
-**Domain**: Healthcare/Research
+### Biomedical Knowledge Graphs Implementation
 
 **Prerequisites**:
 - Domain knowledge of biomedical concepts
 - Access to biomedical literature/databases
-- LLM API access (recommended for accuracy)
 
-**Goal**: Connect genes, proteins, drugs, and diseases from scientific literature and databases.
-
-**Key Entities**: Gene, Protein, Drug, Disease, Pathway
-
-**Complete Code Example**:
+**Code Example**:
 
 ```python
 from semantica import Semantica
 from semantica.ontology import OntologyGenerator
 
-# Initialize with biomedical focus
 semantica = Semantica()
-
-# Define custom entity types for biomedical domain
-custom_entities = ["Gene", "Protein", "Drug", "Disease", "Pathway", "Mutation"]
+custom_entities = ["Gene", "Protein", "Drug", "Disease", "Pathway"]
 
 # Build knowledge graph
 result = semantica.build_knowledge_base(
-    sources=[
-        "literature/cancer_research.pdf",
-        "databases/gene_protein_interactions.json"
-    ],
+    sources=["literature/cancer_research.pdf"],
     embeddings=True,
     graph=True,
     custom_entity_types=custom_entities
 )
 
-kg = result["knowledge_graph"]
-
 # Generate ontology
+kg = result["knowledge_graph"]
 ontology_gen = OntologyGenerator(base_uri="https://biomed.example.org/ontology/")
 ontology = ontology_gen.generate_from_graph(kg)
-
-# Query disease pathways
-pathways = [r for r in kg['relationships'] 
-            if r.get('predicate') == 'in_pathway']
-
-print(f"Found {len(pathways)} pathway relationships")
-
-# Export for further analysis
-semantica.export.to_owl(ontology, "biomedical_ontology.owl")
 ```
-
-**Expected Output**:
-```
-Found 150 pathway relationships
-Generated ontology with 25 classes and 40 properties
-```
-
-**Next Steps**:
-- [Ontology Module](reference/ontology.md)
-- [Temporal Graphs](concepts.md#5-temporal-graphs)
 
 ---
 
@@ -338,7 +195,7 @@ Generated ontology with 25 classes and 40 properties
     ---
     Analyze criminal networks to identify key players, communities, and suspicious patterns.
     
-    **Goal**: Build knowledge graphs from police reports, court records, and surveillance data to detect criminal structures and relationships.
+    **Goal**: Build knowledge graphs from police reports, court records, and surveillance data.
     
     [:material-arrow-right: View Cookbook](cookbook/use_cases/intelligence/Criminal_Network_Analysis.ipynb)
 
@@ -346,7 +203,7 @@ Generated ontology with 25 classes and 40 properties
     ---
     Process forensic evidence and correlate cases using temporal knowledge graphs.
     
-    **Goal**: Extract entities from case files, evidence logs, and witness statements to build temporal case timelines and identify cross-case connections.
+    **Goal**: Extract entities from case files to build temporal case timelines.
     
     [:material-arrow-right: View Cookbook](cookbook/use_cases/intelligence/Law_Enforcement_Forensics.ipynb)
 
@@ -354,7 +211,7 @@ Generated ontology with 25 classes and 40 properties
     ---
     Detect complex fraud rings.
     
-    **Goal**: Build a graph of Users, Devices, IP Addresses, and Transactions to find cycles and dense subgraphs.
+    **Goal**: Build a graph of Users, Devices, IP Addresses, and Transactions to find cycles.
 
 </div>
 
@@ -419,90 +276,51 @@ Generated ontology with 25 classes and 40 properties
 !!! abstract "Use Case"
     Analyze contracts and legal texts to extract clauses, identify relationships, and understand document structure.
 
-**Difficulty**: Intermediate  
-**Time**: 1-2 hours  
-**Domain**: Legal
+**Difficulty**: Intermediate | **Time**: 1-2 hours | **Domain**: Legal
 
 **Prerequisites**:
 - Legal document samples (contracts, agreements)
-- Understanding of legal terminology
 - LLM API access (recommended)
 
-**Goal**: Parse contracts, extract clauses, and identify relationships like "supersedes", "amends", "references".
-
-**Complete Code Example**:
+**Code Example**:
 
 ```python
 from semantica import Semantica
-from semantica.semantic_extract import NERExtractor, RelationExtractor
 
 semantica = Semantica()
-
-# Define legal entity types
-legal_entities = [
-    "Party", "Clause", "Section", "Contract", "Agreement",
-    "Term", "Condition", "Obligation", "Right"
-]
+legal_entities = ["Party", "Clause", "Section", "Contract", "Term"]
 
 # Build knowledge graph from contracts
 result = semantica.build_knowledge_base(
-    sources=[
-        "contracts/agreement1.pdf",
-        "contracts/amendment1.pdf"
-    ],
+    sources=["contracts/agreement1.pdf"],
     custom_entity_types=legal_entities,
     graph=True,
-    temporal=True  # Track contract versions
+    temporal=True
 )
 
 kg = result["knowledge_graph"]
-
-# Extract clause relationships
 clause_rels = [r for r in kg['relationships'] 
-               if r.get('predicate') in ['supersedes', 'amends', 'references']]
-
+               if r.get('predicate') in ['supersedes', 'amends']]
 print(f"Found {len(clause_rels)} clause relationships")
-
-# Query contract structure
-parties = [e for e in kg['entities'] if e.get('type') == 'Party']
-print(f"Parties: {[p.get('text') for p in parties]}")
-
-# Export for legal review
-semantica.export.to_json(kg, "contract_analysis.json")
 ```
-
-**Expected Output**:
-```
-Found 15 clause relationships
-Parties: ['Company A', 'Company B']
-```
-
----
 
 ### Social Media Analysis
 
 !!! abstract "Use Case"
     Analyze social media content to extract sentiment, trends, and relationships between users and topics.
 
-**Difficulty**: Beginner  
-**Time**: 30 minutes  
-**Domain**: Social Media
+**Difficulty**: Beginner | **Time**: 30 min | **Domain**: Social Media
 
 **Prerequisites**:
-- Social media data (JSON, CSV, or API access)
-- Basic understanding of sentiment analysis
+- Social media data (JSON, CSV)
 
-**Goal**: Extract entities, relationships, and sentiment from social media posts to understand trends and user connections.
-
-**Complete Code Example**:
+**Code Example**:
 
 ```python
 from semantica import Semantica
 from semantica.ingest import FileIngestor
 
 semantica = Semantica()
-
-# Ingest social media data
 ingestor = FileIngestor()
 posts = ingestor.ingest("social_media/posts.json")
 
@@ -514,52 +332,21 @@ result = semantica.build_knowledge_base(
 )
 
 kg = result["knowledge_graph"]
-
-# Analyze trends
 hashtags = [e for e in kg['entities'] if e.get('text', '').startswith('#')]
-mentions = [e for e in kg['entities'] if e.get('text', '').startswith('@')]
-
 print(f"Hashtags: {len(hashtags)}")
-print(f"Mentions: {len(mentions)}")
-
-# Find popular topics
-from collections import Counter
-topic_counts = Counter([e.get('text') for e in hashtags])
-print(f"Top topics: {topic_counts.most_common(10)}")
-
-# Visualize social network
-semantica.visualization.visualize_network(
-    kg,
-    output="social_network.html"
-)
 ```
-
-**Expected Output**:
-```
-Hashtags: 150
-Mentions: 200
-Top topics: [('AI', 45), ('MachineLearning', 30), ('Python', 25)]
-```
-
----
 
 ### Customer Support Knowledge Base
 
 !!! abstract "Use Case"
     Build a knowledge base from support tickets, documentation, and FAQs to improve customer service.
 
-**Difficulty**: Beginner  
-**Time**: 30 minutes  
-**Domain**: Customer Support
+**Difficulty**: Beginner | **Time**: 30 min | **Domain**: Customer Support
 
 **Prerequisites**:
 - Support tickets or documentation
-- FAQ documents
-- Basic text data
 
-**Goal**: Create a searchable knowledge base that connects support issues, solutions, and related topics.
-
-**Complete Code Example**:
+**Code Example**:
 
 ```python
 from semantica import Semantica
@@ -567,67 +354,18 @@ from semantica.vector_store import VectorStore, HybridSearch
 
 semantica = Semantica()
 
-# Build knowledge base from support docs
+# Build knowledge base
 result = semantica.build_knowledge_base(
-    sources=[
-        "support/tickets/",
-        "support/faqs/",
-        "support/documentation/"
-    ],
+    sources=["support/tickets/", "support/faqs/"],
     embeddings=True,
     graph=True
 )
 
-kg = result["knowledge_graph"]
-embeddings = result["embeddings"]
-
-# Set up semantic search
+# Search
 vector_store = VectorStore()
-vector_store.store(embeddings, result["documents"])
-
-# Search for similar issues
+vector_store.store(result["embeddings"], result["documents"])
 hybrid_search = HybridSearch(vector_store)
-results = hybrid_search.search(
-    query="How do I reset my password?",
-    top_k=5
-)
-
-print("Similar support articles:")
-for result in results:
-    print(f"  - {result.document.metadata.get('title', 'N/A')} (Score: {result.score:.3f})")
-
-# Export knowledge base
-semantica.export.to_json(kg, "support_kb.json")
-```
-
-**Expected Output**:
-```
-Similar support articles:
-  - Password Reset Guide (Score: 0.892)
-  - Account Recovery (Score: 0.856)
-  - Login Issues FAQ (Score: 0.823)
-```
-
----
-
-## Implementation Example
-
-Here is a general pattern for implementing these use cases:
-
-```python
-from semantica import Semantica
-
-# 1. Initialize with domain-specific configuration
-semantica = Semantica(domain="finance")
-
-# 2. Ingest Data
-docs = semantica.ingest.load("data/", recursive=True)
-
-# 3. Build Knowledge Graph
-kg = semantica.kg.build_graph(docs)
-
-# 4. Analyze or Query
-insights = semantica.kg.query("MATCH (c:Company)-[:HAS_RISK]->(r:Risk) RETURN c, r")
+results = hybrid_search.search(query="How do I reset my password?", top_k=5)
 ```
 
 ---
@@ -643,13 +381,6 @@ This guide covered use cases across multiple domains:
 - **Industry**: Supply chain, energy management
 - **AI Applications**: GraphRAG, corporate intelligence
 - **New Use Cases**: Legal analysis, social media, customer support
-
-Each use case follows a similar pattern:
-1. **Ingest** data from various sources
-2. **Extract** entities and relationships
-3. **Build** knowledge graph
-4. **Analyze** and query
-5. **Export** or visualize results
 
 ---
 
