@@ -88,7 +88,19 @@ class Relation:
 class RelationExtractor:
     """Relation extractor for entity relationships."""
 
+<<<<<<< HEAD
+    def __init__(
+        self,
+        method: Union[str, List[str]] = "pattern",
+        relation_types: Optional[List[str]] = None,
+        bidirectional: bool = False,
+        confidence_threshold: float = 0.6,
+        max_distance: int = 50,
+        **config
+    ):
+=======
     def __init__(self, method: Union[str, List[str]] = "pattern", **config):
+>>>>>>> origin/main
         """
         Initialize relation extractor.
 
@@ -101,22 +113,34 @@ class RelationExtractor:
                 - "huggingface": HuggingFace model
                 - "llm": LLM-based extraction
                 - List of methods for fallback chain
-            **config: Configuration options:
+            relation_types: Specific relation types to extract (e.g., ["founded", "works_at"])
+            bidirectional: Whether to extract bidirectional relations
+            confidence_threshold: Minimum confidence score (0.0-1.0)
+            max_distance: Maximum token distance between entities
+            **config: Additional configuration options:
                 - model: Model name (for dependency/HuggingFace methods)
                 - huggingface_model: HuggingFace model name
                 - provider: LLM provider (for LLM method)
                 - llm_model: LLM model name
                 - device: Device for HuggingFace models
-                - min_confidence: Minimum confidence threshold
                 - validate: Enable validation (default: False)
         """
         self.logger = get_logger("relation_extractor")
         self.config = config
         self.progress_tracker = get_progress_tracker()
 
+<<<<<<< HEAD
+        # Store parameters
+        self.relation_types = relation_types
+        self.bidirectional = bidirectional
+        self.confidence_threshold = confidence_threshold
+        self.max_distance = max_distance
+
+=======
+>>>>>>> origin/main
         # Method configuration
         self.method = method if isinstance(method, list) else [method]
-        self.min_confidence = config.get("min_confidence", 0.5)
+        self.min_confidence = config.get("min_confidence", confidence_threshold)
         self.validate = config.get("validate", False)
 
         # Common relation patterns

@@ -17,24 +17,29 @@ Key Features:
     - Extraction validation and quality assessment
 
 Main Classes:
-    - NamedEntityRecognizer: Main NER coordinator
+    - NamedEntityRecognizer: Main NER coordinator (confidence_threshold, merge_overlapping)
     - NERExtractor: Core NER implementation
-    - RelationExtractor: Relationship extraction
-    - EventDetector: Event detection and classification
+    - RelationExtractor: Relationship extraction (confidence_threshold, bidirectional)
+    - EventDetector: Event detection and classification (extract_participants, extract_time)
     - CoreferenceResolver: Coreference resolution
-    - TripleExtractor: RDF triple extraction
+    - TripleExtractor: RDF triple extraction (include_temporal, include_provenance)
     - SemanticAnalyzer: Semantic analysis engine
     - SemanticNetworkExtractor: Semantic network construction
     - LLMEnhancer: LLM-based enhancement
     - ExtractionValidator: Quality validation
 
 Example Usage:
-    >>> from semantica.semantic_extract import build
-    >>> result = build("Apple Inc. was founded by Steve Jobs in 1976.")
-    >>> print(f"Extracted {len(result['entities'])} entities")
     >>> from semantica.semantic_extract import NamedEntityRecognizer
-    >>> ner = NamedEntityRecognizer()
+    >>> ner = NamedEntityRecognizer(confidence_threshold=0.7)
     >>> entities = ner.extract_entities("Steve Jobs founded Apple.")
+    
+    >>> from semantica.semantic_extract import RelationExtractor
+    >>> rel_extractor = RelationExtractor(confidence_threshold=0.6)
+    >>> relations = rel_extractor.extract_relations(text, entities=entities)
+    
+    >>> from semantica.semantic_extract import TripleExtractor
+    >>> triple_extractor = TripleExtractor(include_temporal=True)
+    >>> triples = triple_extractor.extract_triples(text)
 
 Author: Semantica Contributors
 License: MIT
@@ -178,6 +183,9 @@ __all__ = [
     "get_entity_method",
     "get_relation_method",
     "get_triple_method",
+<<<<<<< HEAD
+]
+=======
     # Convenience
     "build",
 ]
@@ -329,3 +337,4 @@ def build(
     }
 
     return results
+>>>>>>> origin/main

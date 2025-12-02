@@ -90,7 +90,16 @@ class TripleExtractor:
     """RDF triple extraction handler."""
 
     def __init__(
+<<<<<<< HEAD
+        self,
+        method: Union[str, List[str]] = "pattern",
+        include_temporal: bool = False,
+        include_provenance: bool = False,
+        config=None,
+        **kwargs
+=======
         self, method: Union[str, List[str]] = "pattern", config=None, **kwargs
+>>>>>>> origin/main
     ):
         """
         Initialize triple extractor.
@@ -102,6 +111,8 @@ class TripleExtractor:
                 - "huggingface": HuggingFace model
                 - "llm": LLM-based extraction
                 - List of methods for fallback chain
+            include_temporal: Whether to include temporal information in triples
+            include_provenance: Whether to track source sentences for provenance
             config: Legacy config dict (deprecated, use kwargs)
             **kwargs: Configuration options:
                 - model: Model name (for HuggingFace methods)
@@ -117,6 +128,13 @@ class TripleExtractor:
         self.config.update(kwargs)
         self.progress_tracker = get_progress_tracker()
 
+<<<<<<< HEAD
+        # Store parameters
+        self.include_temporal = include_temporal
+        self.include_provenance = include_provenance
+
+=======
+>>>>>>> origin/main
         # Method configuration
         self.method = method if isinstance(method, list) else [method]
         self.min_confidence = self.config.get("min_confidence", 0.5)

@@ -31,15 +31,11 @@ Main Components:
     - Orchestration Methods: Reusable functions for common orchestration tasks
 
 Example Usage:
-    >>> from semantica.core import Semantica, build
+    >>> from semantica.core import Semantica
     >>> # Using main class
     >>> framework = Semantica()
     >>> framework.initialize()
     >>> result = framework.build_knowledge_base(sources=["doc1.pdf"])
-    >>> 
-    >>> # Using convenience function
-    >>> from semantica.core import build
-    >>> result = build(sources=["doc1.pdf", "doc2.docx"], embeddings=True, graph=True)
     >>> 
     >>> # Using methods directly
     >>> from semantica.core.methods import build_knowledge_base
@@ -90,6 +86,9 @@ __all__ = [
     "get_status",
     "get_orchestration_method",
     "list_available_methods",
+<<<<<<< HEAD
+]
+=======
     # Convenience
     "build",
 ]
@@ -159,3 +158,4 @@ def build(
         pipeline=pipeline_config,
         **{k: v for k, v in options.items() if k not in ["pipeline", "method"]},
     )
+>>>>>>> origin/main

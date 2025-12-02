@@ -8,7 +8,6 @@ Main exports:
     - Semantica: Main framework class
     - PipelineBuilder: Pipeline construction DSL
     - Config: Configuration management
-    - build: Module-level build function for easy access
 """
 
 __version__ = "0.0.5"
@@ -217,6 +216,8 @@ class _SemanticaModules:
 # Create singleton instance for module access
 _modules = _SemanticaModules()
 
+<<<<<<< HEAD
+=======
 # Singleton Semantica instance for module-level build()
 _semantica_instance: Optional[Semantica] = None
 
@@ -274,6 +275,7 @@ def build(
 
     # Build knowledge base (auto-initializes if needed)
     return semantica.build_knowledge_base(sources, **kwargs)
+>>>>>>> origin/main
 
 
 __all__ = [
@@ -283,8 +285,6 @@ __all__ = [
     "ConfigManager",
     "LifecycleManager",
     "PluginRegistry",
-    # Module-level function
-    "build",
     # Pipeline
     "PipelineBuilder",
     "ExecutionEngine",
@@ -320,7 +320,6 @@ __all__ = [
 
 
 # Make submodules accessible via dot notation
-# This allows: import semantica; semantica.kg.build()
 def __getattr__(name: str):
     """Enable dot notation access to submodules."""
     if name in [

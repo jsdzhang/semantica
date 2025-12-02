@@ -233,9 +233,9 @@ __all__ = [
     # Configuration
     "IngestConfig",
     "ingest_config",
-    # Legacy
-    "build",
 ]
+<<<<<<< HEAD
+=======
 
 
 def build(
@@ -346,3 +346,4 @@ def build(
         }
 
     return results
+>>>>>>> origin/main

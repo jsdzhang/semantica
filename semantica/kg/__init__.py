@@ -207,9 +207,9 @@ __all__ = [
     # Configuration
     "KGConfig",
     "kg_config",
-    # Convenience Functions
-    "build",
 ]
+<<<<<<< HEAD
+=======
 
 
 def build(
@@ -277,3 +277,4 @@ def build(
     graph = graph_builder.build(sources, entity_resolver=entity_resolver, **options)
 
     return graph
+>>>>>>> origin/main

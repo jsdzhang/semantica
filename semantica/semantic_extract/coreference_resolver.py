@@ -177,6 +177,22 @@ class CoreferenceResolver:
             )
             raise
 
+<<<<<<< HEAD
+    def resolve(self, text: str, **options) -> List[CoreferenceChain]:
+        """
+        Resolve coreferences in text (alias for resolve_coreferences).
+
+        Args:
+            text: Input text
+            **options: Resolution options
+
+        Returns:
+            list: List of coreference chains
+        """
+        return self.resolve_coreferences(text, **options)
+
+=======
+>>>>>>> origin/main
     def _extract_mentions(self, text: str) -> List[Mention]:
         """Extract all mentions from text."""
         mentions = []

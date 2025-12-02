@@ -188,9 +188,9 @@ __all__ = [
     # Configuration
     "EmbeddingsConfig",
     "embeddings_config",
-    # Convenience Functions
-    "build",
 ]
+<<<<<<< HEAD
+=======
 
 
 def build(
@@ -277,3 +277,4 @@ def build(
             },
             "failed_items": results.get("failed", []),
         }
+>>>>>>> origin/main

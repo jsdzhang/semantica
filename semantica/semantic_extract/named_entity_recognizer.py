@@ -66,24 +66,54 @@ class NamedEntityRecognizer:
     • Processes batch text collections
     """
 
+<<<<<<< HEAD
+    def __init__(
+        self,
+        methods: Optional[List[str]] = None,
+        confidence_threshold: float = 0.5,
+        merge_overlapping: bool = True,
+        include_standard_types: bool = True,
+        method=None,
+        config=None,
+        **kwargs
+    ):
+=======
     def __init__(self, method=None, config=None, **kwargs):
+>>>>>>> origin/main
         """
         Initialize named entity recognizer.
 
         Args:
-            method: Extraction method(s) - passed to NERExtractor
+            methods: Extraction methods to use (e.g., ["spacy", "rule-based"])
+            confidence_threshold: Minimum confidence score (0.0-1.0)
+            merge_overlapping: Whether to merge overlapping entities
+            include_standard_types: Include standard types (Person, Org, Location)
+            method: Extraction method(s) - passed to NERExtractor (legacy)
             config: Legacy config dict (deprecated, use kwargs)
-            **kwargs: Configuration options passed to NERExtractor
+            **kwargs: Additional configuration options passed to NERExtractor
         """
         self.logger = get_logger("named_entity_recognizer")
         self.config = config or {}
         self.config.update(kwargs)
         self.progress_tracker = get_progress_tracker()
 
+<<<<<<< HEAD
+        # Store parameters
+        self.methods = methods or ["spacy"]
+        self.confidence_threshold = confidence_threshold
+        self.merge_overlapping = merge_overlapping
+        self.include_standard_types = include_standard_types
+
+=======
+>>>>>>> origin/main
         # Use NERExtractor for actual extraction
         ner_config = self.config.get("ner", {})
+        ner_config["confidence_threshold"] = confidence_threshold
+        ner_config["merge_overlapping"] = merge_overlapping
         if method is not None:
             ner_config["method"] = method
+        elif methods:
+            ner_config["method"] = methods[0] if len(methods) == 1 else methods
         self.ner_extractor = NERExtractor(**ner_config, **self.config)
         self.entity_classifier = EntityClassifier(**self.config.get("classifier", {}))
         self.confidence_scorer = EntityConfidenceScorer(**self.config.get("scorer", {}))
