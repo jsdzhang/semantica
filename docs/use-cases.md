@@ -127,7 +127,7 @@ ontology = ontology_gen.generate_from_graph(kg)
     
     **Goal**: Ingest earnings call transcripts, news articles, and analyst reports to gauge market sentiment.
     
-    [:material-arrow-right: View Cookbook](cookbook/use_cases/finance/index.ipynb)
+    [:material-arrow-right: View Cookbook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/finance/01_Financial_Data_Integration.ipynb)
 
 -   :material-chart-line: **Algorithmic Trading Signals**
     ---
@@ -135,7 +135,7 @@ ontology = ontology_gen.generate_from_graph(kg)
     
     **Goal**: Build a graph of companies, supply chains, and global events to identify non-obvious trading signals.
     
-    [:material-arrow-right: View Cookbook](cookbook/use_cases/trading/index.ipynb)
+    [:material-arrow-right: View Cookbook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/trading/01_Market_Data_Analysis.ipynb)
 
 -   :material-bitcoin: **Blockchain Analytics**
     ---
@@ -143,7 +143,7 @@ ontology = ontology_gen.generate_from_graph(kg)
     
     **Goal**: Map transaction flows between wallets and exchanges to detect money laundering or fraud.
     
-    [:material-arrow-right: View Cookbook](cookbook/use_cases/blockchain/index.ipynb)
+    [:material-arrow-right: View Cookbook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/blockchain/01_DeFi_Protocol_Intelligence.ipynb)
 
 </div>
 
@@ -159,7 +159,7 @@ ontology = ontology_gen.generate_from_graph(kg)
     
     **Goal**: Extract Symptoms, Diagnoses, Medications, and Procedures, linking them temporally.
     
-    [:material-arrow-right: View Cookbook](cookbook/use_cases/healthcare/index.ipynb)
+    [:material-arrow-right: View Cookbook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/healthcare/01_Clinical_Reports_Processing.ipynb)
 
 -   :material-account-heart: **Patient Journey Mapping**
     ---
@@ -181,7 +181,7 @@ ontology = ontology_gen.generate_from_graph(kg)
     
     **Goal**: Ingest threat feeds (STIX/TAXII), CVE databases, and system logs to map attack vectors.
     
-    [:material-arrow-right: View Cookbook](cookbook/use_cases/cybersecurity/index.ipynb)
+    [:material-arrow-right: View Cookbook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/cybersecurity/01_Anomaly_Detection_Real_Time.ipynb)
 
 -   :material-eye: **Open Source Intelligence (OSINT)**
     ---
@@ -189,7 +189,7 @@ ontology = ontology_gen.generate_from_graph(kg)
     
     **Goal**: Connect data from social media, news, and public records to build profiles.
     
-    [:material-arrow-right: View Cookbook](cookbook/use_cases/intelligence/index.ipynb)
+    [:material-arrow-right: View Cookbook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/intelligence/01_Criminal_Network_Analysis.ipynb)
 
 -   :material-account-network: **Criminal Network Analysis**
     ---
@@ -197,7 +197,7 @@ ontology = ontology_gen.generate_from_graph(kg)
     
     **Goal**: Build knowledge graphs from police reports, court records, and surveillance data.
     
-    [:material-arrow-right: View Cookbook](cookbook/use_cases/intelligence/Criminal_Network_Analysis.ipynb)
+    [:material-arrow-right: View Cookbook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/intelligence/01_Criminal_Network_Analysis.ipynb)
 
 -   :material-shield-search: **Law Enforcement and Forensics**
     ---
@@ -205,7 +205,7 @@ ontology = ontology_gen.generate_from_graph(kg)
     
     **Goal**: Extract entities from case files to build temporal case timelines.
     
-    [:material-arrow-right: View Cookbook](cookbook/use_cases/intelligence/Law_Enforcement_Forensics.ipynb)
+    [:material-arrow-right: View Cookbook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/intelligence/03_Law_Enforcement_Forensics.ipynb)
 
 -   :material-incognito: **Fraud Detection**
     ---
@@ -227,7 +227,7 @@ ontology = ontology_gen.generate_from_graph(kg)
     
     **Goal**: Map suppliers, logistics routes, and inventory levels to identify bottlenecks.
     
-    [:material-arrow-right: View Cookbook](cookbook/use_cases/supply_chain/index.ipynb)
+    [:material-arrow-right: View Cookbook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/supply_chain/01_Supply_Chain_Data_Integration.ipynb)
 
 -   :material-wind-turbine: **Renewable Energy Management**
     ---
@@ -235,7 +235,7 @@ ontology = ontology_gen.generate_from_graph(kg)
     
     **Goal**: Connect sensor data, weather forecasts, and maintenance logs to predict failures.
     
-    [:material-arrow-right: View Cookbook](cookbook/use_cases/renewable_energy/index.ipynb)
+    [:material-arrow-right: View Cookbook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/renewable_energy/01_Energy_Market_Analysis.ipynb)
 
 </div>
 
@@ -251,7 +251,7 @@ ontology = ontology_gen.generate_from_graph(kg)
     
     **Goal**: Use the knowledge graph to retrieve precise context for RAG applications.
     
-    [:material-arrow-right: View Cookbook](cookbook/use_cases/advanced_rag/index.ipynb)
+    [:material-arrow-right: View Cookbook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/advanced_rag/01_GraphRAG_Complete.ipynb)
 
 -   :material-domain: **Corporate Intelligence**
     ---

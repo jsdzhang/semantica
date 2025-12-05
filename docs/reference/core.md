@@ -551,6 +551,6 @@ result = build_knowledge_base(sources=["doc.pdf"], method="fast")
 
 ## See Also
 
-- [Core Usage Guide](../core/core_usage.md) - Comprehensive usage guide with detailed examples
+- [Core Usage Guide](core.md) - Comprehensive usage guide with detailed examples
 - [Pipeline Module](pipeline.md) - Executed by the Semantica framework
 - [Utils Module](utils.md) - Shared utilities used by Core

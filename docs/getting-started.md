@@ -118,7 +118,7 @@ graph_store:
 
 Now that you understand the basics, here are recommended next steps:
 
-1. **[Your First Knowledge Graph](cookbook/introduction/Your_First_Knowledge_Graph.ipynb)**: Build your first knowledge graph from a document.
-2. **[Configuration Basics](cookbook/introduction/Configuration_Basics.ipynb)**: Set up configuration files and API keys.
+1. **[Your First Knowledge Graph](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/introduction/08_Your_First_Knowledge_Graph.ipynb)**: Build your first knowledge graph from a document.
+2. **[Welcome to Semantica](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/introduction/01_Welcome_to_Semantica.ipynb)**: Learn the framework basics and configuration.
 3. **[Core Workflows](cookbook.md#introduction)**: Learn common patterns and workflows.
 4. **[Use Cases](cookbook.md#use-cases)**: Explore domain-specific applications.

@@ -43,7 +43,7 @@ Additional resources, tutorials, and advanced learning materials for Semantica.
 
 1.  **Installation & Setup** (15 min)
     - [Installation Guide](installation.md)
-    - [Configuration Basics](cookbook/introduction/Configuration_Basics.ipynb)
+    - [Welcome to Semantica](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/introduction/01_Welcome_to_Semantica.ipynb)
 
 2.  **Core Concepts** (30 min)
     - [Core Concepts](concepts.md)
@@ -51,7 +51,7 @@ Additional resources, tutorials, and advanced learning materials for Semantica.
 
 3.  **First Knowledge Graph** (30 min)
     - [Quickstart Tutorial](quickstart.md)
-    - [Your First Knowledge Graph](cookbook/introduction/Your_First_Knowledge_Graph.ipynb)
+    - [Your First Knowledge Graph](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/introduction/08_Your_First_Knowledge_Graph.ipynb)
 
 4.  **Basic Operations** (30 min)
     - [Examples](examples.md)

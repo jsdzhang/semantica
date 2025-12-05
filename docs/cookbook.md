@@ -68,7 +68,7 @@ Hand-picked tutorials to show you the power of Semantica.
 
 ---
 
-## 🏁 Core Tutorials
+## 🏁 Core Tutorials {#core-tutorials}
 
 Essential guides to master the Semantica framework.
 
@@ -286,7 +286,7 @@ Deep dive into advanced features, customization, and complex workflows.
 
 ---
 
-## 🏭 Industry Use Cases
+## 🏭 Industry Use Cases {#industry-use-cases}
 
 Real-world examples and end-to-end applications across various industries.
 

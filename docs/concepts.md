@@ -2041,7 +2041,7 @@ classDiagram
 
 **Related Modules**:
 - [`kg_qa` Module](reference/evals.md) - Quality assurance and evaluation
-- [`conflicts` Module](../semantica/conflicts/conflicts_usage.md) - Conflict detection
+- [`conflicts` Module](reference/conflicts.md) - Conflict detection
 
 ---
 
@@ -2269,7 +2269,7 @@ Deduplication works by calculating similarity between entities. If similarity ex
 
 
 **Related Modules**:
-- [`deduplication` Module](../semantica/deduplication/deduplication_usage.md) - Deduplication and merging
+- [`deduplication` Module](reference/deduplication.md) - Deduplication and merging
 - [`embeddings` Module](reference/embeddings.md) - Similarity calculation
 
 ---
@@ -2807,7 +2807,7 @@ flowchart LR
     ```
 
 **Related Modules**:
-- [`conflicts` Module](../semantica/conflicts/conflicts_usage.md) - Conflict detection and resolution
+- [`conflicts` Module](reference/conflicts.md) - Conflict detection and resolution
 - [`kg_qa` Module](reference/evals.md) - Quality assurance
 
 ---

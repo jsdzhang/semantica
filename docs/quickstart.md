@@ -239,7 +239,7 @@ merged_kg = semantica.kg.merge([kg1, kg2])
 Now that you've built your first knowledge graph:
 
 1. **[Explore Examples](examples.md)** - See more advanced use cases
-2. **[API Reference](api.md)** - Learn about all available methods
+2. **[API Reference](reference/) - Learn about all available methods
 3. **[Cookbook](cookbook.md)** - Interactive Jupyter notebooks
 4. **[Full Documentation](../README.md)** - Comprehensive guide
 
