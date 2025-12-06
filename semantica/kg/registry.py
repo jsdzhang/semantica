@@ -10,12 +10,13 @@ Supported Registration Types:
         * "analyze": Graph analysis methods
         * "resolve": Entity resolution methods
         * "validate": Graph validation methods
-        * "conflict": Conflict detection methods
         * "centrality": Centrality calculation methods
         * "community": Community detection methods
         * "connectivity": Connectivity analysis methods
-        * "deduplicate": Deduplication methods
         * "temporal": Temporal query methods
+
+Note: Conflict detection and deduplication have been moved to dedicated modules.
+    Use semantica.conflicts for conflict detection and semantica.deduplication for deduplication.
 
 Algorithms Used:
     - Registry Pattern: Dictionary-based registration and lookup
@@ -26,7 +27,7 @@ Algorithms Used:
 
 Key Features:
     - Method registry for custom KG methods
-    - Task-based method organization (build, analyze, resolve, validate, conflict, centrality, community, connectivity, deduplicate, temporal)
+    - Task-based method organization (build, analyze, resolve, validate, centrality, community, connectivity, temporal)
     - Dynamic registration and unregistration
     - Easy discovery of available methods
     - Support for community-contributed extensions
@@ -54,11 +55,9 @@ class MethodRegistry:
         "analyze": {},
         "resolve": {},
         "validate": {},
-        "conflict": {},
         "centrality": {},
         "community": {},
         "connectivity": {},
-        "deduplicate": {},
         "temporal": {},
     }
 
@@ -68,7 +67,7 @@ class MethodRegistry:
         Register a custom KG method.
 
         Args:
-            task: Task type ("build", "analyze", "resolve", "validate", "conflict", "centrality", "community", "connectivity", "deduplicate", "temporal")
+            task: Task type ("build", "analyze", "resolve", "validate", "centrality", "community", "connectivity", "temporal")
             name: Method name
             method_func: Method function
         """
@@ -82,7 +81,7 @@ class MethodRegistry:
         Get method by task and name.
 
         Args:
-            task: Task type ("build", "analyze", "resolve", "validate", "conflict", "centrality", "community", "connectivity", "deduplicate", "temporal")
+            task: Task type ("build", "analyze", "resolve", "validate", "centrality", "community", "connectivity", "temporal")
             name: Method name
 
         Returns:

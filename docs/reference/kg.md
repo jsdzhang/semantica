@@ -24,13 +24,7 @@
 
     ---
 
-    Deduplicate entities using fuzzy matching and semantic similarity
-
--   :material-alert-decagram:{ .lg .middle } **Conflict Detection**
-
-    ---
-
-    Detect and resolve contradicting facts from multiple sources
+    Resolve entities using fuzzy matching and semantic similarity
 
 -   :material-chart-network:{ .lg .middle } **Graph Analytics**
 
@@ -48,9 +42,13 @@
 
 !!! tip "When to Use"
     - **KG Building**: The primary module for assembling a KG from extracted data
-    - **Data Cleaning**: Merging duplicates and resolving conflicts
+    - **Entity Resolution**: Resolving and merging similar entities
     - **Analysis**: Understanding the structure and importance of nodes
     - **Time-Series**: Modeling how the graph evolves over time
+
+!!! note "Related Modules"
+    - **Conflict Detection**: Use `semantica.conflicts` module for conflict detection and resolution
+    - **Deduplication**: Use `semantica.deduplication` module for advanced deduplication
 
 ---
 
@@ -83,7 +81,7 @@ Constructs the KG from raw data.
 | Method | Description |
 |--------|-------------|
 | `build(sources)` | Build graph from inputs |
-| `merge_entities()` | Run deduplication |
+| `merge_entities()` | Merge duplicate entities during building |
 
 **Example:**
 
@@ -118,25 +116,19 @@ Queries time-aware graphs.
 
 ---
 
-## Convenience Functions
+## Using Classes
 
 ```python
-<<<<<<< HEAD
-from semantica.kg import GraphBuilder, analyze_graph
+from semantica.kg import GraphBuilder, GraphAnalyzer
 
 # Build using GraphBuilder
-builder = GraphBuilder(resolve_conflicts=True)
+builder = GraphBuilder(merge_entities=True)
 kg = builder.build(sources)
-=======
-from semantica.kg import build, analyze_graph
-
-# Build
-kg = build(sources, resolve_conflicts=True)
->>>>>>> origin/main
 
 # Analyze
-stats = analyze_graph(kg)
-print(f"Communities: {stats['communities']}")
+analyzer = GraphAnalyzer()
+stats = analyzer.analyze_graph(kg)
+print(f"Communities: {stats.get('communities', [])}")
 ```
 
 ---
@@ -148,7 +140,7 @@ print(f"Communities: {stats['communities']}")
 ```bash
 export KG_MERGE_STRATEGY=fuzzy
 export KG_TEMPORAL_GRANULARITY=day
-export KG_CONFLICT_RESOLUTION=confidence
+export KG_RESOLUTION_STRATEGY=fuzzy
 ```
 
 ### YAML Configuration
@@ -191,10 +183,12 @@ print(f"New nodes since 2020: {len(diff.nodes)}")
 
 ## Best Practices
 
-1.  **Clean Data First**: Use `EntityResolver` aggressively to prevent "entity explosion" (too many duplicate nodes).
+1.  **Clean Data First**: Use `EntityResolver` to resolve similar entities and prevent "entity explosion" (too many duplicate nodes).
 2.  **Use Provenance**: Always track sources (`track_history=True`) to debug where bad data came from.
 3.  **Temporal Granularity**: Choose the right granularity (Day vs Second) to balance performance and precision.
 4.  **Validate**: Run `GraphValidator` after building to ensure structural integrity.
+5.  **Deduplication**: Use `semantica.deduplication` module for advanced deduplication needs.
+6.  **Conflict Resolution**: Use `semantica.conflicts` module for conflict detection and resolution.
 
 ---
 
@@ -203,3 +197,5 @@ print(f"New nodes since 2020: {len(diff.nodes)}")
 - [Graph Store Module](graph_store.md) - Persistence layer
 - [Semantic Extract Module](semantic_extract.md) - Data source
 - [Visualization Module](visualization.md) - Visualizing the KG
+- [Conflicts Module](conflicts.md) - Conflict detection and resolution
+- [Deduplication Module](deduplication.md) - Advanced deduplication

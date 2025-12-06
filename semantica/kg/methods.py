@@ -133,14 +133,15 @@ Main Functions:
     - analyze_graph: Graph analysis wrapper
     - resolve_entities: Entity resolution wrapper
     - validate_graph: Graph validation wrapper
-    - detect_conflicts: Conflict detection wrapper
     - calculate_centrality: Centrality calculation wrapper
     - detect_communities: Community detection wrapper
     - analyze_connectivity: Connectivity analysis wrapper
-    - deduplicate_graph: Deduplication wrapper
     - query_temporal: Temporal query wrapper
     - get_kg_method: Get KG method by name
     - list_available_methods: List registered methods
+
+Note: Conflict detection and deduplication have been moved to dedicated modules.
+    Use semantica.conflicts for conflict detection and semantica.deduplication for deduplication.
 
 Example Usage:
     >>> from semantica.kg.methods import build_kg, analyze_graph, calculate_centrality
@@ -156,9 +157,7 @@ from ..utils.logging import get_logger
 from .centrality_calculator import CentralityCalculator
 from .community_detector import CommunityDetector
 from .config import kg_config
-from .conflict_detector import ConflictDetector
 from .connectivity_analyzer import ConnectivityAnalyzer
-from .deduplicator import Deduplicator
 from .entity_resolver import EntityResolver
 from .graph_analyzer import GraphAnalyzer
 from .graph_builder import GraphBuilder
@@ -365,53 +364,6 @@ def validate_graph(graph: Dict[str, Any], method: str = "default", **kwargs) -> 
         raise
 
 
-def detect_conflicts(
-    graph: Dict[str, Any], method: str = "default", **kwargs
-) -> List[Dict[str, Any]]:
-    """
-    Detect conflicts in knowledge graph (convenience function).
-
-    This is a user-friendly wrapper that detects conflicts using the specified method.
-
-    Args:
-        graph: Knowledge graph to analyze
-        method: Detection method (default: "default")
-            - "default": Comprehensive conflict detection
-            - "value": Value conflict detection only
-            - "relationship": Relationship conflict detection only
-        **kwargs: Additional options passed to ConflictDetector
-
-    Returns:
-        List of conflict dictionaries
-
-    Examples:
-        >>> from semantica.kg.methods import detect_conflicts
-        >>> conflicts = detect_conflicts(kg, method="default")
-        >>> value_conflicts = detect_conflicts(kg, method="value")
-    """
-    # Check for custom method in registry
-    custom_method = method_registry.get("conflict", method)
-    if custom_method:
-        try:
-            return custom_method(graph, **kwargs)
-        except Exception as e:
-            logger.warning(
-                f"Custom method {method} failed: {e}, falling back to default"
-            )
-
-    try:
-        # Get config
-        config = kg_config.get_method_config("conflict")
-        config.update(kwargs)
-
-        detector = ConflictDetector(**config)
-        return detector.detect_conflicts(graph)
-
-    except Exception as e:
-        logger.error(f"Failed to detect conflicts: {e}")
-        raise
-
-
 def calculate_centrality(
     graph: Dict[str, Any], method: str = "degree", **kwargs
 ) -> Dict[str, Any]:
@@ -579,78 +531,6 @@ def analyze_connectivity(
 
     except Exception as e:
         logger.error(f"Failed to analyze connectivity: {e}")
-        raise
-
-
-def deduplicate_graph(
-    graph: Dict[str, Any], method: str = "default", **kwargs
-) -> Dict[str, Any]:
-    """
-    Deduplicate knowledge graph (convenience function).
-
-    This is a user-friendly wrapper that deduplicates a knowledge graph using the specified method.
-
-    Args:
-        graph: Knowledge graph to deduplicate
-        method: Deduplication method (default: "default")
-            - "default": Default deduplication
-            - "entities": Entity deduplication only
-            - "relationships": Relationship deduplication only
-        **kwargs: Additional options passed to Deduplicator
-
-    Returns:
-        Dictionary containing deduplicated graph
-
-    Examples:
-        >>> from semantica.kg.methods import deduplicate_graph
-        >>> deduplicated = deduplicate_graph(kg, method="default")
-        >>> entity_dedup = deduplicate_graph(kg, method="entities")
-    """
-    # Check for custom method in registry
-    custom_method = method_registry.get("deduplicate", method)
-    if custom_method:
-        try:
-            return custom_method(graph, **kwargs)
-        except Exception as e:
-            logger.warning(
-                f"Custom method {method} failed: {e}, falling back to default"
-            )
-
-    try:
-        # Get config
-        config = kg_config.get_method_config("deduplicate")
-        config.update(kwargs)
-
-        deduplicator = Deduplicator(**config)
-
-        entities = graph.get("entities", [])
-        relationships = graph.get("relationships", [])
-
-        if method == "entities" or method == "default":
-            duplicate_groups = deduplicator.find_duplicates(entities)
-            merged_entities = deduplicator.merge_duplicates(duplicate_groups)
-            # Add non-duplicate entities (entities not in any duplicate group)
-            processed_ids = set()
-            for group in duplicate_groups:
-                for entity in group:
-                    entity_id = entity.get("id") or entity.get("entity_id")
-                    if entity_id:
-                        processed_ids.add(entity_id)
-            # Add entities that weren't part of any duplicate group
-            for entity in entities:
-                entity_id = entity.get("id") or entity.get("entity_id")
-                if entity_id and entity_id not in processed_ids:
-                    merged_entities.append(entity)
-            entities = merged_entities
-
-        return {
-            "entities": entities,
-            "relationships": relationships,
-            "metadata": graph.get("metadata", {}),
-        }
-
-    except Exception as e:
-        logger.error(f"Failed to deduplicate graph: {e}")
         raise
 
 
