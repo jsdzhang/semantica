@@ -822,6 +822,76 @@ cost = engine._estimate_query_cost(query)
 - `bulk_load(triples, store_adapter, method, **options)`: Bulk load wrapper
 - `validate_triples(triples, method, **options)`: Validate triples wrapper
 
+## Dataclasses
+
+### TripleStore
+
+Configuration dataclass for triple store instances.
+
+```python
+from semantica.triple_store import TripleStore
+
+store = TripleStore(
+    store_id="main",
+    store_type="blazegraph",
+    endpoint="http://localhost:9999/blazegraph/sparql",
+    config={
+        "namespace": "kb",
+        "timeout": 30
+    }
+)
+
+print(f"Store ID: {store.store_id}")
+print(f"Type: {store.store_type}")
+```
+
+**Attributes:**
+- `store_id` (str): Unique store identifier
+- `store_type` (str): Backend type (blazegraph, jena, rdf4j, virtuoso)
+- `endpoint` (str): SPARQL endpoint URL
+- `config` (dict): Additional configuration options
+
+### QueryResult
+
+Query execution result dataclass.
+
+```python
+from semantica.triple_store import QueryEngine, QueryResult
+
+engine = QueryEngine()
+result: QueryResult = engine.execute_query(query, adapter)
+
+print(f"Variables: {result.variables}")
+print(f"Results: {len(result.bindings)}")
+print(f"Execution time: {result.execution_time:.2f}s")
+```
+
+**Attributes:**
+- `variables` (List[str]): Query variable names
+- `bindings` (List[Dict]): Result bindings
+- `execution_time` (float): Query execution time in seconds
+- `metadata` (Dict): Additional metadata (cached, optimized, etc.)
+
+### QueryPlan
+
+Query execution plan dataclass.
+
+```python
+from semantica.triple_store import QueryEngine, QueryPlan
+
+engine = QueryEngine(enable_optimization=True)
+plan: QueryPlan = engine.plan_query(query)
+
+print(f"Estimated cost: {plan.estimated_cost}")
+print(f"Execution steps: {plan.execution_steps}")
+```
+
+**Attributes:**
+- `query` (str): Original SPARQL query
+- `optimized_query` (str): Optimized query
+- `estimated_cost` (float): Estimated execution cost
+- `execution_steps` (List[str]): Planned execution steps
+
 ## Configuration
 
 ### Environment Variables
