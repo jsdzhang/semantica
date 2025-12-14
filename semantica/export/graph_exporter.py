@@ -94,7 +94,7 @@ class GraphExporter:
     def export(
         self,
         graph_data: Dict[str, Any],
-        file_path: Union[str, Path],
+        file_path: Optional[Union[str, Path]] = None,
         format: Optional[str] = None,
         **options,
     ) -> None:
@@ -115,13 +115,14 @@ class GraphExporter:
                 - nodes: List of node dictionaries with id, label, type, attributes
                 - edges: List of edge dictionaries with source, target, type, attributes
                 - metadata: Metadata dictionary (optional)
-            file_path: Output file path
+            file_path: Output file path (or use output_path in options)
             format: Export format - 'graphml', 'gexf', 'json', or 'dot'
                    (default: self.format)
             **options: Additional format-specific options
 
         Raises:
             ValidationError: If format is unsupported
+            ValueError: If file_path is not provided
 
         Example:
             >>> graph_data = {
@@ -130,6 +131,13 @@ class GraphExporter:
             ... }
             >>> exporter.export(graph_data, "graph.graphml", format="graphml")
         """
+        # Handle file_path from options if not provided
+        if file_path is None:
+            file_path = options.get("output_path")
+            
+        if file_path is None:
+            raise ValueError("file_path argument is required")
+
         # Track graph export
         tracking_id = self.progress_tracker.start_tracking(
             file=str(file_path),
@@ -184,7 +192,7 @@ class GraphExporter:
     def export_knowledge_graph(
         self,
         knowledge_graph: Dict[str, Any],
-        file_path: Union[str, Path],
+        file_path: Optional[Union[str, Path]] = None,
         format: Optional[str] = None,
         **options,
     ) -> None:
@@ -193,10 +201,17 @@ class GraphExporter:
 
         Args:
             knowledge_graph: Knowledge graph dictionary
-            file_path: Output file path
+            file_path: Output file path (or use output_path in options)
             format: Export format
             **options: Additional options
         """
+        # Handle file_path from options if not provided
+        if file_path is None:
+            file_path = options.get("output_path")
+            
+        if file_path is None:
+            raise ValueError("file_path argument is required")
+
         # Convert knowledge graph to graph format
         graph_data = self._convert_kg_to_graph(knowledge_graph)
         self.export(graph_data, file_path, format=format, **options)
