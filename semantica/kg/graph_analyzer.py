@@ -238,6 +238,8 @@ class GraphAnalyzer:
         metrics = {
             "num_nodes": len(entities),
             "num_edges": len(relationships),
+            "entity_count": len(entities),
+            "relationship_count": len(relationships),
             **connectivity_metrics,
         }
 
