@@ -8,12 +8,12 @@ and FalkorDB for storing and querying knowledge graphs.
 Algorithms Used:
 
 Graph Store Management:
-    - Store Registration: Store type detection, adapter factory pattern, configuration management, default store selection
-    - Adapter Pattern: Unified interface for multiple backends (Neo4j, FalkorDB), adapter instantiation, backend-specific operation delegation
+    - Store Registration: Store type detection, store factory pattern, configuration management, default store selection
+    - Backend Pattern: Unified interface for multiple backends (Neo4j, FalkorDB), backend instantiation, backend-specific operation delegation
     - Store Selection: Default store resolution, store ID lookup, store validation
 
 Node and Relationship Operations:
-    - Node Creation: Single node insertion, batch node insertion, property validation, label management, adapter delegation
+    - Node Creation: Single node insertion, batch node insertion, property validation, label management, backend delegation
     - Node Retrieval: Pattern matching (label/property filtering), Cypher query construction, result extraction, node reconstruction
     - Node Update: Property update, label modification, atomic update operations, conflict detection
     - Node Deletion: Node matching, cascade deletion (optional), deletion operation delegation, result verification
@@ -35,9 +35,9 @@ Graph Analytics:
     - Path Algorithms: Shortest path, all shortest paths, Dijkstra, A* pathfinding
     - Similarity: Node similarity, Jaccard similarity, cosine similarity
 
-Store Adapters:
-    - Neo4j Adapter: Official Neo4j Python driver, Bolt protocol communication, transaction support, multi-database support, APOC procedures
-    - FalkorDB Adapter: Redis-based graph database, sparse matrix representation, linear algebra queries, OpenCypher support, ultra-fast performance
+Store Backends:
+    - Neo4j Store: Official Neo4j Python driver, Bolt protocol communication, transaction support, multi-database support, APOC procedures
+    - FalkorDB Store: Redis-based graph database, sparse matrix representation, linear algebra queries, OpenCypher support, ultra-fast performance
 
 Bulk Operations:
     - Batch Processing: Chunking algorithm (fixed-size batch creation), batch size optimization, memory management for large datasets
@@ -59,8 +59,8 @@ Key Features:
 Main Classes:
     - GraphStore: Main graph store interface
     - GraphManager: Graph store management and operations
-    - Neo4jAdapter: Neo4j integration adapter
-    - FalkorDBAdapter: FalkorDB integration adapter
+    - Neo4jStore: Neo4j integration store
+    - FalkorDBStore: FalkorDB integration store
     - NodeManager: Node CRUD operations
     - RelationshipManager: Relationship CRUD operations
     - QueryEngine: Cypher query execution and optimization
@@ -94,19 +94,18 @@ License: MIT
 """
 
 from .config import GraphStoreConfig, graph_store_config
-from .falkordb_adapter import (
-    FalkorDBAdapter,
+from .falkordb_store import (
+    FalkorDBStore,
     FalkorDBClient,
     FalkorDBGraph,
-    FalkorDBQuery,
 )
 from .graph_store import (
-    GraphAnalytics,
     GraphManager,
     GraphStore,
     NodeManager,
     QueryEngine,
     RelationshipManager,
+    GraphAnalytics,
 )
 from .methods import (
     create_node,
@@ -126,7 +125,11 @@ from .methods import (
     update_node,
     update_relationship,
 )
-from .neo4j_adapter import Neo4jAdapter, Neo4jDriver, Neo4jSession, Neo4jTransaction
+from .neo4j_store import (
+    Neo4jStore,
+    Neo4jDriver,
+    Neo4jTransaction,
+)
 from .registry import MethodRegistry, method_registry
 
 __all__ = [
@@ -138,15 +141,13 @@ __all__ = [
     "QueryEngine",
     "GraphAnalytics",
     # Neo4j
-    "Neo4jAdapter",
+    "Neo4jStore",
     "Neo4jDriver",
-    "Neo4jSession",
     "Neo4jTransaction",
     # FalkorDB
-    "FalkorDBAdapter",
+    "FalkorDBStore",
     "FalkorDBClient",
     "FalkorDBGraph",
-    "FalkorDBQuery",
     # Convenience functions
     "create_node",
     "create_nodes",

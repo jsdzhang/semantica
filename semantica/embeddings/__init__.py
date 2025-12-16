@@ -24,7 +24,7 @@ Pooling Strategies:
     - Attention-based Pooling: Softmax-weighted sum using dot product attention scores
     - Hierarchical Pooling: Two-level pooling (chunk-level then global-level mean pooling)
 
-Provider Adapters:
+Provider Stores:
     - OpenAI API Integration: REST API-based embedding generation
     - BGE Model Integration: Sentence-transformers wrapper for BAAI General Embedding models
     - FastEmbed Integration: Fast and efficient embedding generation using FastEmbed library
@@ -93,13 +93,13 @@ from .pooling_strategies import (
     PoolingStrategyFactory,
 )
 from .graph_embedding_manager import GraphEmbeddingManager
-from .provider_adapters import (
-    BGEAdapter,
-    FastEmbedAdapter,
-    LlamaAdapter,
-    OpenAIAdapter,
-    ProviderAdapter,
-    ProviderAdapterFactory,
+from .provider_stores import (
+    BGEStore,
+    FastEmbedStore,
+    LlamaStore,
+    OpenAIStore,
+    ProviderStore,
+    ProviderStoreFactory,
 )
 from .vector_embedding_manager import VectorEmbeddingManager
 from .registry import MethodRegistry, method_registry
@@ -109,13 +109,13 @@ __all__ = [
     # Core Classes
     "EmbeddingGenerator",
     "TextEmbedder",
-    # Provider adapters
-    "ProviderAdapter",
-    "OpenAIAdapter",
-    "BGEAdapter",
-    "FastEmbedAdapter",
-    "LlamaAdapter",
-    "ProviderAdapterFactory",
+    # Provider stores
+    "ProviderStore",
+    "ProviderStoreFactory",
+    "OpenAIStore",
+    "BGEStore",
+    "FastEmbedStore",
+    "LlamaStore",
     # Embedding managers
     "VectorEmbeddingManager",
     "GraphEmbeddingManager",

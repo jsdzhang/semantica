@@ -169,11 +169,11 @@ Graph analytics and algorithms.
 - `degree_centrality(labels, rel_type, direction, **options)` - Calculate degree centrality
 - `connected_components(labels, **options)` - Find connected components
 
-### Adapter Classes
+### Store Backends
 
-#### Neo4jAdapter
+#### Neo4jStore
 
-Enterprise-grade Neo4j backend adapter.
+Enterprise-grade Neo4j backend store.
 
 **Features:**
 - Bolt protocol support
@@ -188,9 +188,9 @@ Enterprise-grade Neo4j backend adapter.
 - `Neo4jTransaction` - Transaction wrapper
 
 
-#### FalkorDBAdapter
+#### FalkorDBStore
 
-High-performance Redis-based FalkorDB backend adapter.
+High-performance Redis-based FalkorDB backend store.
 
 **Features:**
 - Sparse matrix representation

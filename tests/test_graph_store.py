@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 from typing import Any, Dict, List, Optional
 from semantica.graph_store.graph_store import GraphStore
 
-class MockGraphAdapter:
+class MockGraphStore:
     def __init__(self, **config):
         self.config = config
         self.nodes = {}
@@ -140,9 +140,9 @@ class MockGraphAdapter:
 
 class TestGraphStore(unittest.TestCase):
     def setUp(self):
-        # Patch Neo4jAdapter to return our MockGraphAdapter
-        self.patcher = patch('semantica.graph_store.neo4j_adapter.Neo4jAdapter', side_effect=MockGraphAdapter)
-        self.mock_adapter_class = self.patcher.start()
+        # Patch Neo4jStore to return our MockGraphStore
+        self.patcher = patch('semantica.graph_store.neo4j_store.Neo4jStore', side_effect=MockGraphStore)
+        self.mock_store_class = self.patcher.start()
         
         # Initialize GraphStore with 'neo4j' backend (which will use our mock)
         self.store = GraphStore(backend="neo4j")
@@ -211,15 +211,15 @@ class TestGraphStore(unittest.TestCase):
         self.assertEqual(created_nodes[1]["properties"]["name"], "User2")
 
     def test_query_execution(self):
-        # Since MockGraphAdapter returns a fixed response
+        # Since MockGraphStore returns a fixed response
         result = self.store.execute_query("MATCH (n) RETURN n")
         self.assertEqual(result["summary"], "Mock query executed")
 
 class TestGraphStoreInitialization(unittest.TestCase):
     def test_falkordb_initialization(self):
-        with patch('semantica.graph_store.falkordb_adapter.FalkorDBAdapter', side_effect=MockGraphAdapter) as mock_falkor:
+        with patch('semantica.graph_store.falkordb_store.FalkorDBStore', side_effect=MockGraphStore) as mock_falkor:
             store = GraphStore(backend="falkordb")
-            self.assertIsInstance(store._adapter, MockGraphAdapter)
+            self.assertIsInstance(store._store_backend, MockGraphStore)
             mock_falkor.assert_called_once()
 
     def test_invalid_backend(self):

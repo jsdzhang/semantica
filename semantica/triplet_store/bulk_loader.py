@@ -20,7 +20,7 @@ Main Classes:
 Example Usage:
     >>> from semantica.triplet_store import BulkLoader
     >>> loader = BulkLoader(batch_size=1000, max_retries=3)
-    >>> progress = loader.load_triplets(triplets, store_adapter)
+    >>> progress = loader.load_triplets(triplets, store)
     >>> print(f"Loaded {progress.loaded_triplets}/{progress.total_triplets} triplets")
     >>> validation = loader.validate_before_load(triplets)
 
@@ -87,14 +87,14 @@ class BulkLoader:
         self.retry_delay = self.config.get("retry_delay", 1.0)
 
     def load_triplets(
-        self, triplets: List[Triplet], store_adapter: Any, **options
+        self, triplets: List[Triplet], store: Any, **options
     ) -> LoadProgress:
         """
         Load triplets in bulk.
 
         Args:
             triplets: List of triplets to load
-            store_adapter: Triplet store adapter instance
+            store: Triplet store backend instance
             **options: Additional options:
                 - batch_size: Override default batch size
                 - progress_callback: Callback function for progress updates
@@ -139,13 +139,13 @@ class BulkLoader:
                 batch_loaded = 0
                 for attempt in range(self.max_retries):
                     try:
-                        if hasattr(store_adapter, "bulk_load"):
-                            result = store_adapter.bulk_load(batch, **options)
-                        elif hasattr(store_adapter, "add_triplets"):
-                            result = store_adapter.add_triplets(batch, **options)
+                        if hasattr(store, "bulk_load"):
+                            result = store.bulk_load(batch, **options)
+                        elif hasattr(store, "add_triplets"):
+                            result = store.add_triplets(batch, **options)
                         else:
                             raise ProcessingError(
-                                "Store adapter does not support bulk loading"
+                                "Store backend does not support bulk loading"
                             )
 
                         batch_loaded = len(batch)
@@ -196,7 +196,7 @@ class BulkLoader:
                     estimated_remaining=estimated_remaining,
                     metadata={
                         "batch_size": batch_size,
-                        "store_type": store_adapter.__class__.__name__,
+                        "store_type": store.__class__.__name__,
                     },
                 )
 
@@ -244,14 +244,14 @@ class BulkLoader:
             raise
 
     def load_from_file(
-        self, file_path: str, store_adapter: Any, **options
+        self, file_path: str, store_backend: Any, **options
     ) -> LoadProgress:
         """
         Load triplets from file.
 
         Args:
             file_path: Path to RDF file
-            store_adapter: Triplet store adapter
+            store_backend: Triplet store backend
             **options: Additional options:
                 - format: File format (turtle, ntriples, rdfxml)
                 - chunk_size: Chunk size for reading large files
@@ -275,14 +275,14 @@ class BulkLoader:
         )
 
     def load_from_stream(
-        self, triplets_stream: Any, store_adapter: Any, **options
+        self, triplets_stream: Any, store_backend: Any, **options
     ) -> LoadProgress:
         """
         Load triplets from stream.
 
         Args:
             triplets_stream: Stream of triplets
-            store_adapter: Triplet store adapter
+            store_backend: Triplet store backend
             **options: Additional options
 
         Returns:
@@ -297,13 +297,13 @@ class BulkLoader:
 
             if len(batch) >= self.batch_size:
                 # Load batch
-                progress = self.load_triplets(batch, store_adapter, **options)
+                progress = self.load_triplets(batch, store_backend, **options)
                 total_loaded += progress.loaded_triplets
                 batch = []
 
         # Load remaining triplets
         if batch:
-            progress = self.load_triplets(batch, store_adapter, **options)
+            progress = self.load_triplets(batch, store_backend, **options)
             total_loaded += progress.loaded_triplets
 
         return LoadProgress(

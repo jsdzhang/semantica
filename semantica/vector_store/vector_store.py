@@ -11,7 +11,7 @@ Key Features:
     - Vector indexing and optimization
     - Metadata association with vectors
     - Vector update and deletion operations
-    - Multi-backend support through adapters
+    - Multi-backend support through stores
 
 Main Classes:
     - VectorStore: Main vector store interface for storing and searching vectors

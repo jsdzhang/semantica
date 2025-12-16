@@ -45,18 +45,18 @@ class TestPineconeRemoval(unittest.TestCase):
         for key in config.keys():
             self.assertNotIn("pinecone", key.lower(), f"Found pinecone key in config: {key}")
 
-    def test_adapters_existence(self):
-        """Verify that other adapters exist but PineconeAdapter does not."""
+    def test_stores_existence(self):
+        """Verify that other stores exist but PineconeStore does not."""
         try:
-            from semantica.vector_store import faiss_adapter
-            from semantica.vector_store import weaviate_adapter
-            from semantica.vector_store import qdrant_adapter
-            from semantica.vector_store import milvus_adapter
+            from semantica.vector_store import faiss_store
+            from semantica.vector_store import weaviate_store
+            from semantica.vector_store import qdrant_store
+            from semantica.vector_store import milvus_store
         except ImportError as e:
-            self.fail(f"Failed to import a required adapter: {e}")
+            self.fail(f"Failed to import a required store: {e}")
 
         with self.assertRaises(ImportError):
-            from semantica.vector_store import pinecone_adapter
+            from semantica.vector_store import pinecone_store
 
 if __name__ == '__main__':
     unittest.main()

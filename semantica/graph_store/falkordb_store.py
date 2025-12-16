@@ -1,5 +1,5 @@
 """
-FalkorDB Adapter Module
+FalkorDB Store Module
 
 This module provides FalkorDB integration for ultra-fast property graph storage and
 OpenCypher querying in the Semantica framework. FalkorDB is a high-performance
@@ -18,19 +18,19 @@ Key Features:
     - Optional dependency handling
 
 Main Classes:
-    - FalkorDBAdapter: Main FalkorDB adapter for graph operations
+    - FalkorDBStore: Main FalkorDB store for graph operations
     - FalkorDBClient: FalkorDB client wrapper
     - FalkorDBGraph: Graph wrapper with operations
     - FalkorDBQuery: Query execution wrapper
 
 Example Usage:
-    >>> from semantica.graph_store import FalkorDBAdapter
-    >>> adapter = FalkorDBAdapter(host="localhost", port=6379)
-    >>> adapter.connect()
-    >>> graph = adapter.select_graph("MotoGP")
-    >>> adapter.create_node(["Rider"], {"name": "Valentino Rossi"})
-    >>> results = adapter.execute_query("MATCH (r:Rider) RETURN r.name")
-    >>> adapter.close()
+    >>> from semantica.graph_store import FalkorDBStore
+    >>> store = FalkorDBStore(host="localhost", port=6379)
+    >>> store.connect()
+    >>> graph = store.select_graph("MotoGP")
+    >>> store.create_node(["Rider"], {"name": "Valentino Rossi"})
+    >>> results = store.execute_query("MATCH (r:Rider) RETURN r.name")
+    >>> store.close()
 
 Author: Semantica Contributors
 License: MIT
@@ -177,9 +177,9 @@ class FalkorDBQuery:
         return {}
 
 
-class FalkorDBAdapter:
+class FalkorDBStore:
     """
-    FalkorDB adapter for ultra-fast property graph storage and OpenCypher querying.
+    FalkorDB store for ultra-fast property graph storage and OpenCypher querying.
 
     • FalkorDB connection and authentication
     • Multi-graph support
@@ -200,7 +200,7 @@ class FalkorDBAdapter:
         **config,
     ):
         """
-        Initialize FalkorDB adapter.
+        Initialize FalkorDB store.
 
         Args:
             host: FalkorDB/Redis host
@@ -209,7 +209,7 @@ class FalkorDBAdapter:
             graph_name: Default graph name
             **config: Additional configuration options
         """
-        self.logger = get_logger("falkordb_adapter")
+        self.logger = get_logger("falkordb_store")
         self.config = config
         self.progress_tracker = get_progress_tracker()
 
@@ -320,7 +320,7 @@ class FalkorDBAdapter:
         """
         tracking_id = self.progress_tracker.start_tracking(
             module="graph_store",
-            submodule="FalkorDBAdapter",
+            submodule="FalkorDBStore",
             message=f"Creating node with labels {labels}",
         )
 
@@ -377,7 +377,7 @@ class FalkorDBAdapter:
         """
         tracking_id = self.progress_tracker.start_tracking(
             module="graph_store",
-            submodule="FalkorDBAdapter",
+            submodule="FalkorDBStore",
             message=f"Creating {len(nodes)} nodes in batch",
         )
 
@@ -581,7 +581,7 @@ class FalkorDBAdapter:
         """
         tracking_id = self.progress_tracker.start_tracking(
             module="graph_store",
-            submodule="FalkorDBAdapter",
+            submodule="FalkorDBStore",
             message=f"Creating relationship [{rel_type}]",
         )
 
@@ -747,7 +747,7 @@ class FalkorDBAdapter:
         """
         tracking_id = self.progress_tracker.start_tracking(
             module="graph_store",
-            submodule="FalkorDBAdapter",
+            submodule="FalkorDBStore",
             message="Executing OpenCypher query",
         )
 

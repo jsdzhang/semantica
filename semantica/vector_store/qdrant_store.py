@@ -1,5 +1,5 @@
 """
-Qdrant Adapter Module
+Qdrant Store Module
 
 This module provides Qdrant vector database integration for vector storage and
 similarity search in the Semantica framework, supporting collection management,
@@ -15,19 +15,19 @@ Key Features:
     - Optional dependency handling
 
 Main Classes:
-    - QdrantAdapter: Main Qdrant adapter for vector operations
+    - QdrantStore: Main Qdrant store for vector operations
     - QdrantClient: Qdrant client wrapper
     - QdrantCollection: Collection wrapper with operations
     - QdrantSearch: Search operations and filtering
 
 Example Usage:
-    >>> from semantica.vector_store import QdrantAdapter
-    >>> adapter = QdrantAdapter(url="http://localhost:6333")
-    >>> adapter.connect()
-    >>> collection = adapter.create_collection("my-collection", vector_size=768, distance="Cosine")
-    >>> adapter.insert_vectors(vectors, ids, payloads=metadata)
-    >>> results = adapter.search_vectors(query_vector, limit=10, filter={"category": "science"})
-    >>> stats = adapter.get_stats()
+    >>> from semantica.vector_store import QdrantStore
+    >>> store = QdrantStore(url="http://localhost:6333")
+    >>> store.connect()
+    >>> collection = store.create_collection("my-collection", vector_size=768, distance="Cosine")
+    >>> store.insert_vectors(vectors, ids, payloads=metadata)
+    >>> results = store.search_vectors(query_vector, limit=10, filter={"category": "science"})
+    >>> stats = store.get_stats()
 
 Author: Semantica Contributors
 License: MIT
@@ -234,9 +234,9 @@ class QdrantSearch:
         )
 
 
-class QdrantAdapter:
+class QdrantStore:
     """
-    Qdrant adapter for vector storage and similarity search.
+    Qdrant store for vector storage and similarity search.
 
     • Qdrant connection and authentication
     • Collection and point management
@@ -249,8 +249,8 @@ class QdrantAdapter:
     def __init__(
         self, url: Optional[str] = None, api_key: Optional[str] = None, **config
     ):
-        """Initialize Qdrant adapter."""
-        self.logger = get_logger("qdrant_adapter")
+        """Initialize Qdrant store."""
+        self.logger = get_logger("qdrant_store")
         self.config = config
         self.progress_tracker = get_progress_tracker()
         self.url = url or config.get("url", "http://localhost:6333")
@@ -386,7 +386,7 @@ class QdrantAdapter:
         """
         tracking_id = self.progress_tracker.start_tracking(
             module="vector_store",
-            submodule="QdrantAdapter",
+            submodule="QdrantStore",
             message=f"Inserting {len(vectors)} vectors into Qdrant collection",
         )
 
@@ -456,7 +456,7 @@ class QdrantAdapter:
         """
         tracking_id = self.progress_tracker.start_tracking(
             module="vector_store",
-            submodule="QdrantAdapter",
+            submodule="QdrantStore",
             message=f"Searching for {limit} similar vectors in Qdrant",
         )
 

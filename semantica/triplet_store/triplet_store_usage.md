@@ -10,7 +10,7 @@ This comprehensive guide demonstrates how to use the triplet store module for RD
 4. [SPARQL Query Execution](#sparql-query-execution)
 5. [Query Optimization](#query-optimization)
 6. [Bulk Loading](#bulk-loading)
-7. [Store Adapters](#store-adapters)
+7. [Store Backends](#store-backends)
 8. [Algorithms and Methods](#algorithms-and-methods)
 9. [Configuration](#configuration)
 10. [Advanced Examples](#advanced-examples)
@@ -66,17 +66,17 @@ print(f"Found {len(triplets)} triplets")
 ### Using QueryEngine
 
 ```python
-from semantica.triplet_store import QueryEngine, BlazegraphAdapter
+from semantica.triplet_store import QueryEngine, BlazegraphStore
 
 # Create query engine
 engine = QueryEngine(enable_caching=True, enable_optimization=True)
 
-# Create adapter
-adapter = BlazegraphAdapter(endpoint="http://localhost:9999/blazegraph")
+# Create store
+store = BlazegraphStore(endpoint="http://localhost:9999/blazegraph")
 
 # Execute query
 query = "SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 10"
-result = engine.execute_query(query, adapter)
+result = engine.execute_query(query, store)
 
 print(f"Found {len(result.bindings)} results")
 print(f"Execution time: {result.execution_time:.2f}s")
@@ -270,13 +270,13 @@ print(f"Updated: {result['success']}")
 ### Basic Query Execution
 
 ```python
-from semantica.triplet_store import QueryEngine, BlazegraphAdapter
+from semantica.triplet_store import QueryEngine, BlazegraphStore
 
 # Create query engine
 engine = QueryEngine(enable_caching=True)
 
-# Create adapter
-adapter = BlazegraphAdapter(endpoint="http://localhost:9999/blazegraph")
+# Create store
+store = BlazegraphStore(endpoint="http://localhost:9999/blazegraph")
 
 # Execute SELECT query
 query = """
@@ -287,7 +287,7 @@ WHERE {
 }
 LIMIT 10
 """
-result = engine.execute_query(query, adapter)
+result = engine.execute_query(query, store)
 
 print(f"Variables: {result.variables}")
 print(f"Results: {len(result.bindings)}")
@@ -298,12 +298,12 @@ for binding in result.bindings[:5]:
 ### Using Convenience Function
 
 ```python
-from semantica.triplet_store import execute_query, BlazegraphAdapter
+from semantica.triplet_store import execute_query, BlazegraphStore
 
-adapter = BlazegraphAdapter(endpoint="http://localhost:9999/blazegraph")
+store = BlazegraphStore(endpoint="http://localhost:9999/blazegraph")
 
 query = "SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 10"
-result = execute_query(query, adapter, method="default")
+result = execute_query(query, store, method="default")
 
 print(f"Found {len(result.bindings)} results")
 ```
@@ -311,13 +311,13 @@ print(f"Found {len(result.bindings)} results")
 ### Query Result Processing
 
 ```python
-from semantica.triplet_store import QueryEngine, BlazegraphAdapter
+from semantica.triplet_store import QueryEngine, BlazegraphStore
 
 engine = QueryEngine()
-adapter = BlazegraphAdapter(endpoint="http://localhost:9999/blazegraph")
+store = BlazegraphStore(endpoint="http://localhost:9999/blazegraph")
 
 query = "SELECT ?name ?age WHERE { ?s <http://example.org/hasName> ?name . ?s <http://example.org/hasAge> ?age }"
-result = engine.execute_query(query, adapter)
+result = engine.execute_query(query, store)
 
 # Process results
 for binding in result.bindings:
@@ -332,20 +332,20 @@ print(f"Metadata: {result.metadata}")
 ### Query Caching
 
 ```python
-from semantica.triplet_store import QueryEngine, BlazegraphAdapter
+from semantica.triplet_store import QueryEngine, BlazegraphStore
 
 # Enable caching
 engine = QueryEngine(enable_caching=True, cache_size=1000)
-adapter = BlazegraphAdapter(endpoint="http://localhost:9999/blazegraph")
+store = BlazegraphStore(endpoint="http://localhost:9999/blazegraph")
 
 query = "SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 10"
 
 # First execution (not cached)
-result1 = engine.execute_query(query, adapter)
+result1 = engine.execute_query(query, store)
 print(f"First execution: {result1.execution_time:.2f}s, Cached: {result1.metadata.get('cached', False)}")
 
 # Second execution (cached)
-result2 = engine.execute_query(query, adapter)
+result2 = engine.execute_query(query, store)
 print(f"Second execution: {result2.execution_time:.2f}s, Cached: {result2.metadata.get('cached', False)}")
 
 # Clear cache
@@ -403,15 +403,15 @@ print(f"Execution steps: {plan.execution_steps}")
 ### Query Statistics
 
 ```python
-from semantica.triplet_store import QueryEngine, BlazegraphAdapter
+from semantica.triplet_store import QueryEngine, BlazegraphStore
 
 engine = QueryEngine(enable_caching=True)
-adapter = BlazegraphAdapter(endpoint="http://localhost:9999/blazegraph")
+store = BlazegraphStore(endpoint="http://localhost:9999/blazegraph")
 
 # Execute multiple queries
 for i in range(10):
     query = f"SELECT ?s ?p ?o WHERE {{ ?s ?p ?o }} LIMIT {i * 10}"
-    engine.execute_query(query, adapter)
+    engine.execute_query(query, store)
 
 # Get statistics
 stats = engine.get_query_statistics()
@@ -427,14 +427,14 @@ print(f"Cache size: {stats['cache_size']}")
 ### Basic Bulk Loading
 
 ```python
-from semantica.triplet_store import BulkLoader, BlazegraphAdapter
+from semantica.triplet_store import BulkLoader, BlazegraphStore
 from semantica.semantic_extract.triplet_extractor import Triplet
 
 # Create bulk loader
 loader = BulkLoader(batch_size=1000, max_retries=3)
 
-# Create adapter
-adapter = BlazegraphAdapter(endpoint="http://localhost:9999/blazegraph")
+# Create store
+store = BlazegraphStore(endpoint="http://localhost:9999/blazegraph")
 
 # Generate triplets
 triplets = [
@@ -443,7 +443,7 @@ triplets = [
 ]
 
 # Load triplets
-progress = loader.load_triplets(triplets, adapter)
+progress = loader.load_triplets(triplets, store)
 
 print(f"Loaded: {progress.loaded_triplets}/{progress.total_triplets}")
 print(f"Failed: {progress.failed_triplets}")
@@ -455,11 +455,11 @@ print(f"Throughput: {progress.metadata.get('throughput', 0):.0f} triplets/sec")
 ### Progress Tracking
 
 ```python
-from semantica.triplet_store import BulkLoader, BlazegraphAdapter, LoadProgress
+from semantica.triplet_store import BulkLoader, BlazegraphStore, LoadProgress
 from semantica.semantic_extract.triplet_extractor import Triplet
 
 loader = BulkLoader(batch_size=1000)
-adapter = BlazegraphAdapter(endpoint="http://localhost:9999/blazegraph")
+store = BlazegraphStore(endpoint="http://localhost:9999/blazegraph")
 
 # Progress callback
 def progress_callback(progress: LoadProgress):
@@ -470,7 +470,7 @@ def progress_callback(progress: LoadProgress):
 # Load with progress callback
 triplets = [Triplet(f"http://example.org/entity{i}", "http://example.org/hasName", f"Entity {i}")
            for i in range(5000)]
-progress = loader.load_triplets(triplets, adapter, progress_callback=progress_callback)
+progress = loader.load_triplets(triplets, store, progress_callback=progress_callback)
 ```
 
 ### Pre-load Validation
@@ -501,11 +501,11 @@ print(f"Valid triplets: {validation['valid_triplets']}/{validation['total_triple
 ### Stream-based Loading
 
 ```python
-from semantica.triplet_store import BulkLoader, BlazegraphAdapter
+from semantica.triplet_store import BulkLoader, BlazegraphStore
 from semantica.semantic_extract.triplet_extractor import Triplet
 
 loader = BulkLoader(batch_size=1000)
-adapter = BlazegraphAdapter(endpoint="http://localhost:9999/blazegraph")
+store = BlazegraphStore(endpoint="http://localhost:9999/blazegraph")
 
 # Create stream of triplets
 def triplet_stream():
@@ -513,20 +513,20 @@ def triplet_stream():
         yield Triplet(f"http://example.org/entity{i}", "http://example.org/hasName", f"Entity {i}")
 
 # Load from stream
-progress = loader.load_from_stream(triplet_stream(), adapter)
+progress = loader.load_from_stream(triplet_stream(), store)
 print(f"Loaded {progress.loaded_triplets} triplets from stream")
 ```
 
-## Store Adapters
+## Store Backends
 
-### Blazegraph Adapter
+### Blazegraph Store
 
 ```python
-from semantica.triplet_store import BlazegraphAdapter
+from semantica.triplet_store import BlazegraphStore
 from semantica.semantic_extract.triplet_extractor import Triplet
 
-# Create Blazegraph adapter
-adapter = BlazegraphAdapter(
+# Create Blazegraph store
+store = BlazegraphStore(
     endpoint="http://localhost:9999/blazegraph",
     namespace="kb",
     auth=("user", "password")  # Optional
@@ -536,26 +536,26 @@ adapter = BlazegraphAdapter(
 triplets = [
     Triplet("http://example.org/entity1", "http://example.org/hasName", "John")
 ]
-result = adapter.add_triplets(triplets)
+result = store.add_triplets(triplets)
 print(f"Added: {result['success']}")
 
 # Execute SPARQL query
 query = "SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 10"
-result = adapter.execute_sparql(query)
+result = store.execute_sparql(query)
 print(f"Found {len(result['bindings'])} results")
 ```
 
-### Jena Adapter
+### Jena Store
 
 ```python
-from semantica.triplet_store import JenaAdapter
+from semantica.triplet_store import JenaStore
 from semantica.semantic_extract.triplet_extractor import Triplet
 
-# Create Jena adapter (in-memory)
-adapter = JenaAdapter()
+# Create Jena store (in-memory)
+store = JenaStore()
 
 # Or connect to Fuseki endpoint
-adapter = JenaAdapter(
+store = JenaStore(
     endpoint="http://localhost:3030/ds",
     dataset="default",
     enable_inference=True
@@ -565,21 +565,21 @@ adapter = JenaAdapter(
 triplets = [
     Triplet("http://example.org/entity1", "http://example.org/hasName", "John")
 ]
-result = adapter.add_triplets(triplets)
+result = store.add_triplets(triplets)
 
 # Serialize to Turtle
-turtle = adapter.serialize(format="turtle")
+turtle = store.serialize(format="turtle")
 print(turtle)
 ```
 
-### RDF4J Adapter
+### RDF4J Store
 
 ```python
-from semantica.triplet_store import RDF4JAdapter
+from semantica.triplet_store import RDF4JStore
 from semantica.semantic_extract.triplet_extractor import Triplet
 
-# Create RDF4J adapter
-adapter = RDF4JAdapter(
+# Create RDF4J store
+store = RDF4JStore(
     endpoint="http://localhost:8080/rdf4j-server",
     repository="test"
 )
@@ -588,17 +588,17 @@ adapter = RDF4JAdapter(
 triplets = [
     Triplet("http://example.org/entity1", "http://example.org/hasName", "John")
 ]
-result = adapter.add_triplets(triplets)
+result = store.add_triplets(triplets)
 ```
 
-### Virtuoso Adapter
+### Virtuoso Store
 
 ```python
-from semantica.triplet_store import VirtuosoAdapter
+from semantica.triplet_store import VirtuosoStore
 from semantica.semantic_extract.triplet_extractor import Triplet
 
-# Create Virtuoso adapter
-adapter = VirtuosoAdapter(
+# Create Virtuoso store
+store = VirtuosoStore(
     endpoint="http://localhost:8890/sparql",
     user="dba",
     password="dba"
@@ -608,19 +608,19 @@ adapter = VirtuosoAdapter(
 triplets = [
     Triplet("http://example.org/entity1", "http://example.org/hasName", "John")
 ]
-result = adapter.add_triplets(triplets)
+result = store.add_triplets(triplets)
 ```
 
 ## Algorithms and Methods
 
-### Triplet Store Management Algorithms
+### Store Backends
 
 #### Store Registration
-**Algorithm**: Store type detection and adapter factory pattern
+**Algorithm**: Store type detection and store factory pattern
 
 1. **Store Type Detection**: Identify backend type (blazegraph, jena, rdf4j, virtuoso)
 2. **Configuration Storage**: Store store configuration (endpoint, namespace, etc.)
-3. **Adapter Factory**: Create appropriate adapter instance based on store type
+3. **Store Factory**: Create appropriate store instance based on store type
 4. **Default Store Selection**: Set first registered store as default if none specified
 
 **Time Complexity**: O(1) for registration
@@ -631,16 +631,16 @@ result = adapter.add_triplets(triplets)
 store = manager.register_store("main", "blazegraph", "http://localhost:9999/blazegraph")
 ```
 
-#### Adapter Pattern
+#### Backend Pattern
 **Algorithm**: Unified interface for multiple backends
 
-1. **Interface Definition**: Common interface for all adapters (add_triplet, execute_sparql, etc.)
-2. **Backend-Specific Implementation**: Each adapter implements interface for its backend
-3. **Adapter Instantiation**: Create adapter instance on-demand
-4. **Operation Delegation**: Delegate operations to appropriate adapter
+1. **Interface Definition**: Common interface for all stores (add_triplet, execute_sparql, etc.)
+2. **Backend-Specific Implementation**: Each store implements interface for its backend
+3. **Store Instantiation**: Create store instance on-demand
+4. **Operation Delegation**: Delegate operations to appropriate store
 
-**Time Complexity**: O(1) for adapter creation
-**Space Complexity**: O(1) per adapter
+**Time Complexity**: O(1) for store creation
+**Space Complexity**: O(1) per store
 
 ### CRUD Operations Algorithms
 
@@ -648,8 +648,8 @@ store = manager.register_store("main", "blazegraph", "http://localhost:9999/blaz
 **Algorithm**: Single and batch triplet insertion
 
 1. **Triplet Validation**: Check required fields (subject, predicate, object), validate confidence (0-1)
-2. **Adapter Selection**: Get adapter for specified store
-3. **Operation Delegation**: Delegate to adapter's add_triplet/add_triplets method
+2. **Store Selection**: Get store for specified store
+3. **Operation Delegation**: Delegate to store's add_triplet/add_triplets method
 4. **Result Processing**: Process and return operation result
 
 **Time Complexity**: O(1) for single, O(n) for batch where n = triplets
@@ -665,7 +665,7 @@ result = manager.add_triplets(triplets, store_id="main", batch_size=1000)
 **Algorithm**: Pattern-based triplet retrieval
 
 1. **Pattern Construction**: Build SPARQL query from subject/predicate/object patterns
-2. **Query Execution**: Execute SPARQL query via adapter
+2. **Query Execution**: Execute SPARQL query via store
 3. **Result Binding Extraction**: Extract bindings from query result
 4. **Triplet Reconstruction**: Convert bindings to Triplet objects
 
@@ -692,7 +692,7 @@ triplets = manager.get_triplets(subject="http://example.org/entity1", store_id="
 
 ```python
 # Batch processing
-progress = loader.load_triplets(triplets, adapter, batch_size=1000)
+progress = loader.load_triplets(triplets, store, batch_size=1000)
 ```
 
 #### Progress Tracking
@@ -796,7 +796,7 @@ cost = engine._estimate_query_cost(query)
 
 #### QueryEngine Methods
 
-- `execute_query(query, store_adapter, **options)`: Execute SPARQL query
+- `execute_query(query, store_backend, **options)`: Execute SPARQL query
 - `optimize_query(query, **options)`: Optimize SPARQL query
 - `plan_query(query, **options)`: Create query execution plan
 - `clear_cache()`: Clear query cache
@@ -804,9 +804,9 @@ cost = engine._estimate_query_cost(query)
 
 #### BulkLoader Methods
 
-- `load_triples(triples, store_adapter, **options)`: Load triplets in bulk
-- `load_from_file(file_path, store_adapter, **options)`: Load triplets from file
-- `load_from_stream(triples_stream, store_adapter, **options)`: Load triplets from stream
+- `load_triples(triples, store_backend, **options)`: Load triplets in bulk
+- `load_from_file(file_path, store_backend, **options)`: Load triplets from file
+- `load_from_stream(triples_stream, store_backend, **options)`: Load triplets from stream
 - `validate_before_load(triples, **options)`: Validate triplets before loading
 
 #### Convenience Functions
@@ -817,9 +817,9 @@ cost = engine._estimate_query_cost(query)
 - `get_triples(subject, predicate, object, store_id, method, **options)`: Get triplets wrapper
 - `delete_triplet(triple, store_id, method, **options)`: Delete triplet wrapper
 - `update_triplet(old_triple, new_triple, store_id, method, **options)`: Update triplet wrapper
-- `execute_query(query, store_adapter, method, **options)`: Execute query wrapper
+- `execute_query(query, store_backend, method, **options)`: Execute query wrapper
 - `optimize_query(query, method, **options)`: Optimize query wrapper
-- `bulk_load(triples, store_adapter, method, **options)`: Bulk load wrapper
+- `bulk_load(triples, store_backend, method, **options)`: Bulk load wrapper
 - `validate_triples(triples, method, **options)`: Validate triplets wrapper
 
 ## Dataclasses
@@ -980,8 +980,8 @@ triplets = [
 result = add_triples(triples, store_id="main", batch_size=100)
 
 # 3. Execute queries
-from semantica.triplet_store import BlazegraphAdapter
-adapter = BlazegraphAdapter(endpoint="http://localhost:9999/blazegraph")
+from semantica.triplet_store import BlazegraphStore
+adapter = BlazegraphStore(endpoint="http://localhost:9999/blazegraph")
 query = "SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 10"
 query_result = execute_query(query, adapter)
 
@@ -1012,10 +1012,10 @@ manager.add_triplet(triple, store_id="backup")
 ### Query Optimization Workflow
 
 ```python
-from semantica.triplet_store import QueryEngine, BlazegraphAdapter
+from semantica.triplet_store import QueryEngine, BlazegraphStore
 
 engine = QueryEngine(enable_optimization=True, enable_caching=True)
-adapter = BlazegraphAdapter(endpoint="http://localhost:9999/blazegraph")
+adapter = BlazegraphStore(endpoint="http://localhost:9999/blazegraph")
 
 # Original query
 query = """
@@ -1040,11 +1040,11 @@ print(f"Optimized: {result.metadata.get('optimized', False)}")
 ### Bulk Loading with Validation
 
 ```python
-from semantica.triplet_store import BulkLoader, BlazegraphAdapter
+from semantica.triplet_store import BulkLoader, BlazegraphStore
 from semantica.semantic_extract.triplet_extractor import Triplet
 
 loader = BulkLoader(batch_size=1000, max_retries=3)
-adapter = BlazegraphAdapter(endpoint="http://localhost:9999/blazegraph")
+adapter = BlazegraphStore(endpoint="http://localhost:9999/blazegraph")
 
 # Generate triples
 triplets = [

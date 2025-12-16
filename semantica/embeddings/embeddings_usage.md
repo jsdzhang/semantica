@@ -9,7 +9,7 @@ This guide demonstrates how to use the embeddings module for generating and mana
 3. [Checking Embedding Methods](#checking-embedding-methods)
 4. [Pooling Strategies](#pooling-strategies)
 5. [Similarity Calculation](#similarity-calculation)
-6. [Provider Adapters](#provider-adapters)
+6. [Provider Stores](#provider-stores)
 7. [Vector Embedding Manager](#vector-embedding-manager)
 8. [Graph Embedding Manager](#graph-embedding-manager)
 9. [Using Methods](#using-methods)
@@ -340,77 +340,77 @@ sim = calculate_similarity(emb1, emb2, method="cosine")
 sim = calculate_similarity(emb1, emb2, method="euclidean")
 ```
 
-## Provider Adapters
+## Provider Stores
 
 ### OpenAI Embeddings
 
 ```python
-from semantica.embeddings import OpenAIAdapter
+from semantica.embeddings import OpenAIStore
 
-# Create OpenAI adapter
-adapter = OpenAIAdapter(
+# Create OpenAI store
+store = OpenAIStore(
     api_key="your-api-key",
     model="text-embedding-3-small"
 )
 
 # Generate embedding
-embedding = adapter.embed("Hello world")
+embedding = store.embed("Hello world")
 print(f"OpenAI embedding shape: {embedding.shape}")
 ```
 
 ### BGE Embeddings
 
 ```python
-from semantica.embeddings import BGEAdapter
+from semantica.embeddings import BGEStore
 
-# Create BGE adapter
-adapter = BGEAdapter(
+# Create BGE store
+store = BGEStore(
     model_name="BAAI/bge-small-en-v1.5"
 )
 
 # Generate embedding
-embedding = adapter.embed("Hello world")
+embedding = store.embed("Hello world")
 ```
 
 ### FastEmbed Embeddings
 
 ```python
-from semantica.embeddings import FastEmbedAdapter
+from semantica.embeddings import FastEmbedStore
 
-# Create FastEmbed adapter
-adapter = FastEmbedAdapter(
+# Create FastEmbed store
+store = FastEmbedStore(
     model_name="BAAI/bge-small-en-v1.5"
 )
 
 # Single embedding
-embedding = adapter.embed("Hello world")
+embedding = store.embed("Hello world")
 print(f"FastEmbed embedding shape: {embedding.shape}")
 
 # Batch embeddings (FastEmbed is optimized for batch processing)
 texts = ["text1", "text2", "text3"]
-embeddings = adapter.embed_batch(texts)
+embeddings = store.embed_batch(texts)
 print(f"Batch embeddings shape: {embeddings.shape}")
 ```
 
 ### Provider Factory
 
 ```python
-from semantica.embeddings import ProviderAdapterFactory
+from semantica.embeddings import ProviderStoreFactory
 
 # Create provider using factory
-adapter = ProviderAdapterFactory.create(
+store = ProviderStoreFactory.create(
     "openai",
     api_key="your-api-key"
 )
 
-embedding = adapter.embed("Hello world")
+embedding = store.embed("Hello world")
 
-# Create FastEmbed adapter using factory
-fastembed_adapter = ProviderAdapterFactory.create(
+# Create FastEmbed store using factory
+fastembed_store = ProviderStoreFactory.create(
     "fastembed",
     model_name="BAAI/bge-small-en-v1.5"
 )
-embedding = fastembed_adapter.embed("Hello world")
+embedding = fastembed_store.embed("Hello world")
 ```
 
 ## Vector Embedding Manager

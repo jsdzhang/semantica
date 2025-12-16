@@ -1,5 +1,5 @@
 """
-Apache Jena Adapter Module
+Apache Jena Store Module
 
 This module provides Apache Jena integration for RDF storage and SPARQL
 querying, supporting both in-memory and remote Fuseki endpoints.
@@ -13,14 +13,14 @@ Key Features:
     - rdflib integration with fallback
 
 Main Classes:
-    - JenaAdapter: Main Jena integration adapter
+    - JenaStore: Main Jena integration store
 
 Example Usage:
-    >>> from semantica.triplet_store import JenaAdapter
-    >>> adapter = JenaAdapter(endpoint="http://localhost:3030/ds", dataset="default")
-    >>> result = adapter.add_triplets(triplets)
-    >>> query_result = adapter.execute_sparql(sparql_query)
-    >>> rdf_turtle = adapter.serialize(format="turtle")
+    >>> from semantica.triplet_store import JenaStore
+    >>> store = JenaStore(endpoint="http://localhost:3030/ds", dataset="default")
+    >>> result = store.add_triplets(triplets)
+    >>> query_result = store.execute_sparql(sparql_query)
+    >>> rdf_turtle = store.serialize(format="turtle")
 
 Author: Semantica Contributors
 License: MIT
@@ -45,29 +45,23 @@ except ImportError:
     RDF = None
 
 
-class JenaAdapter:
+class JenaStore:
     """
-    Apache Jena adapter for triplet store operations.
+    Apache Jena store for triplet store operations.
 
-    • Jena connection and configuration
-    • SPARQL query execution
-    • Model and dataset management
-    • Inference and reasoning support
-    • Performance optimization
-    • Error handling and recovery
+    This class provides integration with Apache Jena and Fuseki, supporting
+    both remote SPARQL endpoints and local in-memory graphs via rdflib.
     """
 
-    def __init__(self, **config):
+    def __init__(self, endpoint: Optional[str] = None, **config):
         """
-        Initialize Jena adapter.
+        Initialize Jena store.
 
         Args:
-            **config: Configuration options:
-                - endpoint: Jena Fuseki endpoint (optional)
-                - dataset: Dataset name
-                - enable_inference: Enable inference (default: False)
+            endpoint: SPARQL endpoint URL (e.g., http://localhost:3030/ds)
+            **config: Additional configuration options
         """
-        self.logger = get_logger("jena_adapter")
+        self.logger = get_logger("jena_store")
         self.config = config
         self.progress_tracker = get_progress_tracker()
 
@@ -94,7 +88,7 @@ class JenaAdapter:
                 self.graph = Graph()
         else:
             self.logger.warning(
-                "rdflib not available. Jena adapter will use basic operations."
+                "rdflib not available. Jena store will use basic operations."
             )
             self.graph = None
 
@@ -130,7 +124,7 @@ class JenaAdapter:
         """
         tracking_id = self.progress_tracker.start_tracking(
             module="triplet_store",
-            submodule="JenaAdapter",
+            submodule="JenaStore",
             message=f"Adding {len(triplets)} triplets to Jena model",
         )
 

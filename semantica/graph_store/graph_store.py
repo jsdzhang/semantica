@@ -43,14 +43,14 @@ from .config import graph_store_config
 class NodeManager:
     """Manager for node CRUD operations."""
 
-    def __init__(self, adapter: Any):
+    def __init__(self, backend: Any):
         """
         Initialize node manager.
 
         Args:
-            adapter: Graph database adapter instance
+            backend: Graph database backend instance
         """
-        self.adapter = adapter
+        self.backend = backend
         self.logger = get_logger("node_manager")
 
     def create(
@@ -70,7 +70,7 @@ class NodeManager:
         Returns:
             Created node information
         """
-        return self.adapter.create_node(labels, properties, **options)
+        return self.backend.create_node(labels, properties, **options)
 
     def create_batch(
         self,
@@ -87,7 +87,7 @@ class NodeManager:
         Returns:
             List of created node information
         """
-        return self.adapter.create_nodes(nodes, **options)
+        return self.backend.create_nodes(nodes, **options)
 
     def get(
         self,
@@ -111,8 +111,8 @@ class NodeManager:
             Node or list of nodes
         """
         if node_id is not None:
-            return self.adapter.get_node(node_id, **options)
-        return self.adapter.get_nodes(labels, properties, limit, **options)
+            return self.backend.get_node(node_id, **options)
+        return self.backend.get_nodes(labels, properties, limit, **options)
 
     def update(
         self,
@@ -133,7 +133,7 @@ class NodeManager:
         Returns:
             Updated node information
         """
-        return self.adapter.update_node(node_id, properties, merge, **options)
+        return self.backend.update_node(node_id, properties, merge, **options)
 
     def delete(
         self,
@@ -152,20 +152,20 @@ class NodeManager:
         Returns:
             True if deleted
         """
-        return self.adapter.delete_node(node_id, detach, **options)
+        return self.backend.delete_node(node_id, detach, **options)
 
 
 class RelationshipManager:
     """Manager for relationship CRUD operations."""
 
-    def __init__(self, adapter: Any):
+    def __init__(self, backend: Any):
         """
         Initialize relationship manager.
 
         Args:
-            adapter: Graph database adapter instance
+            backend: Graph database backend instance
         """
-        self.adapter = adapter
+        self.backend = backend
         self.logger = get_logger("relationship_manager")
 
     def create(
@@ -189,7 +189,7 @@ class RelationshipManager:
         Returns:
             Created relationship information
         """
-        return self.adapter.create_relationship(
+        return self.backend.create_relationship(
             start_node_id, end_node_id, rel_type, properties, **options
         )
 
@@ -214,7 +214,7 @@ class RelationshipManager:
         Returns:
             List of relationships
         """
-        return self.adapter.get_relationships(node_id, rel_type, direction, limit, **options)
+        return self.backend.get_relationships(node_id, rel_type, direction, limit, **options)
 
     def delete(
         self,
@@ -231,20 +231,20 @@ class RelationshipManager:
         Returns:
             True if deleted
         """
-        return self.adapter.delete_relationship(rel_id, **options)
+        return self.backend.delete_relationship(rel_id, **options)
 
 
 class QueryEngine:
     """Engine for query execution and optimization."""
 
-    def __init__(self, adapter: Any):
+    def __init__(self, backend: Any):
         """
         Initialize query engine.
 
         Args:
-            adapter: Graph database adapter instance
+            backend: Graph database backend instance
         """
-        self.adapter = adapter
+        self.backend = backend
         self.logger = get_logger("query_engine")
         self._cache: Dict[str, Any] = {}
         self._cache_enabled = True
@@ -275,7 +275,7 @@ class QueryEngine:
                 return self._cache[cache_key]
 
         # Execute query
-        result = self.adapter.execute_query(query, parameters, **options)
+        result = self.backend.execute_query(query, parameters, **options)
 
         # Cache result
         if use_cache and self._cache_enabled:
@@ -309,14 +309,14 @@ class QueryEngine:
 class GraphAnalytics:
     """Graph analytics and algorithms."""
 
-    def __init__(self, adapter: Any):
+    def __init__(self, backend: Any):
         """
         Initialize graph analytics.
 
         Args:
-            adapter: Graph database adapter instance
+            backend: Graph database backend instance
         """
-        self.adapter = adapter
+        self.backend = backend
         self.logger = get_logger("graph_analytics")
 
     def shortest_path(
@@ -340,7 +340,7 @@ class GraphAnalytics:
         Returns:
             Path information or None
         """
-        return self.adapter.shortest_path(start_node_id, end_node_id, rel_type, max_depth, **options)
+        return self.backend.shortest_path(start_node_id, end_node_id, rel_type, max_depth, **options)
 
     def get_neighbors(
         self,
@@ -363,7 +363,7 @@ class GraphAnalytics:
         Returns:
             List of neighboring nodes
         """
-        return self.adapter.get_neighbors(node_id, rel_type, direction, depth, **options)
+        return self.backend.get_neighbors(node_id, rel_type, direction, depth, **options)
 
     def degree_centrality(
         self,
@@ -418,7 +418,7 @@ class GraphAnalytics:
                 ORDER BY degree DESC
             """
 
-        result = self.adapter.execute_query(query)
+        result = self.backend.execute_query(query)
         return result.get("records", [])
 
     def connected_components(
@@ -439,46 +439,51 @@ class GraphAnalytics:
         Returns:
             Component information
         """
-        self.logger.warning(
-            "Full connected components algorithm requires graph data science extensions. "
-            "Returning basic component approximation."
-        )
-
-        # Get all nodes and their connections
-        if labels:
-            label_str = ":".join(labels)
-            query = f"MATCH (n:{label_str})-[r]-(m) RETURN DISTINCT id(n) as node_id, id(m) as connected_id"
+        backend_type = type(self.backend).__name__
+        
+        if "Neo4j" in backend_type:
+            query = """
+            CALL gds.wcc.stream({
+                nodeProjection: $label,
+                relationshipProjection: '*'
+            })
+            YIELD nodeId, componentId
+            RETURN componentId, collect(nodeId) as nodes
+            """
+            params = {"label": labels[0] if labels else "*"}
+            result = self.backend.execute_query(query, params)
+            return [{"component": r["componentId"], "nodes": r["nodes"]} for r in result]
+            
+        elif "NetworkX" in backend_type:
+            import networkx as nx
+            G = self.backend.graph
+            components = list(nx.connected_components(G))
+            return [{"component": i, "nodes": list(c)} for i, c in enumerate(components)]
+            
         else:
-            query = "MATCH (n)-[r]-(m) RETURN DISTINCT id(n) as node_id, id(m) as connected_id"
-
-        result = self.adapter.execute_query(query)
-
-        return {
-            "message": "Connected components approximation",
-            "connections": result.get("records", []),
-        }
+            raise NotImplementedError(f"connected_components not implemented for {backend_type}")
 
 
 class GraphManager:
     """Manager for graph store operations."""
 
-    def __init__(self, adapter: Any):
+    def __init__(self, backend: Any):
         """
         Initialize graph manager.
 
         Args:
-            adapter: Graph database adapter instance
+            backend: Graph database backend instance
         """
-        self.adapter = adapter
+        self.backend = backend
         self.logger = get_logger("graph_manager")
-        self.nodes = NodeManager(adapter)
-        self.relationships = RelationshipManager(adapter)
-        self.query_engine = QueryEngine(adapter)
-        self.analytics = GraphAnalytics(adapter)
+        self.nodes = NodeManager(backend)
+        self.relationships = RelationshipManager(backend)
+        self.query_engine = QueryEngine(backend)
+        self.analytics = GraphAnalytics(backend)
 
     def get_stats(self) -> Dict[str, Any]:
         """Get graph statistics."""
-        return self.adapter.get_stats()
+        return self.backend.get_stats()
 
     def create_index(
         self,
@@ -499,7 +504,7 @@ class GraphManager:
         Returns:
             True if created
         """
-        return self.adapter.create_index(label, property_name, index_type, **options)
+        return self.backend.create_index(label, property_name, index_type, **options)
 
 
 class GraphStore:
@@ -529,29 +534,29 @@ class GraphStore:
         self.backend = backend or config.get("backend") or graph_store_config.get("default_backend", "neo4j")
         self.config = config
 
-        # Initialize adapter
-        self._adapter = None
+        # Initialize store backend
+        self._store_backend = None
         self._manager = None
-        self._initialize_adapter()
+        self._initialize_store_backend()
 
-    def _initialize_adapter(self) -> None:
-        """Initialize the appropriate adapter based on backend."""
+    def _initialize_store_backend(self) -> None:
+        """Initialize the appropriate store backend based on backend type."""
         if self.backend == "neo4j":
-            from .neo4j_adapter import Neo4jAdapter
+            from .neo4j_store import Neo4jStore
             neo4j_config = graph_store_config.get_neo4j_config()
             neo4j_config.update(self.config)
-            self._adapter = Neo4jAdapter(**neo4j_config)
+            self._store_backend = Neo4jStore(**neo4j_config)
 
         elif self.backend == "falkordb":
-            from .falkordb_adapter import FalkorDBAdapter
+            from .falkordb_store import FalkorDBStore
             falkordb_config = graph_store_config.get_falkordb_config()
             falkordb_config.update(self.config)
-            self._adapter = FalkorDBAdapter(**falkordb_config)
+            self._store_backend = FalkorDBStore(**falkordb_config)
 
         else:
             raise ValidationError(f"Unknown backend: {self.backend}")
 
-        self._manager = GraphManager(self._adapter)
+        self._manager = GraphManager(self._store_backend)
 
     def connect(self, **options) -> bool:
         """
@@ -563,12 +568,12 @@ class GraphStore:
         Returns:
             True if connected
         """
-        return self._adapter.connect(**options)
+        return self._store_backend.connect(**options)
 
     def close(self) -> None:
         """Close connection to the graph database."""
-        if self._adapter:
-            self._adapter.close()
+        if self._store_backend:
+            self._store_backend.close()
 
     def __enter__(self):
         """Context manager entry."""

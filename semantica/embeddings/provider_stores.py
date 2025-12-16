@@ -1,7 +1,7 @@
 """
-Provider adapters for Semantica framework.
+Provider stores for Semantica framework.
 
-This module provides adapters for various embedding providers
+This module provides stores for various embedding providers
 like OpenAI, BGE, and Llama.
 """
 
@@ -14,12 +14,12 @@ from ..utils.exceptions import ProcessingError
 from ..utils.logging import get_logger
 
 
-class ProviderAdapter:
-    """Base class for embedding provider adapters."""
+class ProviderStore:
+    """Base class for embedding provider stores."""
 
     def __init__(self, **config):
-        """Initialize provider adapter."""
-        self.logger = get_logger("provider_adapter")
+        """Initialize provider store."""
+        self.logger = get_logger("provider_store")
         self.config = config
 
     def embed(self, text: str, **options) -> np.ndarray:
@@ -49,11 +49,11 @@ class ProviderAdapter:
         return np.array([self.embed(text, **options) for text in texts])
 
 
-class OpenAIAdapter(ProviderAdapter):
-    """OpenAI embedding API adapter."""
+class OpenAIStore(ProviderStore):
+    """OpenAI embedding API store."""
 
     def __init__(self, **config):
-        """Initialize OpenAI adapter."""
+        """Initialize OpenAI store."""
         super().__init__(**config)
 
         self.api_key = config.get("api_key") or os.getenv("OPENAI_API_KEY")
@@ -95,11 +95,11 @@ class OpenAIAdapter(ProviderAdapter):
             raise ProcessingError(f"Failed to get OpenAI embedding: {e}")
 
 
-class BGEAdapter(ProviderAdapter):
-    """BGE (BAAI General Embedding) model adapter."""
+class BGEStore(ProviderStore):
+    """BGE (BAAI General Embedding) model store."""
 
     def __init__(self, **config):
-        """Initialize BGE adapter."""
+        """Initialize BGE store."""
         super().__init__(**config)
 
         self.model_name = config.get("model_name", "BAAI/bge-small-en-v1.5")
@@ -141,11 +141,11 @@ class BGEAdapter(ProviderAdapter):
             raise ProcessingError(f"Failed to get BGE embedding: {e}")
 
 
-class LlamaAdapter(ProviderAdapter):
-    """Llama embedding model adapter."""
+class LlamaStore(ProviderStore):
+    """Llama embedding model store."""
 
     def __init__(self, **config):
-        """Initialize Llama adapter."""
+        """Initialize Llama store."""
         super().__init__(**config)
 
         self.model_name = config.get("model_name")
@@ -157,7 +157,7 @@ class LlamaAdapter(ProviderAdapter):
         """Initialize Llama model."""
         # Note: Llama embedding models typically require custom setup
         # This is a placeholder for integration
-        self.logger.warning("Llama adapter requires custom model setup")
+        self.logger.warning("Llama store requires custom model setup")
 
     def embed(self, text: str, **options) -> np.ndarray:
         """
@@ -175,7 +175,7 @@ class LlamaAdapter(ProviderAdapter):
 
         # Placeholder - would require actual Llama model implementation
         # For now, return a placeholder embedding
-        self.logger.warning("Llama adapter using placeholder implementation")
+        self.logger.warning("Llama store using placeholder implementation")
 
         # Generate a placeholder embedding (same dimension as typical embeddings)
         embedding_dim = 768  # Default Llama embedding dimension
@@ -191,11 +191,11 @@ class LlamaAdapter(ProviderAdapter):
         return placeholder
 
 
-class FastEmbedAdapter(ProviderAdapter):
-    """FastEmbed adapter for fast and efficient embedding generation."""
+class FastEmbedStore(ProviderStore):
+    """FastEmbed store for fast and efficient embedding generation."""
 
     def __init__(self, **config):
-        """Initialize FastEmbed adapter."""
+        """Initialize FastEmbed store."""
         super().__init__(**config)
 
         self.model_name = config.get("model_name", "BAAI/bge-small-en-v1.5")
@@ -266,30 +266,29 @@ class FastEmbedAdapter(ProviderAdapter):
             raise ProcessingError(f"Failed to get FastEmbed batch embeddings: {e}")
 
 
-class ProviderAdapterFactory:
-    """Factory for creating provider adapters."""
+class ProviderStoreFactory:
+    """Factory for creating provider stores."""
 
     @staticmethod
-    def create(provider: str, **config) -> ProviderAdapter:
+    def create(provider: str, **config) -> Any:
         """
-        Create provider adapter.
+        Create provider store.
 
         Args:
-            provider: Provider name ("openai", "bge", "llama", "fastembed")
+            provider: Provider name (openai, bge, fastembed)
             **config: Provider configuration
 
         Returns:
-            ProviderAdapter: Provider adapter instance
+            ProviderStore: Provider store instance
         """
         providers = {
-            "openai": OpenAIAdapter,
-            "bge": BGEAdapter,
-            "llama": LlamaAdapter,
-            "fastembed": FastEmbedAdapter,
+            "openai": OpenAIStore,
+            "bge": BGEStore,
+            "fastembed": FastEmbedStore,
         }
 
-        adapter_class = providers.get(provider.lower())
-        if not adapter_class:
-            raise ProcessingError(f"Unsupported provider: {provider}")
+        store_class = providers.get(provider.lower())
+        if not store_class:
+            raise ValueError(f"Unsupported provider: {provider}")
 
-        return adapter_class(**config)
+        return store_class(**config)

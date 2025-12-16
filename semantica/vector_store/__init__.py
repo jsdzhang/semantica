@@ -48,11 +48,11 @@ Namespace Management:
     - Access Control: Permission-based access (read, write, delete permissions), entity-to-permission mapping (user/role to permissions), permission checking, access control enforcement
     - Namespace Operations: Namespace creation, namespace deletion, vector addition/removal, namespace metadata management, namespace statistics collection
 
-Adapter Pattern:
-    - FAISS Adapter: Local vector storage, FAISS index management, index persistence (save/load), batch operations, multiple index types support
-    - Weaviate Adapter: Schema-aware storage, GraphQL query support, object-oriented data model, batch operations, schema management
-    - Qdrant Adapter: Point-based storage, payload filtering, collection management, optimized search, batch operations
-    - Milvus Adapter: Scalable vector database, collection management, partitioning, complex querying, index building
+Backend Pattern:
+    - FAISS Store: Local vector storage, FAISS index management, index persistence (save/load), batch operations, multiple index types support
+    - Weaviate Store: Schema-aware storage, GraphQL query support, object-oriented data model, batch operations, schema management
+    - Qdrant Store: Point-based storage, payload filtering, collection management, optimized search, batch operations
+    - Milvus Store: Scalable vector database, collection management, partitioning, complex querying, index building
 
 Supported Backends:
     - FAISS: In-memory/local disk (Facebook AI Similarity Search)
@@ -88,10 +88,10 @@ Main Classes:
     - VectorIndexer: Vector indexing engine
     - VectorRetriever: Vector retrieval and similarity search
     - VectorManager: Vector store management and operations
-    - FAISSAdapter: FAISS integration for local vector storage
-    - WeaviateAdapter: Weaviate vector database integration
-    - QdrantAdapter: Qdrant vector database integration
-    - MilvusAdapter: Milvus vector database integration
+    - FAISSStore: FAISS integration for local vector storage
+    - WeaviateStore: Weaviate vector database integration
+    - QdrantStore: Qdrant vector database integration
+    - MilvusStore: Milvus vector database integration
     - HybridSearch: Hybrid vector and metadata search
     - MetadataStore: Metadata indexing and management
     - NamespaceManager: Namespace isolation and management
@@ -128,7 +128,7 @@ License: MIT
 """
 
 from .config import VectorStoreConfig, vector_store_config
-from .faiss_adapter import FAISSAdapter, FAISSIndex, FAISSIndexBuilder, FAISSSearch
+from .faiss_store import FAISSStore, FAISSIndex, FAISSIndexBuilder, FAISSSearch
 from .hybrid_search import HybridSearch, MetadataFilter, SearchRanker
 from .metadata_store import MetadataIndex, MetadataSchema, MetadataStore
 from .methods import (
@@ -143,13 +143,13 @@ from .methods import (
     store_vectors,
     update_vectors,
 )
-from .milvus_adapter import MilvusAdapter, MilvusClient, MilvusCollection, MilvusSearch
+from .milvus_store import MilvusStore, MilvusClient, MilvusCollection, MilvusSearch
 from .namespace_manager import Namespace, NamespaceManager
-from .qdrant_adapter import QdrantAdapter, QdrantClient, QdrantCollection, QdrantSearch
+from .qdrant_store import QdrantStore, QdrantClient, QdrantCollection, QdrantSearch
 from .registry import MethodRegistry, method_registry
 from .vector_store import VectorIndexer, VectorManager, VectorRetriever, VectorStore
-from .weaviate_adapter import (
-    WeaviateAdapter,
+from .weaviate_store import (
+    WeaviateStore,
     WeaviateClient,
     WeaviateQuery,
     WeaviateSchema,
@@ -162,22 +162,22 @@ __all__ = [
     "VectorRetriever",
     "VectorManager",
     # FAISS
-    "FAISSAdapter",
+    "FAISSStore",
     "FAISSIndex",
     "FAISSSearch",
     "FAISSIndexBuilder",
     # Weaviate
-    "WeaviateAdapter",
+    "WeaviateStore",
     "WeaviateClient",
     "WeaviateSchema",
     "WeaviateQuery",
     # Qdrant
-    "QdrantAdapter",
+    "QdrantStore",
     "QdrantClient",
     "QdrantCollection",
     "QdrantSearch",
     # Milvus
-    "MilvusAdapter",
+    "MilvusStore",
     "MilvusClient",
     "MilvusCollection",
     "MilvusSearch",

@@ -1,5 +1,5 @@
 """
-FAISS Adapter Module
+FAISS Store Module
 
 This module provides FAISS (Facebook AI Similarity Search) integration for vector
 storage and similarity search in the Semantica framework, supporting various index
@@ -14,18 +14,18 @@ Key Features:
     - Optional dependency handling
 
 Main Classes:
-    - FAISSAdapter: Main FAISS adapter for vector operations
+    - FAISSStore: Main FAISS store for vector operations
     - FAISSIndex: FAISS index wrapper with metadata support
     - FAISSSearch: FAISS search operations
     - FAISSIndexBuilder: FAISS index construction and configuration
 
 Example Usage:
-    >>> from semantica.vector_store import FAISSAdapter
-    >>> adapter = FAISSAdapter(dimension=768)
-    >>> index = adapter.create_index(index_type="flat", metric="L2")
-    >>> vector_ids = adapter.add_vectors(vectors, ids, metadata)
-    >>> results = adapter.search_similar(query_vector, k=10)
-    >>> adapter.save_index("index.faiss")
+    >>> from semantica.vector_store import FAISSStore
+    >>> store = FAISSStore(dimension=768)
+    >>> index = store.create_index(index_type="flat", metric="L2")
+    >>> vector_ids = store.add_vectors(vectors, ids, metadata)
+    >>> results = store.search_similar(query_vector, k=10)
+    >>> store.save_index("index.faiss")
     >>> 
     >>> from semantica.vector_store import FAISSIndexBuilder
     >>> builder = FAISSIndexBuilder(dimension=768)
@@ -210,9 +210,9 @@ class FAISSIndexBuilder:
         index.index.train(training_vectors.astype(np.float32))
 
 
-class FAISSAdapter:
+class FAISSStore:
     """
-    FAISS adapter for vector storage and similarity search.
+    FAISS store for vector storage and similarity search.
 
     • FAISS index creation and management
     • Vector storage and retrieval
@@ -223,8 +223,8 @@ class FAISSAdapter:
     """
 
     def __init__(self, dimension: int = 768, **config):
-        """Initialize FAISS adapter."""
-        self.logger = get_logger("faiss_adapter")
+        """Initialize FAISS store."""
+        self.logger = get_logger("faiss_store")
         self.config = config
         self.progress_tracker = get_progress_tracker()
         self.dimension = dimension
@@ -281,7 +281,7 @@ class FAISSAdapter:
         num_vectors = len(vectors) if isinstance(vectors, (list, np.ndarray)) else 1
         tracking_id = self.progress_tracker.start_tracking(
             module="vector_store",
-            submodule="FAISSAdapter",
+            submodule="FAISSStore",
             message=f"Adding {num_vectors} vectors to FAISS index",
         )
 
@@ -350,7 +350,7 @@ class FAISSAdapter:
         """
         tracking_id = self.progress_tracker.start_tracking(
             module="vector_store",
-            submodule="FAISSAdapter",
+            submodule="FAISSStore",
             message=f"Searching for {k} similar vectors",
         )
 

@@ -318,9 +318,9 @@ progress = loader.load_from_string(
 
 ---
 
-### Backend Adapters
+### Store Backends
 
-#### BlazegraphAdapter
+#### BlazegraphStore
 
 High-performance triplet store with GPU acceleration support.
 
@@ -334,24 +334,24 @@ High-performance triplet store with GPU acceleration support.
 **Example:**
 
 ```python
-from semantica.triplet_store import BlazegraphAdapter
+from semantica.triplet_store import BlazegraphStore
 
-adapter = BlazegraphAdapter(
+store = BlazegraphStore(
     endpoint="http://localhost:9999/blazegraph/sparql",
     namespace="kb",  # Blazegraph namespace
     timeout=30
 )
 
-adapter.connect()
+store.connect()
 
 # Create namespace
-adapter.create_namespace("my_kb", properties={
+store.create_namespace("my_kb", properties={
     "com.bigdata.rdf.store.AbstractTripleStore.textIndex": "true",
     "com.bigdata.rdf.store.AbstractTripleStore.geoSpatial": "true"
 })
 
 # Add triplets
-adapter.add_triplet(
+store.add_triplet(
     subject="http://example.org/Alice",
     predicate="http://example.org/name",
     object_literal="Alice",
@@ -359,7 +359,7 @@ adapter.add_triplet(
 )
 
 # Full-text search
-results = adapter.query("""
+results = store.query("""
     PREFIX bds: <http://www.bigdata.com/rdf/search#>
     SELECT ?subject ?score WHERE {
         ?subject bds:search "machine learning" .
@@ -371,7 +371,7 @@ results = adapter.query("""
 
 ---
 
-#### JenaAdapter
+#### JenaStore
 
 Full-featured RDF framework with TDB2 storage.
 
@@ -385,30 +385,30 @@ Full-featured RDF framework with TDB2 storage.
 **Example:**
 
 ```python
-from semantica.triplet_store import JenaAdapter
+from semantica.triplet_store import JenaStore
 
-adapter = JenaAdapter(
+store = JenaStore(
     tdb_directory="./tdb2_data",
     inference="rdfs"  # rdfs, owl, or None
 )
 
-adapter.connect()
+store.connect()
 
 # Add triplets with inference
-adapter.add_triplet(
+store.add_triplet(
     subject="http://example.org/Dog",
     predicate="http://www.w3.org/2000/01/rdf-schema#subClassOf",
     object="http://example.org/Animal"
 )
 
-adapter.add_triplet(
+store.add_triplet(
     subject="http://example.org/Fido",
     predicate="http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
     object="http://example.org/Dog"
 )
 
 # Query with inference (Fido is inferred to be an Animal)
-results = adapter.query("""
+results = store.query("""
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
     PREFIX ex: <http://example.org/>
     
@@ -431,13 +431,13 @@ ex:PersonShape a sh:NodeShape ;
     ] .
 """
 
-validation_report = adapter.validate_shacl(shapes)
+validation_report = store.validate_shacl(shapes)
 print(f"Valid: {validation_report['conforms']}")
 ```
 
 ---
 
-#### RDF4JAdapter
+#### RDF4JStore
 
 Java-based RDF framework with multiple storage backends.
 
@@ -451,29 +451,29 @@ Java-based RDF framework with multiple storage backends.
 **Example:**
 
 ```python
-from semantica.triplet_store import RDF4JAdapter
+from semantica.triplet_store import RDF4JStore
 
-adapter = RDF4JAdapter(
+store = RDF4JStore(
     server_url="http://localhost:8080/rdf4j-server",
     repository_id="my_repo"
 )
 
-adapter.connect()
+store.connect()
 
 # Add triplet with transaction
-adapter.begin_transaction()
+store.begin_transaction()
 try:
-    adapter.add_triplet(
+    store.add_triplet(
         subject="http://example.org/Alice",
         predicate="http://example.org/name",
         object_literal="Alice"
     )
-    adapter.commit_transaction()
+    store.commit_transaction()
 except Exception as e:
-    adapter.rollback_transaction()
+    store.rollback_transaction()
 
 # Query with reasoning
-results = adapter.query("""
+results = store.query("""
     PREFIX ex: <http://example.org/>
     SELECT ?person WHERE {
         ?person ex:name ?name .
@@ -483,7 +483,7 @@ results = adapter.query("""
 
 ---
 
-#### VirtuosoAdapter
+#### VirtuosoStore
 
 Enterprise-grade RDF store with SQL integration.
 
@@ -497,21 +497,21 @@ Enterprise-grade RDF store with SQL integration.
 **Example:**
 
 ```python
-from semantica.triplet_store import VirtuosoAdapter
+from semantica.triplet_store import VirtuosoStore
 
-adapter = VirtuosoAdapter(
+store = VirtuosoStore(
     host="localhost",
     port=1111,
     user="dba",
     password="dba"
 )
 
-adapter.connect()
+store.connect()
 
 # Add triplets to named graph
 graph_uri = "http://example.org/graph1"
 
-adapter.add_triplet(
+store.add_triplet(
     subject="http://example.org/Alice",
     predicate="http://example.org/name",
     object_literal="Alice",
@@ -519,7 +519,7 @@ adapter.add_triplet(
 )
 
 # Query specific graph
-results = adapter.query(f"""
+results = store.query(f"""
     PREFIX ex: <http://example.org/>
     SELECT ?person ?name
     FROM <{graph_uri}>
@@ -897,11 +897,11 @@ progress = loader.load("large_dataset.nt", format="ntriples")
 
 ```python
 # Create selective indexes
-adapter.create_index("predicate", ["http://example.org/name"])
-adapter.create_index("object", ["http://example.org/Person"])
+store.create_index("predicate", ["http://example.org/name"])
+store.create_index("object", ["http://example.org/Person"])
 
 # Full-text index for specific predicates
-adapter.create_fulltext_index([
+store.create_fulltext_index([
     "http://example.org/description",
     "http://example.org/content"
 ])
@@ -979,7 +979,7 @@ results = semantic_search("machine learning", limit=5)
 
 ```python
 # Solution 1: Add indexes
-adapter.create_index("predicate", ["http://example.org/knows"])
+store.create_index("predicate", ["http://example.org/knows"])
 
 # Solution 2: Optimize query
 # Bad: Cartesian product

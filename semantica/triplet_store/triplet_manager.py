@@ -10,7 +10,7 @@ Key Features:
     - Multi-store management and registration
     - Batch operations and bulk loading
     - Triplet validation and consistency
-    - Store adapter pattern
+    - Store backend pattern
     - Error handling and recovery
 
 Main Classes:
@@ -126,10 +126,10 @@ class TripletManager:
         if not self._validate_triplet(triplet):
             raise ValidationError("Invalid triplet")
 
-        # Add to store (delegates to adapter)
+        # Add to store (delegates to backend)
         try:
-            adapter = self._get_adapter(store)
-            result = adapter.add_triplet(triplet, **options)
+            store_backend = self._get_store_backend(store)
+            result = store_backend.add_triplet(triplet, **options)
 
             return {
                 "success": True,
@@ -179,7 +179,7 @@ class TripletManager:
                 valid_triplets = triplets
 
             # Add to store
-            adapter = self._get_adapter(store)
+            store_backend = self._get_store_backend(store)
             batch_size = options.get("batch_size", 1000)
             total_batches = (len(valid_triplets) + batch_size - 1) // batch_size
 
@@ -191,7 +191,7 @@ class TripletManager:
                     message=f"Processing batch {batch_num}/{total_batches}...",
                 )
                 batch = valid_triplets[i : i + batch_size]
-                result = adapter.add_triplets(batch, **options)
+                result = store_backend.add_triplets(batch, **options)
                 results.append(result)
 
             self.progress_tracker.stop_tracking(
@@ -237,8 +237,8 @@ class TripletManager:
         store = self._get_store(store_id)
 
         try:
-            adapter = self._get_adapter(store)
-            return adapter.get_triplets(subject, predicate, object, **options)
+            store_backend = self._get_store_backend(store)
+            return store_backend.get_triplets(subject, predicate, object, **options)
         except Exception as e:
             self.logger.error(f"Failed to get triplets: {e}")
             raise ProcessingError(f"Failed to get triplets: {e}")
@@ -260,8 +260,8 @@ class TripletManager:
         store = self._get_store(store_id)
 
         try:
-            adapter = self._get_adapter(store)
-            result = adapter.delete_triplet(triplet, **options)
+            store_backend = self._get_store_backend(store)
+            result = store_backend.delete_triplet(triplet, **options)
 
             return {"success": True, "store_id": store.store_id, **result}
         except Exception as e:
@@ -313,26 +313,26 @@ class TripletManager:
 
         return self.stores[store_id]
 
-    def _get_adapter(self, store: TripletStore) -> Any:
-        """Get adapter for store type."""
+    def _get_store_backend(self, store: TripletStore) -> Any:
+        """Get backend store for store type."""
         store_type = store.store_type.lower()
 
         if store_type == "blazegraph":
-            from .blazegraph_adapter import BlazegraphAdapter
+            from .blazegraph_store import BlazegraphStore
 
-            return BlazegraphAdapter(endpoint=store.endpoint, **store.config)
+            return BlazegraphStore(endpoint=store.endpoint, **store.config)
         elif store_type == "jena":
-            from .jena_adapter import JenaAdapter
+            from .jena_store import JenaStore
 
-            return JenaAdapter(**store.config)
+            return JenaStore(**store.config)
         elif store_type == "rdf4j":
-            from .rdf4j_adapter import RDF4JAdapter
+            from .rdf4j_store import RDF4JStore
 
-            return RDF4JAdapter(endpoint=store.endpoint, **store.config)
+            return RDF4JStore(endpoint=store.endpoint, **store.config)
         elif store_type == "virtuoso":
-            from .virtuoso_adapter import VirtuosoAdapter
+            from .virtuoso_store import VirtuosoStore
 
-            return VirtuosoAdapter(endpoint=store.endpoint, **store.config)
+            return VirtuosoStore(endpoint=store.endpoint, **store.config)
         else:
             raise ValidationError(f"Unsupported store type: {store_type}")
 

@@ -1,5 +1,5 @@
 """
-Weaviate Adapter Module
+Weaviate Store Module
 
 This module provides Weaviate vector database integration for vector storage and
 similarity search in the Semantica framework, supporting GraphQL queries, schema
@@ -15,20 +15,20 @@ Key Features:
     - Optional dependency handling
 
 Main Classes:
-    - WeaviateAdapter: Main Weaviate adapter for vector operations
+    - WeaviateStore: Main Weaviate store for vector operations
     - WeaviateClient: Weaviate client wrapper
     - WeaviateSchema: Schema builder and validator
     - WeaviateQuery: Query builder and executor
 
 Example Usage:
-    >>> from semantica.vector_store import WeaviateAdapter
-    >>> adapter = WeaviateAdapter(url="http://localhost:8080")
-    >>> adapter.connect()
-    >>> adapter.create_schema("Document", properties=[{"name": "text", "dataType": "text"}])
-    >>> collection = adapter.get_collection("Document")
-    >>> object_ids = adapter.add_objects(objects, vectors=vectors)
-    >>> results = adapter.query_vectors(query_vector, limit=10, where={"category": "science"})
-    >>> results = adapter.graphql_query("{Get {Document {text}}}")
+    >>> from semantica.vector_store import WeaviateStore
+    >>> store = WeaviateStore(url="http://localhost:8080")
+    >>> store.connect()
+    >>> store.create_schema("Document", properties=[{"name": "text", "dataType": "text"}])
+    >>> collection = store.get_collection("Document")
+    >>> object_ids = store.add_objects(objects, vectors=vectors)
+    >>> results = store.query_vectors(query_vector, limit=10, where={"category": "science"})
+    >>> results = store.graphql_query("{Get {Document {text}}}")
 
 Author: Semantica Contributors
 License: MIT
@@ -210,9 +210,9 @@ class WeaviateQuery:
             raise ProcessingError(f"Failed to get objects: {str(e)}")
 
 
-class WeaviateAdapter:
+class WeaviateStore:
     """
-    Weaviate adapter for vector storage and similarity search.
+    Weaviate store for vector storage and similarity search.
 
     • Weaviate connection and authentication
     • Schema and class management
@@ -225,8 +225,8 @@ class WeaviateAdapter:
     def __init__(
         self, url: Optional[str] = None, api_key: Optional[str] = None, **config
     ):
-        """Initialize Weaviate adapter."""
-        self.logger = get_logger("weaviate_adapter")
+        """Initialize Weaviate store."""
+        self.logger = get_logger("weaviate_store")
         self.config = config
         self.progress_tracker = get_progress_tracker()
         self.url = url or config.get("url", "http://localhost:8080")
@@ -363,7 +363,7 @@ class WeaviateAdapter:
         """
         tracking_id = self.progress_tracker.start_tracking(
             module="vector_store",
-            submodule="WeaviateAdapter",
+            submodule="WeaviateStore",
             message=f"Adding {len(objects)} objects to Weaviate",
         )
 
@@ -438,7 +438,7 @@ class WeaviateAdapter:
         """
         tracking_id = self.progress_tracker.start_tracking(
             module="vector_store",
-            submodule="WeaviateAdapter",
+            submodule="WeaviateStore",
             message=f"Querying {limit} similar vectors from Weaviate",
         )
 

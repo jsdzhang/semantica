@@ -1,5 +1,5 @@
 """
-Milvus Adapter Module
+Milvus Store Module
 
 This module provides Milvus vector database integration for vector storage and
 similarity search in the Semantica framework, supporting collection management,
@@ -16,20 +16,20 @@ Key Features:
     - Optional dependency handling
 
 Main Classes:
-    - MilvusAdapter: Main Milvus adapter for vector operations
+    - MilvusStore: Main Milvus store for vector operations
     - MilvusClient: Milvus client wrapper
     - MilvusCollection: Collection wrapper with operations
     - MilvusSearch: Search operations and filtering
 
 Example Usage:
-    >>> from semantica.vector_store import MilvusAdapter
-    >>> adapter = MilvusAdapter(host="localhost", port=19530)
-    >>> adapter.connect()
-    >>> collection = adapter.create_collection("my-collection", dimension=768, metric_type="L2")
-    >>> adapter.insert_vectors(vectors)
+    >>> from semantica.vector_store import MilvusStore
+    >>> store = MilvusStore(host="localhost", port=19530)
+    >>> store.connect()
+    >>> collection = store.create_collection("my-collection", dimension=768, metric_type="L2")
+    >>> store.insert_vectors(vectors)
     >>> collection.load()
-    >>> results = adapter.search_vectors(query_vector, limit=10, expr="category == 'science'")
-    >>> stats = adapter.get_stats()
+    >>> results = store.search_vectors(query_vector, limit=10, expr="category == 'science'")
+    >>> stats = store.get_stats()
 
 Author: Semantica Contributors
 License: MIT
@@ -240,9 +240,9 @@ class MilvusSearch:
         )
 
 
-class MilvusAdapter:
+class MilvusStore:
     """
-    Milvus adapter for vector storage and similarity search.
+    Milvus store for vector storage and similarity search.
 
     • Milvus connection and authentication
     • Collection and partition management
@@ -260,8 +260,8 @@ class MilvusAdapter:
         password: Optional[str] = None,
         **config,
     ):
-        """Initialize Milvus adapter."""
-        self.logger = get_logger("milvus_adapter")
+        """Initialize Milvus store."""
+        self.logger = get_logger("milvus_store")
         self.config = config
         self.progress_tracker = get_progress_tracker()
         self.host = host or config.get("host", "localhost")
@@ -410,7 +410,7 @@ class MilvusAdapter:
         """
         tracking_id = self.progress_tracker.start_tracking(
             module="vector_store",
-            submodule="MilvusAdapter",
+            submodule="MilvusStore",
             message=f"Inserting {len(vectors)} vectors into Milvus collection",
         )
 
@@ -481,7 +481,7 @@ class MilvusAdapter:
         """
         tracking_id = self.progress_tracker.start_tracking(
             module="vector_store",
-            submodule="MilvusAdapter",
+            submodule="MilvusStore",
             message=f"Searching for {limit} similar vectors in Milvus",
         )
 

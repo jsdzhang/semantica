@@ -68,19 +68,22 @@ class TestNotebooks(unittest.TestCase):
     def test_advanced_vector_store(self):
         print("\nTesting Advanced_Vector_Store_and_Search.ipynb logic...")
         try:
-            from semantica.vector_store import FAISSAdapter, HybridSearch, MetadataFilter, SearchRanker, NamespaceManager
+            from semantica.vector_store import FAISSStore, HybridSearch, MetadataFilter, SearchRanker, NamespaceManager
             
-            # Part 1: FAISSAdapter
-            adapter = FAISSAdapter(dimension=768)
-            index = adapter.create_index(index_type="hnsw", metric="L2", m=16)
+            # Part 1: FAISSStore
+            store = FAISSStore(dimension=768)
+            index = store.create_index(index_type="hnsw", metric="L2", m=16)
             vectors = np.random.rand(100, 768).astype('float32')
             ids = [f"doc_{i}" for i in range(len(vectors))]
-            adapter.add_vectors(index, vectors, ids=ids)
+            store.add_vectors(vectors, ids=ids)
             
             query = np.random.rand(768).astype('float32')
-            distances, indices = adapter.search(index, query, k=5)
-            self.assertEqual(len(indices), 5)
-            print("FAISSAdapter: OK")
+            results = store.search_similar(query, k=5)
+            # Check results structure
+            self.assertEqual(len(results), 5)
+            self.assertTrue(isinstance(results[0], dict))
+            self.assertIn("id", results[0])
+            print("FAISSStore: OK")
             
             # Part 2: Hybrid Search
             search = HybridSearch()

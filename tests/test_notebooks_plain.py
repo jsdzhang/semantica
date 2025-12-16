@@ -83,24 +83,24 @@ def test_13_vector_store_basic():
 def test_advanced_vector_store():
     log("\nTesting Advanced_Vector_Store_and_Search.ipynb logic...")
     try:
-        from semantica.vector_store import FAISSAdapter, HybridSearch, MetadataFilter, SearchRanker, NamespaceManager
+        from semantica.vector_store import FAISSStore, HybridSearch, MetadataFilter, SearchRanker, NamespaceManager
         
-        # Part 1: FAISSAdapter
-        adapter = FAISSAdapter(dimension=768)
-        index = adapter.create_index(index_type="hnsw", metric="L2", m=16)
+        # Part 1: FAISSStore
+        store = FAISSStore(dimension=768)
+        index = store.create_index(index_type="hnsw", metric="L2", m=16)
         vectors = np.random.rand(100, 768).astype('float32')
         ids = [f"doc_{i}" for i in range(len(vectors))]
         # Note: API does not take index as first argument, it uses internal self.index
-        adapter.add_vectors(vectors, ids=ids)
+        store.add_vectors(vectors, ids=ids)
         
         query = np.random.rand(768).astype('float32')
         # Use search_similar which returns structured results
-        results = adapter.search_similar(query, k=5)
+        results = store.search_similar(query, k=5)
         
         if len(results) != 5:
              raise ValueError(f"Expected 5 results, got {len(results)}")
         
-        log("FAISSAdapter: OK")
+        log("FAISSStore: OK")
         
         # Part 2: HybridSearch
         search = HybridSearch()
