@@ -341,7 +341,9 @@ class HybridSearch:
             else:
                 query_vector = query
 
-            if not vectors or not metadata:
+            # Check if vectors/metadata are empty
+            # Handle both list and numpy array cases safely
+            if len(vectors) == 0 or len(metadata) == 0:
                 self.progress_tracker.stop_tracking(
                     tracking_id,
                     status="completed",
@@ -368,7 +370,7 @@ class HybridSearch:
                 filtered_metadata = metadata
                 filtered_ids = vector_ids
 
-            if not filtered_vectors:
+            if len(filtered_vectors) == 0:
                 self.progress_tracker.stop_tracking(
                     tracking_id,
                     status="completed",
@@ -420,7 +422,7 @@ class HybridSearch:
         **options,
     ) -> List[Dict[str, Any]]:
         """Perform vector similarity search."""
-        if not vectors:
+        if len(vectors) == 0:
             return []
 
         # Convert to numpy
