@@ -10,10 +10,10 @@ sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from semantica.vector_store.vector_store import VectorStore, VectorIndexer, VectorRetriever, VectorManager
 from semantica.vector_store.registry import MethodRegistry, method_registry
-from semantica.vector_store.faiss_adapter import FAISSAdapter, FAISSIndex, FAISSIndexBuilder, FAISSSearch
-from semantica.vector_store.milvus_adapter import MilvusAdapter, MilvusClient, MilvusCollection, MilvusSearch
-from semantica.vector_store.qdrant_adapter import QdrantAdapter
-from semantica.vector_store.weaviate_adapter import WeaviateAdapter
+from semantica.vector_store.faiss_store import FAISSStore, FAISSIndex, FAISSIndexBuilder, FAISSSearch
+from semantica.vector_store.milvus_store import MilvusStore, MilvusClient, MilvusCollection, MilvusSearch
+from semantica.vector_store.qdrant_store import QdrantStore
+from semantica.vector_store.weaviate_store import WeaviateStore
 from semantica.vector_store.hybrid_search import HybridSearch, MetadataFilter, SearchRanker
 
 pytestmark = pytest.mark.integration
@@ -110,10 +110,10 @@ class TestVectorStoreDeepDive(unittest.TestCase):
         registry.unregister("store", "custom")
         self.assertFalse(registry.has("store", "custom"))
 
-    @patch('semantica.vector_store.faiss_adapter.faiss')
-    @patch('semantica.vector_store.faiss_adapter.FAISS_AVAILABLE', True)
-    def test_faiss_adapter(self, mock_faiss):
-        """Test FAISSAdapter with mocked faiss."""
+    @patch('semantica.vector_store.faiss_store.faiss')
+    @patch('semantica.vector_store.faiss_store.FAISS_AVAILABLE', True)
+    def test_faiss_store(self, mock_faiss):
+        """Test FAISSStore with mocked faiss."""
         # Setup mock
         mock_index = MagicMock()
         mock_faiss.IndexFlatL2.return_value = mock_index
@@ -125,39 +125,39 @@ class TestVectorStoreDeepDive(unittest.TestCase):
         mock_index.ntotal = 2
         
         # Test Init
-        adapter = FAISSAdapter(dimension=2)
+        store = FAISSStore(dimension=2)
         
         # Test Create Index
-        adapter.create_index(index_type="flat")
+        store.create_index(index_type="flat")
         mock_faiss.IndexFlatL2.assert_called_with(2)
         
         # Test Add Vectors
-        adapter.add_vectors(self.vectors, self.ids, self.metadata)
+        store.add_vectors(self.vectors, self.ids, self.metadata)
         mock_index.add.assert_called()
-        self.assertEqual(len(adapter.index.vector_ids), 2)
+        self.assertEqual(len(store.index.vector_ids), 2)
         
         # Test Search
-        results = adapter.search_similar(np.array([1.0, 0.0]), k=2)
+        results = store.search_similar(np.array([1.0, 0.0]), k=2)
         self.assertEqual(len(results), 2)
         self.assertEqual(results[0]["id"], "vec_1")
         
         # Test Save
-        adapter.save_index("test.index")
+        store.save_index("test.index")
         mock_faiss.write_index.assert_called()
         
         # Test Load
-        adapter.load_index("test.index")
+        store.load_index("test.index")
         mock_faiss.read_index.assert_called()
 
-    @patch('semantica.vector_store.milvus_adapter.connections')
-    @patch('semantica.vector_store.milvus_adapter.Collection')
-    @patch('semantica.vector_store.milvus_adapter.utility')
-    @patch('semantica.vector_store.milvus_adapter.DataType')
-    @patch('semantica.vector_store.milvus_adapter.FieldSchema')
-    @patch('semantica.vector_store.milvus_adapter.CollectionSchema')
-    @patch('semantica.vector_store.milvus_adapter.MILVUS_AVAILABLE', True)
-    def test_milvus_adapter(self, mock_collection_schema, mock_field_schema, mock_data_type, mock_utility, mock_collection_cls, mock_connections):
-        """Test MilvusAdapter with mocked pymilvus."""
+    @patch('semantica.vector_store.milvus_store.connections')
+    @patch('semantica.vector_store.milvus_store.Collection')
+    @patch('semantica.vector_store.milvus_store.utility')
+    @patch('semantica.vector_store.milvus_store.DataType')
+    @patch('semantica.vector_store.milvus_store.FieldSchema')
+    @patch('semantica.vector_store.milvus_store.CollectionSchema')
+    @patch('semantica.vector_store.milvus_store.MILVUS_AVAILABLE', True)
+    def test_milvus_store(self, mock_collection_schema, mock_field_schema, mock_data_type, mock_utility, mock_collection_cls, mock_connections):
+        """Test MilvusStore with mocked pymilvus."""
         # Setup mocks
         mock_data_type.INT64 = 1
         mock_data_type.FLOAT_VECTOR = 2
@@ -173,36 +173,36 @@ class TestVectorStoreDeepDive(unittest.TestCase):
         mock_collection_instance.search.return_value = [[mock_hit]]
         
         # Test Init
-        adapter = MilvusAdapter(host="localhost")
+        store = MilvusStore(host="localhost")
         
         # Test Connect
-        adapter.connect()
+        store.connect()
         mock_connections.connect.assert_called_with(
             alias="default", host="localhost", port=19530, user=None, password=None
         )
         
         # Test Create Collection
-        adapter.create_collection("test_coll", dimension=2)
+        store.create_collection("test_coll", dimension=2)
         mock_collection_cls.assert_called()
         mock_collection_instance.create_index.assert_called()
         
         # Test Insert
-        adapter.insert_vectors(self.vectors)
+        store.insert_vectors(self.vectors)
         mock_collection_instance.insert.assert_called()
         
         # Test Search
-        results = adapter.search_vectors(np.array([1.0, 0.0]), limit=1)
+        results = store.search_vectors(np.array([1.0, 0.0]), limit=1)
         mock_collection_instance.search.assert_called()
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0]["id"], 1)
 
-    @patch('semantica.vector_store.qdrant_adapter.QdrantClientLib')
-    @patch('semantica.vector_store.qdrant_adapter.VectorParams')
-    @patch('semantica.vector_store.qdrant_adapter.Distance')
-    @patch('semantica.vector_store.qdrant_adapter.PointStruct')
-    @patch('semantica.vector_store.qdrant_adapter.QDRANT_AVAILABLE', True)
-    def test_qdrant_adapter(self, mock_point_struct, mock_distance, mock_vector_params, mock_qdrant_cls):
-        """Test QdrantAdapter with mocked qdrant_client."""
+    @patch('semantica.vector_store.qdrant_store.QdrantClientLib')
+    @patch('semantica.vector_store.qdrant_store.VectorParams')
+    @patch('semantica.vector_store.qdrant_store.Distance')
+    @patch('semantica.vector_store.qdrant_store.PointStruct')
+    @patch('semantica.vector_store.qdrant_store.QDRANT_AVAILABLE', True)
+    def test_qdrant_store(self, mock_point_struct, mock_distance, mock_vector_params, mock_qdrant_cls):
+        """Test QdrantStore with mocked qdrant_client."""
         mock_client = MagicMock()
         mock_qdrant_cls.return_value = mock_client
         
@@ -213,30 +213,30 @@ class TestVectorStoreDeepDive(unittest.TestCase):
         mock_hit.payload = {"type": "a"}
         mock_client.search.return_value = [mock_hit]
         
-        adapter = QdrantAdapter(url="http://localhost:6333")
+        store = QdrantStore(url="http://localhost:6333")
         
         # Connect
-        adapter.connect()
+        store.connect()
         mock_qdrant_cls.assert_called()
         
         # Create Collection
-        adapter.create_collection("test-collection", vector_size=2)
+        store.create_collection("test-collection", vector_size=2)
         mock_client.create_collection.assert_called()
         
         # Insert
-        adapter.insert_vectors(self.vectors, self.ids, payloads=self.metadata)
+        store.insert_vectors(self.vectors, self.ids, payloads=self.metadata)
         mock_client.upsert.assert_called()
         
         # Search
-        results = adapter.search_vectors(np.array([1.0, 0.0]), limit=1)
+        results = store.search_vectors(np.array([1.0, 0.0]), limit=1)
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0]["id"], "vec_1")
 
-    @patch('semantica.vector_store.weaviate_adapter.weaviate')
-    @patch('semantica.vector_store.weaviate_adapter.MetadataQuery')
-    @patch('semantica.vector_store.weaviate_adapter.WEAVIATE_AVAILABLE', True)
-    def test_weaviate_adapter(self, mock_metadata_query, mock_weaviate):
-        """Test WeaviateAdapter with mocked weaviate."""
+    @patch('semantica.vector_store.weaviate_store.weaviate')
+    @patch('semantica.vector_store.weaviate_store.MetadataQuery')
+    @patch('semantica.vector_store.weaviate_store.WEAVIATE_AVAILABLE', True)
+    def test_weaviate_store(self, mock_metadata_query, mock_weaviate):
+        """Test WeaviateStore with mocked weaviate."""
         mock_client = MagicMock()
         mock_weaviate.connect_to_local.return_value = mock_client
         
@@ -254,14 +254,14 @@ class TestVectorStoreDeepDive(unittest.TestCase):
         
         mock_collection.query.near_vector.return_value = mock_query_response
         
-        adapter = WeaviateAdapter(url="http://localhost:8080")
+        store = WeaviateStore(url="http://localhost:8080")
         
         # Connect
-        adapter.connect()
+        store.connect()
         mock_weaviate.connect_to_local.assert_called()
         
         # Create Schema
-        adapter.create_schema("TestClass", properties=[])
+        store.create_schema("TestClass", properties=[])
         mock_client.collections.create.assert_called()
         
         # Add Objects
@@ -269,12 +269,12 @@ class TestVectorStoreDeepDive(unittest.TestCase):
         mock_batch = MagicMock()
         mock_collection.batch.dynamic.return_value.__enter__.return_value = mock_batch
         
-        adapter.get_collection("TestClass")
-        adapter.add_objects([{"text": "hello"}], vectors=self.vectors)
+        store.get_collection("TestClass")
+        store.add_objects([{"text": "hello"}], vectors=self.vectors)
         mock_batch.add_object.assert_called()
         
         # Query
-        results = adapter.query_vectors(np.array([1.0, 0.0]), limit=1)
+        results = store.query_vectors(np.array([1.0, 0.0]), limit=1)
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0]["id"], "uuid-1")
 
@@ -293,7 +293,7 @@ class TestVectorStoreDeepDive(unittest.TestCase):
         
         # Test Search
         results = search.search(
-            query_vector=np.array([1.0, 0.0]),
+            query=np.array([1.0, 0.0]),
             vectors=self.vectors,
             metadata=self.metadata,
             vector_ids=self.ids,
@@ -304,7 +304,7 @@ class TestVectorStoreDeepDive(unittest.TestCase):
         
         # Test Filtered Search
         results = search.search(
-            query_vector=np.array([1.0, 0.0]),
+            query=np.array([1.0, 0.0]),
             vectors=self.vectors,
             metadata=self.metadata,
             vector_ids=self.ids,

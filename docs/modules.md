@@ -439,7 +439,7 @@ These modules handle persistence and retrieval of vectors, graphs, and triplets.
 - `AudioEmbedder` — Generate audio embeddings
 - `MultimodalEmbedder` — Combine multiple modalities
 - `EmbeddingOptimizer` — Optimize embedding quality
-- `ProviderAdapters` — Support for OpenAI, Cohere, etc.
+- `ProviderStores` — Support for OpenAI, Cohere, etc.
 
 **Quick Example:**
 
@@ -479,8 +479,8 @@ print(f"Similarity: {similarity:.3f}")
 **Components:**
 
 - `VectorStore` — Main vector store interface
-- `FAISSAdapter` — FAISS integration
-- `WeaviateAdapter` — Weaviate integration
+- `FAISSStore` — FAISS integration
+- `WeaviateStore` — Weaviate integration
 - `HybridSearch` — Combine vector and keyword search
 - `VectorRetriever` — Retrieve relevant vectors
 
@@ -523,8 +523,8 @@ results = hybrid_search.search(
 **Components:**
 
 - `GraphStore` — Main graph store interface
-- `Neo4jAdapter` — Neo4j database integration
-- `FalkorDBAdapter` — FalkorDB (Redis-based) integration
+- `Neo4jStore` — Neo4j database integration
+- `FalkorDBStore` — FalkorDB (Redis-based) integration
 - `NodeManager` — Node CRUD operations
 - `RelationshipManager` — Relationship CRUD operations
 - `QueryEngine` — Cypher query execution
@@ -575,17 +575,17 @@ results = store.execute_query("MATCH (p:Person) RETURN p.name")
 - Bulk data loading with progress tracking
 - Query caching and optimization
 - Transaction support
-- Store adapter pattern
+- Store backend pattern
 
 **Components:**
 
 - `TripletManager` — Main triplet store management coordinator
 - `QueryEngine` — SPARQL query execution and optimization
 - `BulkLoader` — High-volume data loading with progress tracking
-- `BlazegraphAdapter` — Blazegraph integration
-- `JenaAdapter` — Apache Jena integration
-- `RDF4JAdapter` — Eclipse RDF4J integration
-- `VirtuosoAdapter` — Virtuoso RDF store integration
+- `BlazegraphStore` — Blazegraph integration
+- `JenaStore` — Apache Jena integration
+- `RDF4JStore` — Eclipse RDF4J integration
+- `VirtuosoStore` — Virtuoso RDF store integration
 - `QueryPlan` — Query execution plan dataclass
 - `LoadProgress` — Bulk loading progress tracking
 

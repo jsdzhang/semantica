@@ -22,7 +22,7 @@ Main Classes:
 Example Usage:
     >>> from semantica.triplet_store import QueryEngine
     >>> engine = QueryEngine(enable_caching=True, enable_optimization=True)
-    >>> result = engine.execute_query(sparql_query, store_adapter)
+    >>> result = engine.execute_query(sparql_query, store_backend)
     >>> plan = engine.plan_query(sparql_query)
     >>> stats = engine.get_query_statistics()
 
@@ -96,13 +96,13 @@ class QueryEngine:
         self.query_cache: Dict[str, QueryResult] = {}
         self.query_history: List[Dict[str, Any]] = []
 
-    def execute_query(self, query: str, store_adapter: Any, **options) -> QueryResult:
+    def execute_query(self, query: str, store_backend: Any, **options) -> QueryResult:
         """
         Execute SPARQL query.
 
         Args:
             query: SPARQL query string
-            store_adapter: Triplet store adapter instance
+            store_backend: Triplet store backend instance
             **options: Additional options
 
         Returns:
@@ -157,10 +157,10 @@ class QueryEngine:
             self.progress_tracker.update_tracking(
                 tracking_id, message="Executing query on store..."
             )
-            if hasattr(store_adapter, "execute_sparql"):
-                result_data = store_adapter.execute_sparql(optimized_query, **options)
+            if hasattr(store_backend, "execute_sparql"):
+                result_data = store_backend.execute_sparql(optimized_query, **options)
             else:
-                raise ProcessingError("Store adapter does not support SPARQL execution")
+                raise ProcessingError("Store backend does not support SPARQL execution")
 
             execution_time = time.time() - start_time
 

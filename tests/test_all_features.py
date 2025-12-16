@@ -9,7 +9,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from semantica.embeddings import EmbeddingGenerator, TextEmbedder
 from semantica.vector_store import (
-    VectorStore, FAISSAdapter, HybridSearch, MetadataFilter, 
+    VectorStore, FAISSStore, HybridSearch, MetadataFilter, 
     SearchRanker, NamespaceManager
 )
 
@@ -87,23 +87,23 @@ class TestSemanticaFeatures(unittest.TestCase):
         self.assertEqual(len(results), 5)
         print("VectorStore Basic: OK")
 
-    def test_05_faiss_adapter(self):
-        """Test FAISSAdapter directly"""
-        print("\nTesting FAISSAdapter...")
-        adapter = FAISSAdapter(dimension=768)
-        index = adapter.create_index(index_type="hnsw", metric="L2", m=16)
+    def test_05_faiss_store(self):
+        """Test FAISSStore directly"""
+        print("\nTesting FAISSStore...")
+        store = FAISSStore(dimension=768)
+        index = store.create_index(index_type="hnsw", metric="L2", m=16)
         
         vectors = np.random.rand(100, 768).astype('float32')
         ids = [f"doc_{i}" for i in range(len(vectors))]
         
         # Add vectors
-        adapter.add_vectors(vectors, ids=ids)
+        store.add_vectors(vectors, ids=ids)
         
         # Search
         query = np.random.rand(768).astype('float32')
-        results = adapter.search_similar(query, k=5)
+        results = store.search_similar(query, k=5)
         self.assertEqual(len(results), 5)
-        print("FAISSAdapter: OK")
+        print("FAISSStore: OK")
 
     def test_06_hybrid_search(self):
         """Test Hybrid Search with Metadata Filtering"""

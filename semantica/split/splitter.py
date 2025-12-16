@@ -13,7 +13,7 @@ Algorithms Used:
     - Strategy Pattern: Method selection and delegation
     - Factory Pattern: Unified creation of appropriate splitter
     - Fallback Chain: Automatic fallback to alternative methods
-    - Adapter Pattern: Integration with existing chunker classes
+    - Integration Pattern: Integration with existing chunker classes
 
 Key Features:
     - Unified interface for all splitting methods

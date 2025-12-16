@@ -1,5 +1,5 @@
 """
-RDF4J Adapter Module
+RDF4J Store Module
 
 This module provides Eclipse RDF4J integration for RDF storage and SPARQL
 querying, supporting repository management and transaction operations.
@@ -13,14 +13,14 @@ Key Features:
     - Bulk operations
 
 Main Classes:
-    - RDF4JAdapter: Main RDF4J integration adapter
+    - RDF4JStore: Main RDF4J integration store
 
 Example Usage:
-    >>> from semantica.triplet_store import RDF4JAdapter
-    >>> adapter = RDF4JAdapter(endpoint="http://localhost:8080/rdf4j-server", repository_id="repo1")
-    >>> result = adapter.execute_sparql(sparql_query)
-    >>> tx_id = adapter.begin_transaction()
-    >>> result = adapter.add_triplets(triplets)
+    >>> from semantica.triplet_store import RDF4JStore
+    >>> store = RDF4JStore(endpoint="http://localhost:8080/rdf4j-server", repository_id="repo1")
+    >>> result = store.execute_sparql(sparql_query)
+    >>> tx_id = store.begin_transaction()
+    >>> result = store.add_triplets(triplets)
 
 Author: Semantica Contributors
 License: MIT
@@ -36,31 +36,26 @@ from ..utils.logging import get_logger
 from ..utils.progress_tracker import get_progress_tracker
 
 
-class RDF4JAdapter:
+class RDF4JStore:
     """
-    Eclipse RDF4J adapter for triplet store operations.
+    Eclipse RDF4J store for triplet store operations.
 
-    • RDF4J connection and repository management
-    • SPARQL query execution
-    • Repository configuration and setup
-    • Transaction support
-    • Performance optimization
-    • Error handling and recovery
+    This class provides integration with Eclipse RDF4J, supporting
+    remote repositories, transactions, and high-performance querying.
     """
 
-    def __init__(self, endpoint: str, **config):
+    def __init__(
+        self, endpoint: Optional[str] = None, repository_id: Optional[str] = None, **config
+    ):
         """
-        Initialize RDF4J adapter.
+        Initialize RDF4J store.
 
         Args:
-            endpoint: RDF4J server endpoint
-            **config: Additional configuration:
-                - repository_id: Repository identifier
-                - username: Username for authentication
-                - password: Password for authentication
-                - timeout: Request timeout (default: 30)
+            endpoint: RDF4J server URL
+            repository_id: Repository identifier
+            **config: Additional configuration options
         """
-        self.logger = get_logger("rdf4j_adapter")
+        self.logger = get_logger("rdf4j_store")
         self.config = config
         self.progress_tracker = get_progress_tracker()
 
@@ -185,7 +180,7 @@ class RDF4JAdapter:
         """
         tracking_id = self.progress_tracker.start_tracking(
             module="triplet_store",
-            submodule="RDF4JAdapter",
+            submodule="RDF4JStore",
             message="Executing SPARQL query on RDF4J",
         )
 
@@ -251,7 +246,7 @@ class RDF4JAdapter:
         """
         tracking_id = self.progress_tracker.start_tracking(
             module="triplet_store",
-            submodule="RDF4JAdapter",
+            submodule="RDF4JStore",
             message=f"Adding {len(triplets)} triplets to RDF4J repository",
         )
 

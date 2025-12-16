@@ -57,9 +57,9 @@ Validation:
 Algorithms Used:
 
 Store Registration:
-    - Store Type Detection: Backend type identification, adapter factory pattern
+    - Store Type Detection: Backend type identification, store factory pattern
     - Configuration Management: Store configuration storage, default store selection
-    - Adapter Instantiation: Backend-specific adapter creation, connection initialization
+    - Store Instantiation: Backend-specific store creation, connection initialization
 
 Triplet Operations:
     - Triplet Validation: Required field checking, confidence validation, URI validation
@@ -102,7 +102,7 @@ Example Usage:
     >>> from semantica.triplet_store.methods import register_store, add_triplet, execute_query
     >>> store = register_store("main", "blazegraph", "http://localhost:9999/blazegraph", method="default")
     >>> result = add_triplet(triplet, store_id="main", method="default")
-    >>> query_result = execute_query(sparql_query, store_adapter, method="default")
+    >>> query_result = execute_query(sparql_query, store_backend, method="default")
 """
 
 from typing import Any, Dict, List, Optional, Union
@@ -314,14 +314,14 @@ def update_triplet(
 
 
 def execute_query(
-    query: str, store_adapter: Any, method: str = "default", **options
+    query: str, store_backend: Any, method: str = "default", **options
 ) -> QueryResult:
     """
     Execute SPARQL query.
 
     Args:
         query: SPARQL query string
-        store_adapter: Triplet store adapter instance
+        store_backend: Triplet store backend instance
         method: Query method name (default: "default")
         **options: Additional options
 
@@ -331,11 +331,11 @@ def execute_query(
     # Check registry for custom method
     custom_method = method_registry.get("query", method)
     if custom_method:
-        return custom_method(query, store_adapter, **options)
+        return custom_method(query, store_backend, **options)
 
     # Default implementation
     engine = _get_query_engine()
-    return engine.execute_query(query, store_adapter, **options)
+    return engine.execute_query(query, store_backend, **options)
 
 
 def optimize_query(query: str, method: str = "default", **options) -> str:
@@ -376,14 +376,14 @@ def plan_query(query: str, **options) -> QueryPlan:
 
 
 def bulk_load(
-    triplets: List[Triplet], store_adapter: Any, method: str = "default", **options
+    triplets: List[Triplet], store_backend: Any, method: str = "default", **options
 ) -> LoadProgress:
     """
     Load triplets in bulk.
 
     Args:
         triplets: List of triplets to load
-        store_adapter: Triplet store adapter instance
+        store_backend: Triplet store backend instance
         method: Loading method name (default: "default")
         **options: Additional options
 
@@ -393,11 +393,11 @@ def bulk_load(
     # Check registry for custom method
     custom_method = method_registry.get("bulk_load", method)
     if custom_method:
-        return custom_method(triplets, store_adapter, **options)
+        return custom_method(triplets, store_backend, **options)
 
     # Default implementation
     loader = _get_bulk_loader()
-    return loader.load_triplets(triplets, store_adapter, **options)
+    return loader.load_triplets(triplets, store_backend, **options)
 
 
 def validate_triplets(

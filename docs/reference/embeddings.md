@@ -48,7 +48,7 @@ The **Embeddings Module** provides a unified interface for generating vector rep
 ## 🏗️ Architecture Components
 
 ### EmbeddingGenerator (The Orchestrator)
-The main entry point for generating embeddings. It manages the active model and routes requests to the appropriate provider adapter.
+The main entry point for generating embeddings. It manages the active model and routes requests to the appropriate provider store.
 
 #### **Constructor Parameters**
 *   `method` (Default: `"fastembed"`): The embedding provider to use (e.g., `"sentence_transformers"`, `"openai"`, `"fastembed"`).

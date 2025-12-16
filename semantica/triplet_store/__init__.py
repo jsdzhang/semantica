@@ -8,12 +8,12 @@ with unified interfaces.
 Algorithms Used:
 
 Triplet Store Management:
-    - Store Registration: Store type detection, adapter factory pattern, configuration management, default store selection
-    - Adapter Pattern: Unified interface for multiple backends (Blazegraph, Jena, RDF4J, Virtuoso), adapter instantiation, backend-specific operation delegation
+    - Store Registration: Store type detection, store factory pattern, configuration management, default store selection
+    - Backend Pattern: Unified interface for multiple backends (Blazegraph, Jena, RDF4J, Virtuoso), store instantiation, backend-specific operation delegation
     - Store Selection: Default store resolution, store ID lookup, store validation
 
 CRUD Operations:
-    - Triplet Addition: Single triplet insertion, batch triplet insertion, triplet validation (subject/predicate/object checking, confidence validation), adapter delegation
+    - Triplet Addition: Single triplet insertion, batch triplet insertion, triplet validation (subject/predicate/object checking, confidence validation), store delegation
     - Triplet Retrieval: Pattern matching (subject/predicate/object filtering), SPARQL query construction, result binding extraction, triplet reconstruction
     - Triplet Deletion: Triplet matching, deletion operation delegation, result verification
     - Triplet Update: Delete-then-add pattern, atomic update operations, conflict detection
@@ -37,11 +37,11 @@ Query Optimization:
     - Execution Step Identification: Query parsing for step detection, step sequence construction, optimization opportunity detection
     - Query Rewriting: Whitespace normalization, LIMIT injection, query simplification
 
-Store Adapters:
-    - Blazegraph Adapter: HTTP-based SPARQL endpoint communication, namespace management, graph management, bulk load via INSERT DATA, authentication handling
-    - Jena Adapter: rdflib integration, SPARQLStore for remote endpoints, in-memory graph support, model/dataset management, RDF serialization (Turtle, RDF/XML, N3), inference support
-    - RDF4J Adapter: RDF4J repository connection, SPARQL endpoint communication, transaction support, bulk operations
-    - Virtuoso Adapter: Virtuoso SPARQL endpoint communication, SQL/SPARQL hybrid queries, bulk loading, transaction support
+Store Backends:
+    - Blazegraph Store: HTTP-based SPARQL endpoint communication, namespace management, graph management, bulk load via INSERT DATA, authentication handling
+    - Jena Store: rdflib integration, SPARQLStore for remote endpoints, in-memory graph support, model/dataset management, RDF serialization (Turtle, RDF/XML, N3), inference support
+    - RDF4J Store: RDF4J repository connection, SPARQL endpoint communication, transaction support, bulk operations
+    - Virtuoso Store: Virtuoso SPARQL endpoint communication, SQL/SPARQL hybrid queries, bulk loading, transaction support
 
 Data Validation:
     - Triplet Validation: Required field checking (subject, predicate, object), confidence range validation (0-1), URI format validation
@@ -49,9 +49,9 @@ Data Validation:
     
 Performance Optimization:
     - Batch Size Optimization: Configurable batch size, memory-aware batching, throughput-based optimization
-    - Connection Pooling: Adapter-level connection management, connection reuse, connection lifecycle management
+    - Connection Pooling: Store-level connection management, connection reuse, connection lifecycle management
     - Query Caching: Result caching for repeated queries, cache size management, cache hit optimization
-    - Parallel Processing: Batch-level parallelization (when supported by adapter), concurrent batch processing
+    - Parallel Processing: Batch-level parallelization (when supported by store), concurrent batch processing
 
 Key Features:
     - Multi-backend support (Blazegraph, Jena, RDF4J, Virtuoso)
@@ -60,7 +60,7 @@ Key Features:
     - Bulk data loading with progress tracking
     - Query caching and optimization
     - Transaction support
-    - Store adapter pattern
+    - Store backend pattern
     - Method registry for extensibility
     - Configuration management with environment variables and config files
 
@@ -68,10 +68,10 @@ Main Classes:
     - TripletManager: Main triplet store management coordinator
     - QueryEngine: SPARQL query execution and optimization
     - BulkLoader: High-volume data loading
-    - BlazegraphAdapter: Blazegraph integration adapter
-    - JenaAdapter: Apache Jena integration adapter
-    - RDF4JAdapter: Eclipse RDF4J integration adapter
-    - VirtuosoAdapter: Virtuoso RDF store integration adapter
+    - BlazegraphStore: Blazegraph integration store
+    - JenaStore: Apache Jena integration store
+    - RDF4JStore: Eclipse RDF4J integration store
+    - VirtuosoStore: Virtuoso RDF store integration store
     - TripletStore: Triplet store configuration dataclass
     - QueryResult: Query result representation dataclass
     - QueryPlan: Query execution plan dataclass
@@ -94,23 +94,23 @@ Example Usage:
     >>> # Using convenience functions
     >>> store = register_store("main", "blazegraph", "http://localhost:9999/blazegraph")
     >>> result = add_triplet(triplet, store_id="main")
-    >>> query_result = execute_query(sparql_query, store_adapter)
+    >>> query_result = execute_query(sparql_query, store)
     >>> # Using classes directly
     >>> manager = TripletManager()
     >>> store = manager.register_store("main", "blazegraph", "http://localhost:9999/blazegraph")
     >>> result = manager.add_triplet(triplet, store_id="main")
     >>> from semantica.triplet_store import QueryEngine
     >>> engine = QueryEngine()
-    >>> query_result = engine.execute_query(sparql_query, store_adapter)
+    >>> query_result = engine.execute_query(sparql_query, store)
 
 Author: Semantica Contributors
 License: MIT
 """
 
-from .blazegraph_adapter import BlazegraphAdapter
+from .blazegraph_store import BlazegraphStore
 from .bulk_loader import BulkLoader, LoadProgress
 from .config import TripletStoreConfig, triplet_store_config
-from .jena_adapter import JenaAdapter
+from .jena_store import JenaStore
 from .methods import (
     add_triplet,
     add_triplets,
@@ -127,20 +127,20 @@ from .methods import (
     validate_triplets,
 )
 from .query_engine import QueryEngine, QueryPlan, QueryResult
-from .rdf4j_adapter import RDF4JAdapter
+from .rdf4j_store import RDF4JStore
 from .registry import MethodRegistry, method_registry
 from .triplet_manager import TripletManager, TripletStore
-from .virtuoso_adapter import VirtuosoAdapter
+from .virtuoso_store import VirtuosoStore
 
 __all__ = [
     # Triplet management
     "TripletManager",
     "TripletStore",
-    # Store adapters
-    "BlazegraphAdapter",
-    "JenaAdapter",
-    "RDF4JAdapter",
-    "VirtuosoAdapter",
+    # Store backends
+    "BlazegraphStore",
+    "JenaStore",
+    "RDF4JStore",
+    "VirtuosoStore",
     # Query engine
     "QueryEngine",
     "QueryResult",

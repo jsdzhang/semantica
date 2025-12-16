@@ -1,5 +1,5 @@
 """
-Neo4j Adapter Module
+Neo4j Store Module
 
 This module provides Neo4j graph database integration for property graph storage and
 Cypher querying in the Semantica framework, supporting full CRUD operations,
@@ -16,18 +16,18 @@ Key Features:
     - Optional dependency handling
 
 Main Classes:
-    - Neo4jAdapter: Main Neo4j adapter for graph operations
+    - Neo4jStore: Main Neo4j store for graph operations
     - Neo4jDriver: Neo4j driver wrapper
     - Neo4jSession: Session management wrapper
     - Neo4jTransaction: Transaction wrapper
 
 Example Usage:
-    >>> from semantica.graph_store import Neo4jAdapter
-    >>> adapter = Neo4jAdapter(uri="bolt://localhost:7687", user="neo4j", password="password")
-    >>> adapter.connect()
-    >>> node_id = adapter.create_node(labels=["Person"], properties={"name": "Alice"})
-    >>> results = adapter.execute_query("MATCH (p:Person) RETURN p.name")
-    >>> adapter.close()
+    >>> from semantica.graph_store import Neo4jStore
+    >>> store = Neo4jStore(uri="bolt://localhost:7687", user="neo4j", password="password")
+    >>> store.connect()
+    >>> node_id = store.create_node(labels=["Person"], properties={"name": "Alice"})
+    >>> results = store.execute_query("MATCH (p:Person) RETURN p.name")
+    >>> store.close()
 
 Author: Semantica Contributors
 License: MIT
@@ -218,9 +218,9 @@ class Neo4jTransaction:
             self.commit()
 
 
-class Neo4jAdapter:
+class Neo4jStore:
     """
-    Neo4j adapter for property graph storage and Cypher querying.
+    Neo4j store for property graph storage and Cypher querying.
 
     • Neo4j connection and authentication
     • Node and relationship CRUD operations
@@ -240,7 +240,7 @@ class Neo4jAdapter:
         **config,
     ):
         """
-        Initialize Neo4j adapter.
+        Initialize Neo4j store.
 
         Args:
             uri: Neo4j connection URI (bolt://localhost:7687)
@@ -249,7 +249,7 @@ class Neo4jAdapter:
             database: Database name
             **config: Additional configuration options
         """
-        self.logger = get_logger("neo4j_adapter")
+        self.logger = get_logger("neo4j_store")
         self.config = config
         self.progress_tracker = get_progress_tracker()
 
@@ -358,7 +358,7 @@ class Neo4jAdapter:
         """
         tracking_id = self.progress_tracker.start_tracking(
             module="graph_store",
-            submodule="Neo4jAdapter",
+            submodule="Neo4jStore",
             message=f"Creating node with labels {labels}",
         )
 
@@ -409,7 +409,7 @@ class Neo4jAdapter:
         """
         tracking_id = self.progress_tracker.start_tracking(
             module="graph_store",
-            submodule="Neo4jAdapter",
+            submodule="Neo4jStore",
             message=f"Creating {len(nodes)} nodes in batch",
         )
 
@@ -626,7 +626,7 @@ class Neo4jAdapter:
         """
         tracking_id = self.progress_tracker.start_tracking(
             module="graph_store",
-            submodule="Neo4jAdapter",
+            submodule="Neo4jStore",
             message=f"Creating relationship [{rel_type}]",
         )
 
@@ -786,7 +786,7 @@ class Neo4jAdapter:
         """
         tracking_id = self.progress_tracker.start_tracking(
             module="graph_store",
-            submodule="Neo4jAdapter",
+            submodule="Neo4jStore",
             message="Executing Cypher query",
         )
 

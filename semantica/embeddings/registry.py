@@ -13,7 +13,7 @@ Supported Registration Types:
         * "multimodal": Multimodal embedding methods
         * "optimization": Embedding optimization methods
         * "pooling": Pooling strategy methods
-        * "provider": Provider adapter methods
+        * "provider": Provider store methods
         * "similarity": Similarity calculation methods
 
 Algorithms Used:
