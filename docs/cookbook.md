@@ -54,6 +54,30 @@ Hand-picked tutorials to show you the power of Semantica.
     
     [Open Notebook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/advanced_rag/02_RAG_vs_GraphRAG_Comparison.ipynb)
 
+-   :material-robot: **GraphRAG Complete**
+    ---
+    Build a production-ready Graph Retrieval Augmented Generation system.
+    
+    **New Features**: Graph Validation, Logical Inference, Hybrid Context.
+    
+    **Topics**: RAG, LLMs, Vector Search, Graph Traversal
+    
+    **Difficulty**: Advanced
+    
+    [Open Notebook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/advanced_rag/01_GraphRAG_Complete.ipynb)
+
+-   :material-scale-balance: **RAG vs. GraphRAG Comparison**
+    ---
+    Side-by-side comparison of Standard RAG vs. GraphRAG using real-world data.
+    
+    **New Features**: Inference-Enhanced GraphRAG, Reasoning Gap Analysis.
+    
+    **Topics**: RAG, GraphRAG, Benchmarking, Visualization
+    
+    **Difficulty**: Intermediate
+    
+    [Open Notebook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/advanced_rag/02_RAG_vs_GraphRAG_Comparison.ipynb)
+
 -   :material-graph: **Your First Knowledge Graph**
     ---
     Go from raw text to a queryable knowledge graph in 20 minutes.
