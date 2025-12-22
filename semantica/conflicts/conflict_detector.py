@@ -57,7 +57,7 @@ License: MIT
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from ..utils.logging import get_logger
 from ..utils.progress_tracker import get_progress_tracker
@@ -131,7 +131,7 @@ class ConflictDetector:
 
     def detect_value_conflicts(
         self,
-        entities: List[Dict[str, Any]],
+        entities: Union[List[Dict[str, Any]], Dict[str, Any]],
         property_name: str,
         entity_type: Optional[str] = None,
     ) -> List[Conflict]:
@@ -139,13 +139,20 @@ class ConflictDetector:
         Detect property value conflicts.
 
         Args:
-            entities: List of entity dictionaries
+            entities: List of entity dictionaries or Graph dictionary
             property_name: Property name to check
             entity_type: Optional entity type filter
 
         Returns:
             List of detected conflicts
         """
+        # Handle graph dictionary input
+        if isinstance(entities, dict):
+            if "entities" in entities:
+                entities = entities["entities"]
+            else:
+                entities = [entities]
+
         # Track conflict detection
         tracking_id = self.progress_tracker.start_tracking(
             file=None,
@@ -815,7 +822,9 @@ class ConflictDetector:
             raise
 
     def detect_conflicts(
-        self, entities: List[Dict[str, Any]], entity_type: Optional[str] = None
+        self,
+        entities: Union[List[Dict[str, Any]], Dict[str, Any]],
+        entity_type: Optional[str] = None,
     ) -> List[Conflict]:
         """
         Detect all conflicts for entities (general method).
@@ -824,12 +833,20 @@ class ConflictDetector:
         temporal, and logical conflicts.
 
         Args:
-            entities: List of entity dictionaries
+            entities: List of entity dictionaries or Graph dictionary (containing "entities" key)
             entity_type: Optional entity type filter
 
         Returns:
             List of all detected conflicts
         """
+        # Handle graph dictionary input
+        if isinstance(entities, dict):
+            if "entities" in entities:
+                entities = entities["entities"]
+            else:
+                # If it's a single entity dict, wrap in list
+                entities = [entities]
+
         tracking_id = self.progress_tracker.start_tracking(
             file=None,
             module="conflicts",

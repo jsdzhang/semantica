@@ -100,6 +100,7 @@ from .abductive_reasoner import AbductiveReasoner
 from .abductive_reasoner import Explanation as AbductiveExplanation
 from .abductive_reasoner import Hypothesis, HypothesisRanking, Observation
 from .deductive_reasoner import Argument, Conclusion, DeductiveReasoner, Premise, Proof
+from .reasoner import Reasoner
 from .explanation_generator import (
     Explanation,
     ExplanationGenerator,
@@ -148,6 +149,8 @@ __all__ = [
     "Conclusion",
     "Proof",
     "Argument",
+    # Reasoner facade
+    "Reasoner",
     # Rule management
     "RuleManager",
     "Rule",
