@@ -99,6 +99,42 @@ class Semantica:
 
         self.logger.info("Semantica framework initialized")
 
+    @property
+    def embedding_generator(self) -> Any:
+        """
+        Get the framework's embedding generator.
+
+        Returns:
+            EmbeddingGenerator instance
+        """
+        if "embedding_generator" not in self._modules:
+            try:
+                from ..embeddings import EmbeddingGenerator
+                self._modules["embedding_generator"] = EmbeddingGenerator(
+                    config=self.config.get("embedding", {})
+                )
+            except ImportError as e:
+                self.logger.warning(f"Could not import EmbeddingGenerator: {e}")
+                raise ProcessingError(f"Embeddings module not available: {e}")
+        return self._modules["embedding_generator"]
+
+    @property
+    def reasoner(self) -> Any:
+        """
+        Get the framework's graph reasoner.
+
+        Returns:
+            GraphReasoner instance
+        """
+        if "reasoner" not in self._modules:
+            try:
+                from ..reasoning import GraphReasoner
+                self._modules["reasoner"] = GraphReasoner(config=self.config)
+            except ImportError as e:
+                self.logger.warning(f"Could not import GraphReasoner: {e}")
+                raise ProcessingError(f"Reasoning module not available: {e}")
+        return self._modules["reasoner"]
+
     @log_execution_time
     def initialize(self) -> None:
         """
