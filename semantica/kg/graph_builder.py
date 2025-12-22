@@ -120,13 +120,12 @@ class GraphBuilder:
             self.conflict_detector = None
             self.logger.debug("Conflict resolution disabled")
 
-    def _process_item(self, item: Any, all_entities: List[Any], all_relationships: List[Any]):
+    def _process_item(self, item: Any, all_entities: List[Any], all_relationships: List[Any], **options):
         """Helper to process a single item and add to entities or relationships list."""
         if hasattr(item, "text") and hasattr(item, "label"):
             # It's likely an Entity object
-            # Convert to dict format expected by graph builder
             entity_dict = {
-                "id": getattr(item, "id", item.text), # Use text as ID if no ID
+                "id": getattr(item, "id", item.text),
                 "name": item.text,
                 "type": item.label,
                 "confidence": getattr(item, "confidence", 1.0),
@@ -135,14 +134,10 @@ class GraphBuilder:
             all_entities.append(entity_dict)
         elif hasattr(item, "subject") and hasattr(item, "predicate") and hasattr(item, "object"):
             # It's likely a Relation object
-            # Convert to dict format
-            # Subject and Object in Relation might be Entity objects or strings
             subj = item.subject
             obj = item.object
-            
             subj_id = getattr(subj, "text", subj) if not isinstance(subj, str) else subj
             obj_id = getattr(obj, "text", obj) if not isinstance(obj, str) else obj
-            
             rel_dict = {
                 "source": subj_id,
                 "target": obj_id,
@@ -153,20 +148,63 @@ class GraphBuilder:
             all_relationships.append(rel_dict)
         elif isinstance(item, dict):
             processed = False
-            if "entities" in item:
-                all_entities.extend(item["entities"])
-                processed = True
-            if "relationships" in item:
-                all_relationships.extend(item["relationships"])
-                processed = True
+            found_something = False
             
-            if not processed:
+            if "entities" in item:
+                entities_list = item["entities"]
+                if entities_list:
+                    if isinstance(entities_list, list):
+                        for ent in entities_list:
+                            self._process_item(ent, all_entities, all_relationships, **options)
+                    else:
+                        self._process_item(entities_list, all_entities, all_relationships, **options)
+                    found_something = True
+                    processed = True
+            
+            if "relationships" in item:
+                rels_list = item["relationships"]
+                if rels_list:
+                    if isinstance(rels_list, list):
+                        for rel in rels_list:
+                            self._process_item(rel, all_entities, all_relationships, **options)
+                    else:
+                        self._process_item(rels_list, all_entities, all_relationships, **options)
+                    found_something = True
+                    processed = True
+            
+            if not found_something:
                 if "source" in item and "target" in item:
                     all_relationships.append(item)
+                    found_something = True
                 elif "id" in item or "entity_id" in item or "name" in item:
                     all_entities.append(item)
+                    found_something = True
+                
+                # If still nothing found and has 'text', try extraction
+                if not found_something and "text" in item:
+                    text = item["text"]
+                    # Perform extraction if requested or if it's the only way
+                    if options.get("extract", True):
+                        from ..semantic_extract.ner_extractor import NERExtractor
+                        from ..semantic_extract.triplet_extractor import TripletExtractor
+                        
+                        ner_method = options.get("ner_method", "ml")
+                        triplet_method = options.get("triplet_method", "pattern")
+                        
+                        ner = NERExtractor(method=ner_method)
+                        entities = ner.extract_entities(text)
+                        for ent in entities:
+                            self._process_item(ent, all_entities, all_relationships, **options)
+                        
+                        # Only try triplets if specifically requested or if method provided
+                        if "triplet_method" in options or options.get("extract_relations", False):
+                            triplet = TripletExtractor(method=triplet_method)
+                            relations = triplet.extract_triplets(text)
+                            for rel in relations:
+                                self._process_item(rel, all_entities, all_relationships, **options)
+                        found_something = True
         else:
-            # Unknown type, try to treat as entity if it has string representation
+            # Unknown type
             pass
 
     def build(
@@ -182,6 +220,10 @@ class GraphBuilder:
             sources: Entities or sources list
             second_arg: Optional relationships list or entity_resolver (for backward compatibility)
             **options: Additional build options
+                - extract: Whether to extract entities from text (default: True)
+                - extract_relations: Whether to extract relations from text (default: False)
+                - ner_method: NER method to use (default: "ml")
+                - triplet_method: Triplet extraction method (default: "pattern")
 
         Returns:
             Dictionary containing entities and relationships
@@ -229,18 +271,18 @@ class GraphBuilder:
                 if isinstance(source, list):
                      # List of items (could be entities, relations, or mixed)
                     for item in source:
-                        self._process_item(item, all_entities, all_relationships)
+                        self._process_item(item, all_entities, all_relationships, **options)
                 else:
-                    self._process_item(source, all_entities, all_relationships)
+                    self._process_item(source, all_entities, all_relationships, **options)
 
             # Process explicit relationships if provided
             if explicit_relationships:
                 for rel_item in explicit_relationships:
                     if isinstance(rel_item, list):
                         for item in rel_item:
-                             self._process_item(item, all_entities, all_relationships)
+                             self._process_item(item, all_entities, all_relationships, **options)
                     else:
-                        self._process_item(rel_item, all_entities, all_relationships)
+                        self._process_item(rel_item, all_entities, all_relationships, **options)
 
             self.logger.debug(
                 f"Extracted {len(all_entities)} entities and "

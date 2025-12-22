@@ -129,6 +129,48 @@ class ConflictDetector:
 
         self.detected_conflicts: Dict[str, Conflict] = {}
 
+    def detect_conflicts(
+        self,
+        entities: Union[List[Dict[str, Any]], Dict[str, Any]],
+        method: str = "entity",
+        property_name: Optional[str] = None,
+        entity_type: Optional[str] = None,
+        **kwargs,
+    ) -> List[Conflict]:
+        """
+        Detect conflicts using the specified method (convenience method).
+
+        Args:
+            entities: Entities to check (List of dicts or a KG dict)
+            method: Detection method ("entity", "value", "type", "relationship", "temporal", "logical")
+            property_name: Property name for "value" method
+            entity_type: Optional entity type filter
+            **kwargs: Additional arguments
+
+        Returns:
+            List of detected conflicts
+        """
+        # If passed a KG dict, extract entities
+        if isinstance(entities, dict) and "entities" in entities:
+            entities = entities["entities"]
+
+        if method == "value":
+            if not property_name:
+                raise ValueError("property_name is required for value conflict detection")
+            return self.detect_value_conflicts(entities, property_name, entity_type)
+        elif method == "type":
+            return self.detect_type_conflicts(entities)
+        elif method == "relationship":
+            relationships = kwargs.get("relationships", [])
+            return self.detect_relationship_conflicts(relationships)
+        elif method == "temporal":
+            return self.detect_temporal_conflicts(entities)
+        elif method == "logical":
+            return self.detect_logical_conflicts(entities)
+        else:
+            # Default to entity-wide detection
+            return self.detect_entity_conflicts(entities, entity_type)
+
     def detect_value_conflicts(
         self,
         entities: Union[List[Dict[str, Any]], Dict[str, Any]],
