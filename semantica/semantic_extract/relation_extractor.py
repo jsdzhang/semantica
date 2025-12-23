@@ -135,25 +135,78 @@ class RelationExtractor:
         self.validate = config.get("validate", False)
 
         # Common relation patterns
+        # Entity pattern allowing for dots and spaces (e.g., "Apple Inc.", "New York")
+        ent_pat = r"[\w\.]+(?:\s+[\w\.]+)*"
+        
         self.relation_patterns = {
             "founded_by": [
-                r"(?P<subject>\w+)\s+(?:was\s+)?founded\s+by\s+(?P<object>\w+(?:\s+\w+)*)",
-                r"(?P<object>\w+(?:\s+\w+)*)\s+founded\s+(?P<subject>\w+)",
+                # Subject founded by Object
+                fr"(?P<subject>[\w\.\s]+?)\s+(?:was\s+)?founded\s+by\s+(?P<object>{ent_pat})",
+                # Object founded Subject
+                fr"(?P<object>{ent_pat})\s+founded\s+(?P<subject>{ent_pat})",
             ],
             "located_in": [
-                r"(?P<subject>\w+)\s+is\s+located\s+in\s+(?P<object>\w+)",
-                r"(?P<subject>\w+)\s+in\s+(?P<object>\w+)",
+                fr"(?P<subject>[\w\.\s]+?)\s+is\s+located\s+in\s+(?P<object>{ent_pat})",
+                fr"(?P<subject>[\w\.\s]+?)\s+in\s+(?P<object>{ent_pat})",
             ],
             "works_for": [
-                r"(?P<subject>\w+)\s+works?\s+for\s+(?P<object>\w+)",
-                r"(?P<subject>\w+)\s+is\s+an?\s+employee\s+of\s+(?P<object>\w+)",
+                fr"(?P<subject>[\w\.\s]+?)\s+works?\s+for\s+(?P<object>{ent_pat})",
+                fr"(?P<subject>[\w\.\s]+?)\s+is\s+an?\s+employee\s+of\s+(?P<object>{ent_pat})",
             ],
             "born_in": [
-                r"(?P<subject>\w+)\s+was\s+born\s+in\s+(?P<object>\w+)",
-                r"(?P<subject>\w+)\s+born\s+in\s+(?P<object>\w+)",
+                fr"(?P<subject>[\w\.\s]+?)\s+was\s+born\s+in\s+(?P<object>{ent_pat})",
+                fr"(?P<subject>[\w\.\s]+?)\s+born\s+in\s+(?P<object>{ent_pat})",
             ],
         }
 
+
+    def extract(
+        self,
+        text: Union[str, List[Dict[str, Any]], List[str]],
+        entities: Union[List[Entity], List[List[Entity]]],
+        **kwargs
+    ) -> Union[List[Relation], List[List[Relation]]]:
+        """
+        Alias for extract_relations.
+        Handles both single string/entity-list and list of documents/entity-lists.
+        
+        Args:
+            text: Input text or list of documents
+            entities: List of entities or list of list of entities
+            **kwargs: Extraction options
+            
+        Returns:
+            Union[List[Relation], List[List[Relation]]]: Extracted relations
+        """
+        if isinstance(text, list) and isinstance(entities, list):
+            # Handle batch extraction
+            results = []
+            # Ensure lists are same length
+            min_len = min(len(text), len(entities))
+            for i in range(min_len):
+                doc_item = text[i]
+                ent_item = entities[i]
+                
+                doc_text = ""
+                if isinstance(doc_item, dict) and "content" in doc_item:
+                    doc_text = doc_item["content"]
+                elif isinstance(doc_item, str):
+                    doc_text = doc_item
+                else:
+                    doc_text = str(doc_item)
+                
+                # Ensure ent_item is a list of entities
+                if not isinstance(ent_item, list):
+                    ent_item = [] # Should not happen if entities is List[List[Entity]]
+                
+                results.append(self.extract_relations(doc_text, ent_item, **kwargs))
+            return results
+        elif isinstance(text, str) and isinstance(entities, list):
+             # Single text, single list of entities (standard case)
+            return self.extract_relations(text, entities, **kwargs)
+        else:
+            # Fallback or invalid input combination
+            return []
 
     def extract_relations(
         self, text: str, entities: List[Entity], **options
@@ -289,8 +342,8 @@ class RelationExtractor:
         for relation_type, patterns in self.relation_patterns.items():
             for pattern in patterns:
                 for match in re.finditer(pattern, text, re.IGNORECASE):
-                    subject_text = match.group("subject")
-                    object_text = match.group("object")
+                    subject_text = match.group("subject").strip()
+                    object_text = match.group("object").strip()
 
                     subject_entity = entity_map.get(subject_text.lower())
                     object_entity = entity_map.get(object_text.lower())

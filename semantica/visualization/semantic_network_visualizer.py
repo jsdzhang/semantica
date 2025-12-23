@@ -33,8 +33,12 @@ License: MIT
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-import plotly.express as px
-import plotly.graph_objects as go
+try:
+    import plotly.express as px
+    import plotly.graph_objects as go
+except ImportError:
+    px = None
+    go = None
 
 from ..utils.exceptions import ProcessingError
 from ..utils.logging import get_logger
@@ -56,11 +60,19 @@ class SemanticNetworkVisualizer:
         self.logger = get_logger("semantic_network_visualizer")
         self.config = config
         self.progress_tracker = get_progress_tracker()
-        color_scheme_name = config.get("color_scheme", "default")
+        color_scheme_name = config.get("color_scheme", "vibrant")
         try:
             self.color_scheme = ColorScheme[color_scheme_name.upper()]
         except (KeyError, AttributeError):
-            self.color_scheme = ColorScheme.DEFAULT
+            self.color_scheme = ColorScheme.VIBRANT
+
+    def _check_dependencies(self):
+        """Check if dependencies are available."""
+        if px is None or go is None:
+            raise ProcessingError(
+                "Plotly is required for semantic network visualization. "
+                "Install with: pip install plotly"
+            )
 
     def visualize_network(
         self,
@@ -87,6 +99,7 @@ class SemanticNetworkVisualizer:
         Returns:
             Visualization figure or None
         """
+        self._check_dependencies()
         tracking_id = self.progress_tracker.start_tracking(
             module="visualization",
             submodule="SemanticNetworkVisualizer",
@@ -241,6 +254,11 @@ class SemanticNetworkVisualizer:
 
             graph = {"entities": nodes, "relationships": edges}
             kg_viz = KGVisualizer(**self.config)
+            
+            # Default to Kamada-Kawai layout if not specified as it often produces better results for semantic networks
+            if "algorithm" not in options:
+                options["algorithm"] = "kamada_kawai"
+                
             result = kg_viz.visualize_network(graph, output, file_path, **options)
 
             self.progress_tracker.stop_tracking(
@@ -274,6 +292,7 @@ class SemanticNetworkVisualizer:
         Returns:
             Visualization figure or None
         """
+        self._check_dependencies()
         self.logger.info("Visualizing semantic network node types")
 
         # Extract nodes
@@ -298,13 +317,13 @@ class SemanticNetworkVisualizer:
             title="Semantic Network Node Type Distribution",
         )
 
-        if output == "interactive":
-            return fig
-        elif file_path:
+        if file_path:
             export_plotly_figure(
                 fig, file_path, format=output if output != "interactive" else "html"
             )
-            return None
+
+        # Always return the figure to allow interactive preview in notebooks
+        return fig
 
     def visualize_edge_types(
         self,
@@ -325,6 +344,7 @@ class SemanticNetworkVisualizer:
         Returns:
             Visualization figure or None
         """
+        self._check_dependencies()
         self.logger.info("Visualizing semantic network edge types")
 
         # Extract edges
@@ -349,10 +369,10 @@ class SemanticNetworkVisualizer:
             title="Semantic Network Edge Type Distribution",
         )
 
-        if output == "interactive":
-            return fig
-        elif file_path:
+        if file_path:
             export_plotly_figure(
                 fig, file_path, format=output if output != "interactive" else "html"
             )
-            return None
+
+        # Always return the figure to allow interactive preview in notebooks
+        return fig

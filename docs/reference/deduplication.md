@@ -57,10 +57,18 @@
 
 ### Similarity Calculation
 - **Levenshtein Distance**: Edit distance for string difference
-- **Jaro-Winkler**: String similarity with prefix weighting (good for names)
+- **Jaro-Winkler**: String similarity with prefix weighting (Default for strings, optimized for entity names)
 - **Cosine Similarity**: Vector similarity for embeddings
 - **Jaccard Similarity**: Set overlap for properties/relationships
+- **Property Matching**: Handles disjoint properties with neutral scoring (0.5) to prevent false negatives
 - **Multi-factor Aggregation**: Weighted sum of multiple metrics
+
+### Default Configuration
+The deduplication module uses the following default weights to prioritize name matching while considering other factors:
+- **String Similarity**: 0.6 (Primary factor, using Jaro-Winkler)
+- **Property Similarity**: 0.2 (Handles missing values neutrally)
+- **Relationship Similarity**: 0.2
+- **Embedding Similarity**: 0.0 (Optional, enabled if embeddings are present)
 
 ### Duplicate Detection
 - **Pairwise Comparison**: O(n²) comparison (for small sets)
@@ -146,26 +154,27 @@ EntityMerger(
 | `validate_merge_quality(merge_operation)` | Validate quality of a merge operation | `Dict[str, Any]` |
 
 **Strategies:**
-- `KEEP_FIRST`: Keep the first entity encountered
-- `KEEP_LAST`: Keep the last entity encountered
-- `KEEP_MOST_COMPLETE`: Keep entity with most properties/relationships
-- `KEEP_HIGHEST_CONFIDENCE`: Keep entity with highest confidence score
-- `MERGE_ALL`: Create new entity combining all info
+- `"keep_first"`: Keep the first entity encountered
+- `"keep_last"`: Keep the last entity encountered
+- `"keep_most_complete"`: Keep entity with most properties/relationships
+- `"keep_highest_confidence"`: Keep entity with highest confidence score
+- `"merge_all"`: Create new entity combining all info
 
 **Example:**
 
 ```python
-from semantica.deduplication import EntityMerger, MergeStrategy
+from semantica.deduplication import EntityMerger
 
 merger = EntityMerger(preserve_provenance=True)
+
+# Merge with specific strategy
 operations = merger.merge_duplicates(
     entities,
-    strategy=MergeStrategy.KEEP_MOST_COMPLETE
+    strategy="keep_most_complete"
 )
 
-for op in operations:
-    print(f"Merged {len(op.source_entities)} entities into 1")
-    print(f"Conflicts: {len(op.merge_result.conflicts)}")
+# Get merge history
+history = merger.get_merge_history()
 ```
 
 ### SimilarityCalculator
@@ -676,13 +685,14 @@ Configuration is loaded in the following priority order:
 ### Ingestion Pipeline
 
 ```python
-from semantica.ingest import Ingestor
+from semantica.core import Semantica
 from semantica.deduplication import DuplicateDetector, EntityMerger, MergeStrategy
-from semantica.kg import KnowledgeGraph
 
-# 1. Ingest
-ingestor = Ingestor()
-raw_entities = ingestor.ingest_batch(files)
+# 1. Build knowledge base
+semantica = Semantica()
+result = semantica.build_knowledge_base(files)
+kg = result["knowledge_graph"]
+raw_entities = kg.get("entities", [])
 
 # 2. Deduplicate
 detector = DuplicateDetector(similarity_threshold=0.85)
@@ -696,10 +706,6 @@ merge_operations = merger.merge_duplicates(
 
 # Extract merged entities
 merged_entities = [op.merged_entity for op in merge_operations]
-
-# 3. Load to KG
-kg = KnowledgeGraph()
-kg.add_entities(merged_entities)
 ```
 
 ---

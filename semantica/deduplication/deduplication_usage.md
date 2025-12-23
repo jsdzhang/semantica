@@ -20,10 +20,15 @@ This guide demonstrates how to use the deduplication module for detecting and me
 ```python
 from semantica.deduplication import SimilarityCalculator
 
-calculator = SimilarityCalculator(
-    string_weight=0.4,
-    property_weight=0.3,
-    embedding_weight=0.3
+# Initialize with default weights (optimized for entity resolution)
+# String: 0.6 (Jaro-Winkler), Property: 0.2, Relationship: 0.2
+calculator = SimilarityCalculator()
+
+# Or customize weights
+calculator_custom = SimilarityCalculator(
+    string_weight=0.6,
+    property_weight=0.2,
+    embedding_weight=0.2
 )
 
 entity1 = {"name": "Apple Inc.", "type": "Company"}
@@ -605,14 +610,14 @@ for op in history:
 ### Property-Specific Merge Rules
 
 ```python
-from semantica.deduplication import MergeStrategyManager, MergeStrategy
+from semantica.deduplication import MergeStrategyManager
 
 manager = MergeStrategyManager(default_strategy="keep_most_complete")
 
 # Different strategies for different properties
-manager.add_property_rule("name", MergeStrategy.KEEP_FIRST)
-manager.add_property_rule("description", MergeStrategy.MERGE_ALL)
-manager.add_property_rule("founded", MergeStrategy.KEEP_HIGHEST_CONFIDENCE)
+manager.add_property_rule("name", "keep_first")
+manager.add_property_rule("description", "merge_all")
+manager.add_property_rule("founded", "keep_highest_confidence")
 
 # Custom conflict resolution for dates
 def resolve_date_conflict(dates):
@@ -621,7 +626,7 @@ def resolve_date_conflict(dates):
 
 manager.add_property_rule(
     "last_updated",
-    MergeStrategy.CUSTOM,
+    "custom",
     conflict_resolution=resolve_date_conflict
 )
 

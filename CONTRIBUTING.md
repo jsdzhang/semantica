@@ -326,14 +326,23 @@ def extract_entities(
 
 ## Types of Contributions
 
-### Code Contributions
+### 💻 Code Contributions
 
-- Bug fixes
-- New features
-- Performance improvements
-- Refactoring
+- **Bug Fixes**: Resolving issues reported in the issue tracker.
+- **New Features**: Implementing new capabilities (please discuss via an issue first!).
+- **Refactoring**: Improving code structure and maintainability without changing behavior.
+- **Algorithm Optimization**: Improving the efficiency of graph algorithms and vector search.
 
-### Documentation Contributions
+#### ⚡ Performance and Latency
+We deeply value efficiency. Contributions that make Semantica faster and lighter are highly appreciated!
+
+- **Latency Reduction**: Optimize critical paths and RAG pipeline response times.
+- **Memory Optimization**: Reduce graph/vector processing memory footprint.
+- **Throughput**: Improve operations per second (bulk ingestion, parallel queries).
+- **Benchmarks**: Add performance benchmarks to track regressions.
+- **Async/Concurrency**: Enhance asynchronous execution and concurrency.
+
+### 📚 Documentation Contributions
 
 - Fix typos and grammar
 - Improve clarity

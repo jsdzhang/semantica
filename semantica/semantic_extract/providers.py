@@ -16,7 +16,7 @@ Supported Providers:
 Supported Model Types:
     - NER Models: Token classification models for named entity recognition
     - Relation Models: Sequence classification models for relation extraction
-    - Triplet Models: Seq2Seq models for triple extraction
+    - Triplet Models: Seq2Seq models for triplet extraction
 
 Algorithms Used:
     - Transformer Architecture: Attention mechanism-based neural networks
@@ -37,7 +37,7 @@ Key Features:
         * Anthropic Claude (claude-3-sonnet, etc.)
         * Ollama (local open-source models)
         * HuggingFace Transformers (custom LLM models)
-    - HuggingFace model loader for NER, relation extraction, and triple extraction
+    - HuggingFace model loader for NER, relation extraction, and triplet extraction
     - Automatic API key management from environment variables
     - Structured JSON output generation
     - Model caching and device management (CPU/GPU)
@@ -71,7 +71,7 @@ License: MIT
 
 import json
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import torch
 
@@ -97,10 +97,11 @@ class BaseProvider:
         """Generate text - must be implemented."""
         raise NotImplementedError
 
-    def generate_structured(self, prompt: str, **kwargs) -> dict:
+    def generate_structured(self, prompt: str, **kwargs) -> Union[dict, list]:
         """Generate structured output - must be implemented."""
         raise NotImplementedError
 
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 =======
     def _parse_json(self, text: str) -> Union[dict, list]:
@@ -161,6 +162,47 @@ class BaseProvider:
             raise ProcessingError(f"No JSON structure found in response. Raw response: {text[:100]}...")
 
 >>>>>>> Stashed changes
+=======
+    def _parse_json(self, text: str) -> Union[dict, list]:
+        """Extract and parse JSON from text, supporting objects and lists."""
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError:
+            # Try to find JSON boundaries
+            # Look for the first occurrence of { or [
+            start_obj = text.find("{")
+            start_list = text.find("[")
+            
+            # Determine which one starts first
+            start = -1
+            end = -1
+            
+            if start_obj >= 0 and (start_list < 0 or start_obj < start_list):
+                start = start_obj
+                end = text.rfind("}") + 1
+            elif start_list >= 0:
+                start = start_list
+                end = text.rfind("]") + 1
+                
+            if start >= 0 and end > start:
+                try:
+                    return json.loads(text[start:end])
+                except json.JSONDecodeError as e:
+                    # If that failed, maybe it's a list that ends with ] but we picked } earlier?
+                    # Or vice versa. Let's try the other boundary if they exist.
+                    if start == start_obj and start_list >= 0:
+                        start = start_list
+                        end = text.rfind("]") + 1
+                        if start >= 0 and end > start:
+                            try:
+                                return json.loads(text[start:end])
+                            except json.JSONDecodeError:
+                                pass
+                                
+                    raise ProcessingError(f"Failed to parse extracted JSON: {e}")
+            raise ProcessingError("No JSON structure found in response")
+
+>>>>>>> main
 
 class OpenAIProvider(BaseProvider):
     """OpenAI provider implementation."""
@@ -217,7 +259,10 @@ class OpenAIProvider(BaseProvider):
             response_format={"type": "json_object"},
             temperature=kwargs.get("temperature", 0.3),
         )
-        return json.loads(response.choices[0].message.content)
+        try:
+            return self._parse_json(response.choices[0].message.content)
+        except Exception as e:
+            raise ProcessingError(f"Failed to parse JSON from OpenAI response: {e}")
 
 
 class GeminiProvider(BaseProvider):
@@ -272,15 +317,9 @@ class GeminiProvider(BaseProvider):
         json_prompt = f"{prompt}\n\nReturn the response as valid JSON only."
         response = self.client.generate_content(json_prompt)
         try:
-            return json.loads(response.text)
-        except json.JSONDecodeError:
-            # Try to extract JSON from response
-            text = response.text
-            start = text.find("{")
-            end = text.rfind("}") + 1
-            if start >= 0 and end > start:
-                return json.loads(text[start:end])
-            raise ProcessingError("Failed to parse JSON from Gemini response")
+            return self._parse_json(response.text)
+        except Exception as e:
+            raise ProcessingError(f"Failed to parse JSON from Gemini response: {e}")
 
 
 class GroqProvider(BaseProvider):
@@ -339,14 +378,9 @@ class GroqProvider(BaseProvider):
             temperature=kwargs.get("temperature", 0.3),
         )
         try:
-            return json.loads(response.choices[0].message.content)
-        except json.JSONDecodeError:
-            text = response.choices[0].message.content
-            start = text.find("{")
-            end = text.rfind("}") + 1
-            if start >= 0 and end > start:
-                return json.loads(text[start:end])
-            raise ProcessingError("Failed to parse JSON from Groq response")
+            return self._parse_json(response.choices[0].message.content)
+        except Exception as e:
+            raise ProcessingError(f"Failed to parse JSON from Groq response: {e}")
 
 
 class AnthropicProvider(BaseProvider):
@@ -408,14 +442,9 @@ class AnthropicProvider(BaseProvider):
             messages=[{"role": "user", "content": json_prompt}],
         )
         try:
-            return json.loads(response.content[0].text)
-        except json.JSONDecodeError:
-            text = response.content[0].text
-            start = text.find("{")
-            end = text.rfind("}") + 1
-            if start >= 0 and end > start:
-                return json.loads(text[start:end])
-            raise ProcessingError("Failed to parse JSON from Anthropic response")
+            return self._parse_json(response.content[0].text)
+        except Exception as e:
+            raise ProcessingError(f"Failed to parse JSON from Anthropic response: {e}")
 
 
 class OllamaProvider(BaseProvider):
@@ -481,14 +510,9 @@ class OllamaProvider(BaseProvider):
             options={"temperature": kwargs.get("temperature", 0.3)},
         )
         try:
-            return json.loads(response.get("response", "{}"))
-        except json.JSONDecodeError:
-            text = response.get("response", "")
-            start = text.find("{")
-            end = text.rfind("}") + 1
-            if start >= 0 and end > start:
-                return json.loads(text[start:end])
-            raise ProcessingError("Failed to parse JSON from Ollama response")
+            return self._parse_json(response.get("response", "{}"))
+        except Exception as e:
+            raise ProcessingError(f"Failed to parse JSON from Ollama response: {e}")
 
 
 class DeepSeekProvider(BaseProvider):
@@ -523,8 +547,8 @@ class DeepSeekProvider(BaseProvider):
             temperature=kwargs.get("temperature", 0.3),
         )
         return response.choices[0].message.content
-
-    def generate_structured(self, prompt: str, **kwargs) -> dict:
+    def generate_structured(self, prompt: str, **kwargs) -> Union[dict, list]:
+        """Generate structured output."""
         if not self.client:
             raise ProcessingError("DeepSeek client not initialized.")
         response = self.client.chat.completions.create(
@@ -532,15 +556,10 @@ class DeepSeekProvider(BaseProvider):
             messages=[{"role": "user", "content": prompt}],
             temperature=kwargs.get("temperature", 0.3),
         )
-        text = response.choices[0].message.content
         try:
-            return json.loads(text)
-        except json.JSONDecodeError:
-            start = text.find("{")
-            end = text.rfind("}") + 1
-            if start >= 0 and end > start:
-                return json.loads(text[start:end])
-            raise ProcessingError("Failed to parse JSON from DeepSeek response")
+            return self._parse_json(response.choices[0].message.content)
+        except Exception as e:
+            raise ProcessingError(f"Failed to parse JSON from DeepSeek response: {e}")
 
 class HuggingFaceLLMProvider(BaseProvider):
     """HuggingFace transformers for LLM tasks."""

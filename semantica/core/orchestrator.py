@@ -12,7 +12,7 @@ This module provides the main entry point for the Semantica framework, handling:
 - System health monitoring
 
 Example Usage:
-    >>> from semantica import Semantica
+    >>> from semantica.core import Semantica
     >>> framework = Semantica()
     >>> result = framework.build_knowledge_base(
     ...     sources=["doc1.pdf", "doc2.docx"],
@@ -98,6 +98,42 @@ class Semantica:
         self.progress_tracker = get_progress_tracker()
 
         self.logger.info("Semantica framework initialized")
+
+    @property
+    def embedding_generator(self) -> Any:
+        """
+        Get the framework's embedding generator.
+
+        Returns:
+            EmbeddingGenerator instance
+        """
+        if "embedding_generator" not in self._modules:
+            try:
+                from ..embeddings import EmbeddingGenerator
+                self._modules["embedding_generator"] = EmbeddingGenerator(
+                    config=self.config.get("embedding", {})
+                )
+            except ImportError as e:
+                self.logger.warning(f"Could not import EmbeddingGenerator: {e}")
+                raise ProcessingError(f"Embeddings module not available: {e}")
+        return self._modules["embedding_generator"]
+
+    @property
+    def reasoner(self) -> Any:
+        """
+        Get the framework's graph reasoner.
+
+        Returns:
+            GraphReasoner instance
+        """
+        if "reasoner" not in self._modules:
+            try:
+                from ..reasoning import GraphReasoner
+                self._modules["reasoner"] = GraphReasoner(config=self.config)
+            except ImportError as e:
+                self.logger.warning(f"Could not import GraphReasoner: {e}")
+                raise ProcessingError(f"Reasoning module not available: {e}")
+        return self._modules["reasoner"]
 
     @log_execution_time
     def initialize(self) -> None:
@@ -302,7 +338,6 @@ class Semantica:
         try:
             self.logger.info("Executing processing pipeline")
 
-            # Track pipeline execution
             pipeline_tracking_id = self.progress_tracker.start_tracking(
                 file=str(data) if isinstance(data, (str, Path)) else None,
                 module="pipeline",
@@ -310,23 +345,39 @@ class Semantica:
                 message="Executing pipeline",
             )
 
-            # Validate pipeline
             if isinstance(pipeline, dict):
                 pipeline = self._create_pipeline_from_dict(pipeline)
 
-            # Validate pipeline object
-            if not hasattr(pipeline, "execute"):
-                raise ProcessingError("Pipeline must have execute() method")
+            execution_engine = None
+            execution_result = None
 
-            # Allocate resources
+            try:
+                from ..pipeline import ExecutionEngine, Pipeline
+
+                if isinstance(pipeline, Pipeline):
+                    execution_engine = ExecutionEngine()
+            except ImportError:
+                execution_engine = None
+
+            if execution_engine is None and not hasattr(pipeline, "execute"):
+                raise ProcessingError(
+                    "Pipeline must be a Pipeline object or have execute() method"
+                )
+
             resources = self._allocate_resources(pipeline)
 
             try:
-                # Execute pipeline
-                result = pipeline.execute(data)
-
-                # Collect metrics
-                metrics = self._collect_metrics(pipeline)
+                if execution_engine is not None:
+                    execution_result = execution_engine.execute_pipeline(
+                        pipeline, data
+                    )
+                    success = execution_result.success
+                    output = execution_result.output
+                    metrics = execution_result.metrics
+                else:
+                    output = pipeline.execute(data)
+                    metrics = self._collect_metrics(pipeline)
+                    success = True
 
                 if pipeline_tracking_id:
                     self.progress_tracker.stop_tracking(
@@ -334,8 +385,8 @@ class Semantica:
                     )
 
                 return {
-                    "success": True,
-                    "output": result,
+                    "success": success,
+                    "output": output,
                     "metrics": metrics,
                     "metadata": {
                         "pipeline": str(pipeline),
@@ -344,7 +395,6 @@ class Semantica:
                 }
 
             finally:
-                # Release resources
                 self._release_resources(resources)
 
         except Exception as e:
@@ -567,13 +617,37 @@ class Semantica:
             Pipeline object or configuration dict (if pipeline module not available)
         """
         try:
-            # Try to use PipelineBuilder if available
             from ..pipeline import PipelineBuilder
 
             pipeline_builder = PipelineBuilder()
-            return pipeline_builder.build_from_config(pipeline_config)
+
+            if not pipeline_config:
+                pipeline_builder.add_step("default_step", "default")
+                return pipeline_builder.build("default_pipeline")
+
+            steps_config = pipeline_config.get("steps")
+
+            if isinstance(steps_config, list) and steps_config and isinstance(
+                steps_config[0], str
+            ):
+                converted_steps = [
+                    {"name": name, "type": name, "config": {}}
+                    for name in steps_config
+                ]
+                normalized_config: Dict[str, Any] = {
+                    "name": pipeline_config.get("name", "default_pipeline"),
+                    "steps": converted_steps,
+                }
+                if "parallelism" in pipeline_config:
+                    normalized_config["parallelism"] = pipeline_config["parallelism"]
+                return pipeline_builder.build_pipeline(normalized_config)
+
+            if "steps" in pipeline_config:
+                return pipeline_builder.build_pipeline(pipeline_config)
+
+            pipeline_builder.add_step("default_step", "default")
+            return pipeline_builder.build("default_pipeline")
         except ImportError:
-            # Fallback: return config as-is if pipeline module not available
             self.logger.debug("Pipeline module not available, using config directly")
             return pipeline_config
 

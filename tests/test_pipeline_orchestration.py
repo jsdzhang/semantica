@@ -21,6 +21,8 @@ from semantica.pipeline import (
 from semantica.pipeline.pipeline_builder import Pipeline, PipelineSerializer
 from semantica.pipeline.execution_engine import ExecutionResult
 
+pytestmark = pytest.mark.integration
+
 # --- Fixtures ---
 
 @pytest.fixture
@@ -258,10 +260,10 @@ def test_parallelism_manager_identify_parallelizable_steps(parallelism_manager, 
     assert "s2" in names
     assert "s3" in names
 
-# --- End-to-End Notebook Simulation ---
+# --- End-to-End Pipeline Orchestration Test ---
 
 def test_end_to_end_pipeline_orchestration(pipeline_builder, execution_engine):
-    # This simulates the logic in 07_Pipeline_Orchestration.ipynb
+    # This simulates a complete pipeline orchestration workflow
     
     # Mocks for actual components to avoid file I/O and heavy processing
     file_ingestor_mock = MagicMock()

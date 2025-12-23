@@ -35,10 +35,16 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
-import plotly.express as px
-import plotly.graph_objects as go
-import seaborn as sns
-from plotly.subplots import make_subplots
+
+try:
+    import plotly.express as px
+    import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
+except ImportError:
+    px = None
+    go = None
+    make_subplots = None
+
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 
@@ -85,6 +91,14 @@ class EmbeddingVisualizer:
             self.color_scheme = ColorScheme.DEFAULT
         self.point_size = config.get("point_size", 5)
 
+    def _check_dependencies(self):
+        """Check if dependencies are available."""
+        if px is None or go is None:
+            raise ProcessingError(
+                "Plotly is required for embedding visualization. "
+                "Install with: pip install plotly"
+            )
+
     def visualize_2d_projection(
         self,
         embeddings: np.ndarray,
@@ -92,17 +106,30 @@ class EmbeddingVisualizer:
         method: str = "umap",
         output: str = "interactive",
         file_path: Optional[Union[str, Path]] = None,
+        color_by: Optional[List[Any]] = None,
+        size_by: Optional[List[float]] = None,
+        hover_data: Optional[List[Dict[str, Any]]] = None,
         **options,
     ) -> Optional[Any]:
         """
         Visualize embeddings in 2D using dimensionality reduction.
 
+        Implements the 5-step visualization process:
+        1. Problem setting: Dimensionality reduction choice
+        2. Data analysis: Logs embedding statistics
+        3. Layout: 2D Projection (UMAP/t-SNE/PCA)
+        4. Styling: Configurable color and size mapping
+        5. Interaction: Rich hover data
+
         Args:
             embeddings: Embedding matrix (n_samples, n_features)
-            labels: Optional labels for coloring points
+            labels: Optional labels for points (used as default color_by if provided)
             method: Reduction method ("umap", "tsne", "pca")
             output: Output type ("interactive", "html", "png", "svg")
             file_path: Output file path
+            color_by: List of values to map to color (overrides labels)
+            size_by: List of values to map to point size
+            hover_data: List of dictionaries containing metadata for each point
             **options: Additional options:
                 - n_components: Number of components (default: 2)
                 - perplexity: Perplexity for t-SNE
@@ -111,6 +138,7 @@ class EmbeddingVisualizer:
         Returns:
             Visualization figure or None
         """
+        self._check_dependencies()
         tracking_id = self.progress_tracker.start_tracking(
             module="visualization",
             submodule="EmbeddingVisualizer",
@@ -119,6 +147,10 @@ class EmbeddingVisualizer:
 
         try:
             self.logger.info(f"Visualizing 2D projection using {method}")
+            
+            # Step 2: Data Analysis
+            n_samples, n_features = embeddings.shape
+            self.logger.info(f"Embedding Analysis: {n_samples} samples, {n_features} dimensions")
 
             if embeddings.shape[1] <= 2:
                 # Already 2D or less, use directly
@@ -138,7 +170,14 @@ class EmbeddingVisualizer:
                 tracking_id, message="Generating visualization..."
             )
             result = self._visualize_2d_plotly(
-                projected, labels, output, file_path, **options
+                projected, 
+                labels, 
+                output, 
+                file_path, 
+                color_by=color_by,
+                size_by=size_by,
+                hover_data=hover_data,
+                **options
             )
 
             self.progress_tracker.stop_tracking(
@@ -176,6 +215,7 @@ class EmbeddingVisualizer:
         Returns:
             Visualization figure or None
         """
+        self._check_dependencies()
         tracking_id = self.progress_tracker.start_tracking(
             module="visualization",
             submodule="EmbeddingVisualizer",
@@ -238,6 +278,7 @@ class EmbeddingVisualizer:
         Returns:
             Visualization figure or None
         """
+        self._check_dependencies()
         tracking_id = self.progress_tracker.start_tracking(
             module="visualization",
             submodule="EmbeddingVisualizer",
@@ -340,6 +381,7 @@ class EmbeddingVisualizer:
         Returns:
             Visualization figure or None
         """
+        self._check_dependencies()
         tracking_id = self.progress_tracker.start_tracking(
             module="visualization",
             submodule="EmbeddingVisualizer",
@@ -444,6 +486,7 @@ class EmbeddingVisualizer:
         Returns:
             Visualization figure or None
         """
+        self._check_dependencies()
         tracking_id = self.progress_tracker.start_tracking(
             module="visualization",
             submodule="EmbeddingVisualizer",
@@ -552,93 +595,7 @@ class EmbeddingVisualizer:
             )
             raise
 
-    def visualize_quality_metrics(
-        self,
-        embeddings: np.ndarray,
-        output: str = "interactive",
-        file_path: Optional[Union[str, Path]] = None,
-        **options,
-    ) -> Optional[Any]:
-        """
-        Visualize embedding quality metrics (norms, distributions).
 
-        Args:
-            embeddings: Embedding matrix
-            output: Output type
-            file_path: Output file path
-            **options: Additional options
-
-        Returns:
-            Visualization figure or None
-        """
-        tracking_id = self.progress_tracker.start_tracking(
-            module="visualization",
-            submodule="EmbeddingVisualizer",
-            message="Visualizing embedding quality metrics",
-        )
-
-        try:
-            self.logger.info("Visualizing embedding quality metrics")
-
-            # Calculate norms
-            self.progress_tracker.update_tracking(
-                tracking_id, message="Calculating embedding norms..."
-            )
-            norms = np.linalg.norm(embeddings, axis=1)
-
-            self.progress_tracker.update_tracking(
-                tracking_id, message="Generating visualization..."
-            )
-            fig = make_subplots(
-                rows=1,
-                cols=2,
-                subplot_titles=("Embedding Norm Distribution", "Norm Statistics"),
-                specs=[[{"type": "histogram"}, {"type": "bar"}]],
-            )
-
-            # Norm distribution
-            fig.add_trace(
-                go.Histogram(x=norms, nbinsx=30, name="Norm Distribution"), row=1, col=1
-            )
-
-            # Statistics
-            stats = {
-                "Mean": np.mean(norms),
-                "Std": np.std(norms),
-                "Min": np.min(norms),
-                "Max": np.max(norms),
-            }
-
-            fig.add_trace(
-                go.Bar(x=list(stats.keys()), y=list(stats.values()), name="Statistics"),
-                row=1,
-                col=2,
-            )
-
-            fig.update_layout(title="Embedding Quality Metrics")
-
-            if output == "interactive":
-                self.progress_tracker.stop_tracking(
-                    tracking_id,
-                    status="completed",
-                    message=f"Quality metrics visualization generated: {len(embeddings)} embeddings",
-                )
-                return fig
-            elif file_path:
-                export_plotly_figure(
-                    fig, file_path, format=output if output != "interactive" else "html"
-                )
-                self.progress_tracker.stop_tracking(
-                    tracking_id,
-                    status="completed",
-                    message=f"Quality metrics saved to {file_path}",
-                )
-                return None
-        except Exception as e:
-            self.progress_tracker.stop_tracking(
-                tracking_id, status="failed", message=str(e)
-            )
-            raise
 
     def _reduce_dimensions(
         self,

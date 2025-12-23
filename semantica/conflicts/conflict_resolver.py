@@ -58,12 +58,11 @@ License: MIT
 from collections import Counter
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
-from ..utils.exceptions import ProcessingError, ValidationError
 from ..utils.logging import get_logger
 from ..utils.progress_tracker import get_progress_tracker
-from .conflict_detector import Conflict, ConflictType
+from .conflict_detector import Conflict
 from .source_tracker import SourceTracker
 
 
@@ -132,6 +131,15 @@ class ConflictResolver:
         self.progress_tracker = get_progress_tracker()
 
         self.resolution_history: List[ResolutionResult] = []
+
+    def set_source_tracker(self, source_tracker: SourceTracker) -> None:
+        """
+        Set the source tracker instance.
+
+        Args:
+            source_tracker: Source tracker instance
+        """
+        self.source_tracker = source_tracker
 
     def _normalize_strategy(
         self, strategy: Union[str, ResolutionStrategy, None]
@@ -209,7 +217,10 @@ class ConflictResolver:
             strategy = normalized_strategy
 
             self.logger.info(
-                f"Resolving conflict {conflict.conflict_id} using strategy: {strategy.value}"
+                (
+                    f"Resolving conflict {conflict.conflict_id} using strategy: "
+                    f"{strategy.value}"
+                )
             )
 
             if strategy == ResolutionStrategy.VOTING:
@@ -230,6 +241,17 @@ class ConflictResolver:
                 result = self._resolve_by_voting(conflict)
 
             result.resolution_strategy = strategy.value
+            conflict_type = (
+                conflict.conflict_type.value
+                if hasattr(conflict.conflict_type, "value")
+                else conflict.conflict_type
+            )
+            result.metadata.setdefault("conflict_type", conflict_type)
+            result.metadata.setdefault("entity_id", conflict.entity_id)
+            result.metadata.setdefault("property_name", conflict.property_name)
+            result.metadata.setdefault("relationship_id", conflict.relationship_id)
+            if conflict.metadata:
+                result.metadata.setdefault("conflict_metadata", conflict.metadata)
             self.resolution_history.append(result)
 
             self.progress_tracker.stop_tracking(
@@ -301,7 +323,9 @@ class ConflictResolver:
             resolved_value=most_common_value,
             confidence=confidence,
             sources_used=sources_used,
-            resolution_notes=f"Resolved by voting: {count}/{total_votes} votes for this value",
+            resolution_notes=(
+                f"Resolved by voting: {count}/{total_votes} votes for this value"
+            ),
         )
 
     def _resolve_by_credibility(self, conflict: Conflict) -> ResolutionResult:
@@ -350,7 +374,10 @@ class ConflictResolver:
             resolved_value=resolved_value,
             confidence=confidence,
             sources_used=sources_used,
-            resolution_notes=f"Resolved by credibility-weighted voting (weight: {value_weights[resolved_value]:.2f})",
+            resolution_notes=(
+                "Resolved by credibility-weighted voting "
+                f"(weight: {value_weights[resolved_value]:.2f})"
+            ),
         )
 
     def _resolve_by_recency(self, conflict: Conflict) -> ResolutionResult:

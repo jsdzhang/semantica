@@ -30,14 +30,13 @@
 - **Graph Analytics**: Centrality measures, community detection, connectivity analysis
 - **Entity Resolution**: Deduplicate and resolve entity conflicts
 - **Provenance Tracking**: Track data sources and processing history
-- **Quality Assurance**: Comprehensive data quality validation and monitoring
+
 
 ### Visualization & Analytics
 - **Interactive Visualizations**: Plotly-based interactive charts and graphs
 - **Knowledge Graph Networks**: Network visualizations with community and centrality coloring
 - **Ontology Hierarchies**: Class hierarchy trees and property graphs
 - **Embedding Projections**: 2D/3D projections with UMAP, t-SNE, and PCA
-- **Quality Dashboards**: Comprehensive quality metrics and issue tracking
 - **Analytics Visualizations**: Centrality rankings, community structures, connectivity analysis
 - **Temporal Views**: Timeline and evolution visualizations
 
@@ -85,7 +84,7 @@ pip install -e ".[dev]"
 
 **Pattern 1: Using Semantica class (Recommended)**
 ```python
-from semantica import Semantica
+from semantica.core import Semantica
 
 # Initialize and build knowledge base
 semantica = Semantica()
@@ -106,7 +105,7 @@ ingestor = FileIngestor()
 
 ### 1. Basic Document Processing
 ```python
-from semantica import Semantica
+from semantica.core import Semantica
 
 # Build knowledge base from documents (auto-initializes)
 semantica = Semantica()
@@ -139,7 +138,7 @@ kg_viz.visualize_network(knowledge_graph, output="html", file_path="knowledge_gr
 
 ### 2. Web Content Processing
 ```python
-import semantica
+from semantica.core import Semantica
 from semantica.ingest import WebIngestor
 
 # Ingest web content
@@ -167,7 +166,7 @@ result = semantica_instance.build_knowledge_base(sources)
 
 ### 3. Knowledge Graph Analytics
 ```python
-from semantica import Semantica
+from semantica.core import Semantica
 from semantica.kg import GraphBuilder, GraphAnalyzer, CentralityCalculator, CommunityDetector
 
 # Build knowledge graph using Semantica class
@@ -510,12 +509,12 @@ for relation in relations:
     print()
 ```
 
-#### Triple Extraction
+#### Triplet Extraction
 ```python
-from semantica.semantic_extract import TripleExtractor
+from semantica.semantic_extract import TripletExtractor
 
-# Initialize triple extractor
-triple_extractor = TripleExtractor(
+# Initialize triplet extractor
+triplet_extractor = TripletExtractor(
     config={
         "validator": {"strict": True},
         "serializer": {"format": "turtle"}
@@ -525,13 +524,13 @@ triple_extractor = TripleExtractor(
 text = "Barack Obama was the President of the United States from 2009 to 2017."
 
 # Extract RDF triples
-triples = triple_extractor.extract_triples(text)
+triplets = triplet_extractor.extract_triples(text)
 
-for triple in triples:
-    print(f"Subject: {triple.subject}")
-    print(f"Predicate: {triple.predicate}")
-    print(f"Object: {triple.object}")
-    print(f"Confidence: {triple.confidence}")
+for triplet in triples:
+    print(f"Subject: {triplet.subject}")
+    print(f"Predicate: {triplet.predicate}")
+    print(f"Object: {triplet.object}")
+    print(f"Confidence: {triplet.confidence}")
     print()
 ```
 
@@ -555,7 +554,7 @@ events = event_detector.detect_events(text)
 for event in events:
     print(f"Event: {event.text}")
     print(f"Type: {event.event_type}")
-    print(f"Time: {event.temporal_info}")
+    print(f"Time: {event.time}")
     print(f"Participants: {event.participants}")
     print()
 ```
@@ -566,7 +565,6 @@ for event in events:
 
 **Option 1: Using module-level build function (Recommended)**
 ```python
-import semantica
 import numpy as np
 
 # Generate embeddings using EmbeddingGenerator
@@ -771,7 +769,7 @@ for pattern in patterns:
 
 #### Custom Pipeline
 ```python
-from semantica import PipelineBuilder
+from semantica.pipeline import PipelineBuilder
 from semantica.pipeline import ExecutionEngine
 
 # Build custom pipeline
@@ -862,7 +860,6 @@ csv_exporter.export_knowledge_graph(graph, "knowledge_graph.csv")
 ### 8. Complete End-to-End Example
 
 ```python
-import semantica
 from semantica.ingest import FileIngestor
 from semantica.semantic_extract import NERExtractor, RelationExtractor
 from semantica.embeddings import EmbeddingGenerator
@@ -1058,7 +1055,7 @@ emb_viz.visualize_multimodal_comparison(
 )
 
 # Quality metrics
-emb_viz.visualize_quality_metrics(embeddings, output="html", file_path="embedding_quality.html")
+# emb_viz.visualize_quality_metrics(embeddings, output="html", file_path="embedding_quality.html")
 ```
 
 #### Semantic Network Visualization
@@ -1096,35 +1093,7 @@ sem_net_viz.visualize_node_types(semantic_network, output="html", file_path="nod
 sem_net_viz.visualize_edge_types(semantic_network, output="html", file_path="edge_types.html")
 ```
 
-#### Quality Metrics Visualization
-```python
-from semantica.visualization import QualityVisualizer
 
-# Initialize quality visualizer
-quality_viz = QualityVisualizer()
-
-# Quality dashboard
-quality_report = {"overall_score": 0.85, "issues": [], "consistency": {}, "completeness": {}}
-quality_viz.visualize_dashboard(quality_report, output="html", file_path="quality_dashboard.html")
-
-# Quality score distribution
-quality_scores = [0.85, 0.92, 0.78, 0.95, ...]  # Your quality scores
-quality_viz.visualize_score_distribution(quality_scores, 
-                                         output="html", file_path="score_distribution.html")
-
-# Quality issues
-quality_viz.visualize_issues(quality_report, output="html", file_path="quality_issues.html")
-
-# Completeness metrics (provide your precomputed data)
-completeness_data = {"score": 0.82, "by_type": {"Person": 0.9, "Company": 0.75}}
-quality_viz.visualize_completeness_metrics(completeness_data, 
-                                           output="html", file_path="completeness.html")
-
-# Consistency heatmap (provide your precomputed data)
-consistency_data = {"score": 0.88, "violations": []}
-quality_viz.visualize_consistency_heatmap(consistency_data, 
-                                         output="html", file_path="consistency_heatmap.html")
-```
 
 #### Graph Analytics Visualization
 ```python
@@ -1228,7 +1197,7 @@ temporal_viz.visualize_metrics_evolution(metrics_history, timestamps,
 #### Quick Visualization Example
 
 ```python
-from semantica import Semantica
+from semantica.core import Semantica
 from semantica.visualization import KGVisualizer, EmbeddingVisualizer
 import numpy as np
 
@@ -1260,8 +1229,7 @@ if "embeddings" in result:
 
 ### Basic Configuration
 ```python
-import semantica
-from semantica import Config
+from semantica.core import Semantica, Config
 
 # Create configuration
 config = Config({
@@ -1286,7 +1254,7 @@ result = semantica_instance.build_knowledge_base(["document.pdf"])
 
 ### Advanced Configuration
 ```python
-from semantica import Semantica, Config
+from semantica.core import Semantica, Config
 
 # Advanced configuration
 config = Config({

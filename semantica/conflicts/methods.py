@@ -48,11 +48,14 @@ Algorithms Used:
 Conflict Detection:
     - Value Comparison: Property value comparison across sources with equality checking
     - Type Mismatch Detection: Entity type comparison and mismatch identification
-    - Relationship Consistency: Relationship property comparison and inconsistency detection
+    - Relationship Consistency: Relationship property comparison and inconsistency
+      detection
     - Temporal Analysis: Time-based conflict detection using timestamp comparison
     - Logical Consistency: Logical rule validation and inconsistency detection
-    - Severity Calculation: Multi-factor severity scoring (property importance, value difference, source count)
-    - Confidence Scoring: Confidence calculation based on source credibility and value diversity
+    - Severity Calculation: Multi-factor severity scoring (property importance,
+      value difference, source count)
+    - Confidence Scoring: Confidence calculation based on source credibility and
+      value diversity
 
 Conflict Resolution:
     - Voting Algorithm: Majority value selection using Counter-based frequency counting
@@ -62,7 +65,8 @@ Conflict Resolution:
     - Manual Flagging: Conflict flagging for human review workflow
 
 Conflict Analysis:
-    - Pattern Identification: Frequency-based pattern detection using Counter and defaultdict
+    - Pattern Identification: Frequency-based pattern detection using Counter and
+      defaultdict
     - Type Classification: Conflict type categorization and grouping
     - Severity Analysis: Severity-based grouping and analysis
     - Source Analysis: Source-based conflict aggregation and analysis
@@ -112,18 +116,13 @@ License: MIT
 
 from typing import Any, Callable, Dict, List, Optional, Union
 
-from ..utils.exceptions import ProcessingError
 from ..utils.logging import get_logger
-from .conflict_analyzer import ConflictAnalyzer, ConflictPattern
-from .conflict_detector import Conflict, ConflictDetector, ConflictType
+from .conflict_analyzer import ConflictAnalyzer
+from .conflict_detector import Conflict, ConflictDetector
 from .conflict_resolver import ConflictResolver, ResolutionResult, ResolutionStrategy
-from .investigation_guide import (
-    InvestigationGuide,
-    InvestigationGuideGenerator,
-    InvestigationStep,
-)
+from .investigation_guide import InvestigationGuide, InvestigationGuideGenerator
 from .registry import method_registry
-from .source_tracker import PropertySource, SourceReference, SourceTracker
+from .source_tracker import SourceReference, SourceTracker
 
 logger = get_logger("conflicts_methods")
 
@@ -317,12 +316,14 @@ def track_sources(
     value: Optional[Any] = None,
     source: Optional[SourceReference] = None,
     method: str = "property",
+    tracker: Optional[SourceTracker] = None,
     **kwargs,
 ) -> bool:
     """
     Track source information (convenience function).
 
-    This is a user-friendly wrapper that tracks source information using the specified method.
+    This is a user-friendly wrapper that tracks source information using the
+    specified method.
 
     Args:
         entity_id: Entity identifier
@@ -333,6 +334,7 @@ def track_sources(
             - "property": Track sources for property values
             - "entity": Track sources for entities
             - "relationship": Track sources for relationships
+        tracker: Optional SourceTracker instance to use (otherwise creates new one)
         **kwargs: Additional options passed to SourceTracker
 
     Returns:
@@ -342,17 +344,25 @@ def track_sources(
         >>> from semantica.conflicts.methods import track_sources
         >>> from semantica.conflicts import SourceReference
         >>> source = SourceReference(document="doc1", page=1, confidence=0.9)
-        >>> track_sources("entity_1", property_name="name", value="Apple", source=source)
+        >>> track_sources(
+        ...     "entity_1", property_name="name", value="Apple", source=source
+        ... )
     """
     # Check for custom method in registry
     custom_method = method_registry.get("tracking", method)
     if custom_method:
         return custom_method(
-            entity_id, property_name=property_name, value=value, source=source, **kwargs
+            entity_id,
+            property_name=property_name,
+            value=value,
+            source=source,
+            tracker=tracker,
+            **kwargs,
         )
 
-    # Use default SourceTracker
-    tracker = SourceTracker(**kwargs)
+    # Use provided tracker or create new one
+    # Also check kwargs for 'source_tracker' for compatibility
+    actual_tracker = tracker or kwargs.get("source_tracker") or SourceTracker(**kwargs)
 
     # Map method to tracker method
     if method == "property":
@@ -360,24 +370,26 @@ def track_sources(
             raise ValueError(
                 "property_name, value, and source are required for property tracking"
             )
-        return tracker.track_property_source(
+        return actual_tracker.track_property_source(
             entity_id, property_name, value, source, **kwargs
         )
     elif method == "entity":
         if not source:
             raise ValueError("source is required for entity tracking")
-        return tracker.track_entity_source(entity_id, source, **kwargs)
+        return actual_tracker.track_entity_source(entity_id, source, **kwargs)
     elif method == "relationship":
         relationship_id = kwargs.get("relationship_id")
         if not relationship_id or not source:
             raise ValueError(
                 "relationship_id and source are required for relationship tracking"
             )
-        return tracker.track_relationship_source(relationship_id, source, **kwargs)
+        return actual_tracker.track_relationship_source(
+            relationship_id, source, **kwargs
+        )
     else:
         # Default to property tracking
         if property_name and value and source:
-            return tracker.track_property_source(
+            return actual_tracker.track_property_source(
                 entity_id, property_name, value, source, **kwargs
             )
         else:
@@ -390,7 +402,8 @@ def generate_investigation_guide(
     """
     Generate investigation guide (convenience function).
 
-    This is a user-friendly wrapper that generates investigation guides using the specified method.
+    This is a user-friendly wrapper that generates investigation guides using the
+    specified method.
 
     Args:
         conflict: Single conflict or list of conflicts
@@ -464,7 +477,8 @@ def get_conflict_method(task: str, name: str) -> Optional[Callable]:
     or returns a built-in method if available.
 
     Args:
-        task: Task type ("detection", "resolution", "analysis", "tracking", "investigation")
+        task: Task type ("detection", "resolution", "analysis", "tracking",
+            "investigation")
         name: Method name
 
     Returns:
@@ -623,6 +637,3 @@ def list_available_methods(task: Optional[str] = None) -> Dict[str, List[str]]:
             result[t] = list(set(registered.get(t, []) + builtin_methods.get(t, [])))
 
     return result
-
-
-

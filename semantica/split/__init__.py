@@ -16,7 +16,7 @@ Algorithms Used:
     - Semantic Boundary Detection: Sentence transformer embeddings and similarity
     - LLM-based Splitting: Prompt engineering for optimal split point detection
     - Entity Boundary Detection: NER-based entity extraction and boundary preservation
-    - Triple Preservation: Graph-based triple integrity checking
+    - Triplet Preservation: Graph-based triplet integrity checking
     - Graph Centrality Analysis: Degree, betweenness, closeness, eigenvector centrality
     - Community Detection: Louvain algorithm, Leiden algorithm, modularity optimization
 
@@ -33,7 +33,6 @@ Key Features:
     - Structure-aware chunking (headings, paragraphs, lists)
     - Sliding window chunking with overlap
     - Table-specific chunking
-    - Chunk validation and quality assessment
     - Provenance tracking for data lineage
 
 Main Classes:
@@ -43,11 +42,10 @@ Main Classes:
     - SlidingWindowChunker: Fixed-size sliding window chunking
     - TableChunker: Table-specific chunking
     - EntityAwareChunker: Entity boundary-preserving chunker
-    - RelationAwareChunker: Triple-preserving chunker
+    - RelationAwareChunker: Triplet-preserving chunker
     - GraphBasedChunker: Graph structure-based chunker
     - OntologyAwareChunker: Ontology concept-based chunker
     - HierarchicalChunker: Multi-level hierarchical chunker
-    - ChunkValidator: Chunk quality validation
     - ProvenanceTracker: Chunk provenance tracking
     - Chunk: Chunk representation dataclass
 
@@ -69,7 +67,6 @@ Author: Semantica Contributors
 License: MIT
 """
 
-from .chunk_validator import ChunkValidator
 from .config import SplitConfig, split_config
 from .kg_chunkers import (
     EntityAwareChunker,
@@ -100,19 +97,23 @@ from .registry import MethodRegistry, method_registry
 from .semantic_chunker import Chunk, SemanticChunker
 from .sliding_window_chunker import SlidingWindowChunker
 from .splitter import TextSplitter
+
+# Alias for backward compatibility
+Splitter = TextSplitter
+
 from .structural_chunker import StructuralChunker
 from .table_chunker import TableChunker
 
 __all__ = [
     # Unified splitter
     "TextSplitter",
+    "Splitter",
     # Existing chunkers
     "SemanticChunker",
     "Chunk",
     "StructuralChunker",
     "SlidingWindowChunker",
     "TableChunker",
-    "ChunkValidator",
     "ProvenanceTracker",
     # KG/Ontology chunkers
     "EntityAwareChunker",

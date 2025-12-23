@@ -21,7 +21,7 @@ Standard Text Splitting:
 
 KG/Ontology/Graph Analytics Methods:
     - "entity_aware": Entity boundary-preserving splitting
-    - "relation_aware": Triple-preserving splitting
+    - "relation_aware": Triplet-preserving splitting
     - "graph_based": Graph structure-based splitting
     - "ontology_aware": Ontology concept/hierarchy-based splitting
     - "embedding_semantic": Embedding similarity-based boundaries
@@ -42,7 +42,7 @@ Standard Splitting:
 
 KG/Ontology/Graph Analytics:
     - Entity Boundary Detection: NER-based entity extraction and boundary preservation
-    - Triple Preservation: Graph-based triple integrity checking
+    - Triplet Preservation: Graph-based triplet integrity checking
     - Graph Centrality Analysis: Degree, betweenness, closeness, eigenvector centrality
     - Community Detection: Louvain algorithm, Leiden algorithm, modularity optimization
     - Graph Connectivity: Connected components, shortest paths, bridge detection
@@ -70,7 +70,7 @@ Main Functions:
     - split_semantic_transformer: Sentence transformer-based splitting
     - split_llm: LLM-based optimal split point detection
     - split_entity_aware: Entity boundary-preserving splitting
-    - split_relation_aware: Triple-preserving splitting
+    - split_relation_aware: Triplet-preserving splitting
     - split_graph_based: Graph structure-based splitting
     - split_ontology_aware: Ontology concept-based splitting
     - split_hierarchical: Multi-level hierarchical chunking
@@ -159,6 +159,15 @@ try:
     SEMANTIC_EXTRACT_AVAILABLE = True
 except ImportError:
     SEMANTIC_EXTRACT_AVAILABLE = False
+
+# Import specialized chunkers
+try:
+    from .structural_chunker import StructuralChunker
+    from .sliding_window_chunker import SlidingWindowChunker
+    
+    SPECIALIZED_CHUNKERS_AVAILABLE = True
+except ImportError:
+    SPECIALIZED_CHUNKERS_AVAILABLE = False
 
 
 # ============================================================================
@@ -941,6 +950,11 @@ def split_entity_aware(
                                         if text_pos <= e.start_char < text_end
                                     ]
                                 ),
+                                "entities": [
+                                    e
+                                    for e in entities
+                                    if text_pos <= e.start_char < text_end
+                                ],
                             },
                         )
                     )
@@ -972,6 +986,9 @@ def split_entity_aware(
                         "entity_count": len(
                             [e for e in entities if text_pos <= e.start_char < text_end]
                         ),
+                        "entities": [
+                            e for e in entities if text_pos <= e.start_char < text_end
+                        ],
                     },
                 )
             )
@@ -989,17 +1006,17 @@ def split_relation_aware(
     text: str,
     chunk_size: int = 1000,
     relation_method: str = "ml",
-    preserve_triples: bool = True,
+    preserve_triplets: bool = True,
     **kwargs,
 ) -> List[Chunk]:
     """
-    Triple-preserving splitting.
+    Triplet-preserving splitting.
 
     Args:
         text: Input text
         chunk_size: Target chunk size
         relation_method: Relation extraction method
-        preserve_triples: Whether to preserve triple integrity
+        preserve_triplets: Whether to preserve triplet integrity
         **kwargs: Additional options
 
     Returns:
@@ -1012,18 +1029,23 @@ def split_relation_aware(
         return split_recursive(text, chunk_size=chunk_size, **kwargs)
 
     try:
-        # Extract relations/triples
-        relation_extractor = RelationExtractor(method=relation_method, **kwargs)
-        relations = relation_extractor.extract(text)
+        # Extract entities first (required for relation extraction)
+        ner_method = kwargs.get("ner_method", "ml")
+        ner_extractor = NERExtractor(method=ner_method, **kwargs)
+        entities = ner_extractor.extract(text)
 
-        # Create triple boundaries (subject, relation, object must be in same chunk)
-        triple_boundaries = []
+        # Extract relations/triplets
+        relation_extractor = RelationExtractor(method=relation_method, **kwargs)
+        relations = relation_extractor.extract(text, entities)
+
+        # Create triplet boundaries (subject, relation, object must be in same chunk)
+        triplet_boundaries = []
         for relation in relations:
             start = min(relation.subject.start_char, relation.object.start_char)
             end = max(relation.subject.end_char, relation.object.end_char)
-            triple_boundaries.append((start, end))
+            triplet_boundaries.append((start, end))
 
-        # Split text ensuring triples are not split
+        # Split text ensuring triplets are not split
         chunks = []
         current_chunk = ""
         current_size = 0
@@ -1037,16 +1059,16 @@ def split_relation_aware(
             sentence_start = char_pos
             sentence_end = char_pos + sentence_size
 
-            # Check if sentence is part of a triple
-            is_in_triple = any(
+            # Check if sentence is part of a triplet
+            is_in_triplet = any(
                 start <= sentence_start <= end or start <= sentence_end <= end
-                for start, end in triple_boundaries
+                for start, end in triplet_boundaries
             )
 
             # Check size limit
             if current_size + sentence_size > chunk_size and current_chunk:
-                # Don't split if it would break a triple
-                if preserve_triples and is_in_triple:
+                # Don't split if it would break a triplet
+                if preserve_triplets and is_in_triplet:
                     # Add to current chunk even if it exceeds size
                     pass
                 else:
@@ -1072,6 +1094,16 @@ def split_relation_aware(
                                         if text_pos <= r.subject.start_char < text_end
                                     ]
                                 ),
+                                "relationships": [
+                                    r
+                                    for r in relations
+                                    if text_pos <= r.subject.start_char < text_end
+                                ],
+                                "triplets": [
+                                    r
+                                    for r in relations
+                                    if text_pos <= r.subject.start_char < text_end
+                                ],
                             },
                         )
                     )
@@ -1104,9 +1136,19 @@ def split_relation_aware(
                             [
                                 r
                                 for r in relations
-                                if text_pos <= r.subject_start < text_end
+                                if text_pos <= r.subject.start_char < text_end
                             ]
                         ),
+                        "relationships": [
+                            r
+                            for r in relations
+                            if text_pos <= r.subject.start_char < text_end
+                        ],
+                        "triplets": [
+                            r
+                            for r in relations
+                            if text_pos <= r.subject.start_char < text_end
+                        ],
                     },
                 )
             )
@@ -1412,13 +1454,23 @@ def split_hierarchical(
 
     # Fall back to paragraph level
     if "paragraph" in levels:
+        # Remove chunk_size from kwargs to avoid multiple values error
+        para_kwargs = kwargs.copy()
+        if "chunk_size" in para_kwargs:
+            del para_kwargs["chunk_size"]
+            
         return split_by_paragraphs(
-            text, chunk_size=chunk_sizes[0] if chunk_sizes else 1000, **kwargs
+            text, chunk_size=chunk_sizes[0] if chunk_sizes else 1000, **para_kwargs
         )
 
     # Fall back to sentence level
+    # Remove chunk_size from kwargs to avoid multiple values error
+    sent_kwargs = kwargs.copy()
+    if "chunk_size" in sent_kwargs:
+        del sent_kwargs["chunk_size"]
+        
     return split_by_sentences(
-        text, chunk_size=chunk_sizes[0] if chunk_sizes else 1000, **kwargs
+        text, chunk_size=chunk_sizes[0] if chunk_sizes else 1000, **sent_kwargs
     )
 
 
@@ -1515,6 +1567,91 @@ def split_topic_based(
     return split_semantic_transformer(text, chunk_size=chunk_size, **kwargs)
 
 
+def split_structural(
+    text: str,
+    max_chunk_size: int = 2000,
+    respect_headers: bool = True,
+    respect_sections: bool = True,
+    **kwargs,
+) -> List[Chunk]:
+    """
+    Structure-aware chunking respecting document hierarchy.
+
+    Args:
+        text: Input text
+        max_chunk_size: Maximum chunk size
+        respect_headers: Whether to respect heading hierarchy
+        respect_sections: Whether to respect section boundaries
+        **kwargs: Additional options
+
+    Returns:
+        List of chunks
+    """
+    if not SPECIALIZED_CHUNKERS_AVAILABLE:
+        logger.warning(
+            "StructuralChunker not available, falling back to recursive splitting"
+        )
+        return split_recursive(text, chunk_size=max_chunk_size, **kwargs)
+
+    try:
+        chunker = StructuralChunker(
+            max_chunk_size=max_chunk_size,
+            respect_headers=respect_headers,
+            respect_sections=respect_sections,
+            **kwargs,
+        )
+        return chunker.chunk(text, **kwargs)
+    except Exception as e:
+        logger.warning(
+            f"Error in structural splitting: {e}, falling back to recursive splitting"
+        )
+        return split_recursive(text, chunk_size=max_chunk_size, **kwargs)
+
+
+def split_sliding_window(
+    text: str,
+    chunk_size: int = 1000,
+    overlap: int = 200,
+    stride: Optional[int] = None,
+    preserve_boundaries: bool = True,
+    **kwargs,
+) -> List[Chunk]:
+    """
+    Sliding window chunking with optional boundary preservation.
+
+    Args:
+        text: Input text
+        chunk_size: Chunk size in characters
+        overlap: Overlap size in characters
+        stride: Stride size (default: chunk_size - overlap)
+        preserve_boundaries: Whether to preserve word/sentence boundaries
+        **kwargs: Additional options
+
+    Returns:
+        List of chunks
+    """
+    if not SPECIALIZED_CHUNKERS_AVAILABLE:
+        logger.warning(
+            "SlidingWindowChunker not available, falling back to recursive splitting"
+        )
+        return split_recursive(
+            text, chunk_size=chunk_size, chunk_overlap=overlap, **kwargs
+        )
+
+    try:
+        chunker = SlidingWindowChunker(
+            chunk_size=chunk_size, overlap=overlap, stride=stride, **kwargs
+        )
+        return chunker.chunk(text, preserve_boundaries=preserve_boundaries, **kwargs)
+    except Exception as e:
+        logger.warning(
+            f"Error in sliding window splitting: {e}, falling back to recursive splitting"
+        )
+        return split_recursive(
+            text, chunk_size=chunk_size, chunk_overlap=overlap, **kwargs
+        )
+
+
 # ============================================================================
 # Method Dispatcher
 # ============================================================================
@@ -1542,6 +1679,9 @@ _SPLIT_METHODS = {
     "centrality_based": split_centrality_based,
     "subgraph": split_subgraph,
     "topic_based": split_topic_based,
+    # Specialized methods
+    "structural": split_structural,
+    "sliding_window": split_sliding_window,
 }
 
 

@@ -335,7 +335,7 @@ Transform raw text into structured semantic knowledge with state-of-the-art NLP 
 - **Relationship Extraction**: Identify semantic, temporal, and causal relationships
 - **Event Detection**: Detect and classify events (acquisitions, partnerships, announcements)
 - **Coreference Resolution**: Resolve pronouns and entity mentions across documents
-- **Triple Extraction**: Generate RDF triples for knowledge graph construction
+- **Triplet Extraction**: Generate RDF triplets for knowledge graph construction
 
 ### 3. 🕸️ Knowledge Graph Construction
 
@@ -417,7 +417,7 @@ Power GraphRAG applications with:
 ## 🚦 Quick Example
 
 ```python
-from semantica import Semantica
+from semantica.core import Semantica
 
 # Initialize
 core = Semantica()

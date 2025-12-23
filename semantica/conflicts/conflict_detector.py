@@ -10,15 +10,19 @@ Algorithms Used:
 Conflict Detection:
     - Value Comparison: Property value comparison across sources with equality checking
     - Type Mismatch Detection: Entity type comparison and mismatch identification
-    - Relationship Consistency: Relationship property comparison and inconsistency detection
+    - Relationship Consistency: Relationship property comparison and inconsistency
+      detection
     - Temporal Analysis: Time-based conflict detection using timestamp comparison
     - Logical Consistency: Logical rule validation and inconsistency detection
 
 Severity Calculation:
-    - Multi-factor Severity Scoring: Combines property importance, value difference magnitude,
-      and source count to calculate conflict severity (low, medium, high, critical)
-    - Critical Field Detection: Identifies critical fields (id, name, type, etc.) for higher severity
-    - Numeric Difference Analysis: Calculates severity based on numeric value differences
+    - Multi-factor Severity Scoring: Combines property importance, value difference
+      magnitude, and source count to calculate conflict severity (low, medium,
+      high, critical)
+    - Critical Field Detection: Identifies critical fields (id, name, type, etc.)
+      for higher severity
+    - Numeric Difference Analysis: Calculates severity based on numeric value
+      differences
 
 Confidence Scoring:
     - Source Credibility Weighting: Uses average confidence of sources
@@ -53,9 +57,8 @@ License: MIT
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Union
 
-from ..utils.exceptions import ProcessingError, ValidationError
 from ..utils.logging import get_logger
 from ..utils.progress_tracker import get_progress_tracker
 from .source_tracker import SourceReference, SourceTracker
@@ -115,7 +118,7 @@ class ConflictDetector:
         self.config = config or {}
         self.config.update(kwargs)
 
-        self.source_tracker = SourceTracker()
+        self.source_tracker = self.config.get("source_tracker") or SourceTracker()
         self.track_provenance = self.config.get("track_provenance", True)
         self.conflict_fields = self.config.get("conflict_fields", {})
         self.confidence_threshold = self.config.get("confidence_threshold", 0.7)
@@ -126,9 +129,51 @@ class ConflictDetector:
 
         self.detected_conflicts: Dict[str, Conflict] = {}
 
+    def detect_conflicts(
+        self,
+        entities: Union[List[Dict[str, Any]], Dict[str, Any]],
+        method: str = "entity",
+        property_name: Optional[str] = None,
+        entity_type: Optional[str] = None,
+        **kwargs,
+    ) -> List[Conflict]:
+        """
+        Detect conflicts using the specified method (convenience method).
+
+        Args:
+            entities: Entities to check (List of dicts or a KG dict)
+            method: Detection method ("entity", "value", "type", "relationship", "temporal", "logical")
+            property_name: Property name for "value" method
+            entity_type: Optional entity type filter
+            **kwargs: Additional arguments
+
+        Returns:
+            List of detected conflicts
+        """
+        # If passed a KG dict, extract entities
+        if isinstance(entities, dict) and "entities" in entities:
+            entities = entities["entities"]
+
+        if method == "value":
+            if not property_name:
+                raise ValueError("property_name is required for value conflict detection")
+            return self.detect_value_conflicts(entities, property_name, entity_type)
+        elif method == "type":
+            return self.detect_type_conflicts(entities)
+        elif method == "relationship":
+            relationships = kwargs.get("relationships", [])
+            return self.detect_relationship_conflicts(relationships)
+        elif method == "temporal":
+            return self.detect_temporal_conflicts(entities)
+        elif method == "logical":
+            return self.detect_logical_conflicts(entities)
+        else:
+            # Default to entity-wide detection
+            return self.detect_entity_conflicts(entities, entity_type)
+
     def detect_value_conflicts(
         self,
-        entities: List[Dict[str, Any]],
+        entities: Union[List[Dict[str, Any]], Dict[str, Any]],
         property_name: str,
         entity_type: Optional[str] = None,
     ) -> List[Conflict]:
@@ -136,13 +181,20 @@ class ConflictDetector:
         Detect property value conflicts.
 
         Args:
-            entities: List of entity dictionaries
+            entities: List of entity dictionaries or Graph dictionary
             property_name: Property name to check
             entity_type: Optional entity type filter
 
         Returns:
             List of detected conflicts
         """
+        # Handle graph dictionary input
+        if isinstance(entities, dict):
+            if "entities" in entities:
+                entities = entities["entities"]
+            else:
+                entities = [entities]
+
         # Track conflict detection
         tracking_id = self.progress_tracker.start_tracking(
             file=None,
@@ -341,8 +393,8 @@ class ConflictDetector:
             )
 
         # Check each field
-        for field in fields_to_check:
-            conflicts = self.detect_value_conflicts(entities, field, entity_type)
+        for field_name in fields_to_check:
+            conflicts = self.detect_value_conflicts(entities, field_name, entity_type)
             all_conflicts.extend(conflicts)
 
         return all_conflicts
@@ -388,7 +440,8 @@ class ConflictDetector:
         try:
             if len(set(values)) == 2:
                 return (
-                    "Compare source documents and use most recent or authoritative source"
+                    "Compare source documents and use most recent or authoritative "
+                    "source"
                 )
         except TypeError:
             # Handle unhashable types (like dicts or lists)
@@ -396,7 +449,8 @@ class ConflictDetector:
             str_values = [str(v) for v in values]
             if len(set(str_values)) == 2:
                 return (
-                    "Compare source documents and use most recent or authoritative source"
+                    "Compare source documents and use most recent or authoritative "
+                    "source"
                 )
 
         return "Multiple conflicting values detected. Manual review recommended."
@@ -442,9 +496,7 @@ class ConflictDetector:
 
         return report
 
-    def detect_type_conflicts(
-        self, entities: List[Dict[str, Any]]
-    ) -> List[Conflict]:
+    def detect_type_conflicts(self, entities: List[Dict[str, Any]]) -> List[Conflict]:
         """
         Detect entity type conflicts.
 
@@ -521,13 +573,16 @@ class ConflictDetector:
                         sources=sources,
                         confidence=self._calculate_conflict_confidence(types, sources),
                         severity=self._calculate_severity("type", types),
-                        recommended_action="Review entity type definitions and classification",
+                        recommended_action=(
+                            "Review entity type definitions and classification"
+                        ),
                     )
                     conflicts.append(conflict)
                     self.detected_conflicts[conflict.conflict_id] = conflict
 
                     self.logger.warning(
-                        f"Type conflict detected: {entity_id} has conflicting types: {unique_types}"
+                        f"Type conflict detected: {entity_id} conflicting types: "
+                        f"{unique_types}"
                     )
 
             self.progress_tracker.stop_tracking(
@@ -636,7 +691,9 @@ class ConflictDetector:
 
                                     year_match = re.search(r"\b(19|20)\d{2}\b", v)
                                     if year_match:
-                                        normalized_values.append(int(year_match.group()))
+                                        normalized_values.append(
+                                            int(year_match.group())
+                                        )
                                     else:
                                         normalized_values.append(v)
                                 else:
@@ -649,8 +706,9 @@ class ConflictDetector:
                         )
 
                         if len(unique_values) > 1:
+                            conflict_id = f"{entity_id}_{prop_name}_temporal_conflict"
                             conflict = Conflict(
-                                conflict_id=f"{entity_id}_{prop_name}_temporal_conflict",
+                                conflict_id=conflict_id,
                                 conflict_type=ConflictType.TEMPORAL_CONFLICT,
                                 entity_id=entity_id,
                                 property_name=prop_name,
@@ -660,7 +718,10 @@ class ConflictDetector:
                                     values, sources
                                 ),
                                 severity=self._calculate_severity(prop_name, values),
-                                recommended_action="Check temporal context and determine correct time period",
+                                recommended_action=(
+                                    "Check temporal context and determine correct time "
+                                    "period"
+                                ),
                             )
                             conflicts.append(conflict)
                             self.detected_conflicts[conflict.conflict_id] = conflict
@@ -771,9 +832,12 @@ class ConflictDetector:
                                         property_name="type",
                                         conflicting_values=[type1, type2],
                                         sources=sources,
-                                        confidence=1.0,  # High confidence for logical conflicts
+                                        confidence=1.0,
                                         severity="critical",
-                                        recommended_action=f"Entity cannot be both {type1_str} and {type2_str}. Review classification.",
+                                        recommended_action=(
+                                            f"Entity cannot be both {type1_str} and "
+                                            f"{type2_str}. Review classification."
+                                        ),
                                     )
                                     conflicts.append(conflict)
                                     self.detected_conflicts[
@@ -781,7 +845,7 @@ class ConflictDetector:
                                     ] = conflict
 
                                     self.logger.warning(
-                                        f"Logical conflict detected: {entity_id} cannot be both "
+                                        f"Logical conflict: {entity_id} cannot be both "
                                         f"{type1_str} and {type2_str}"
                                     )
                                     break
@@ -800,7 +864,9 @@ class ConflictDetector:
             raise
 
     def detect_conflicts(
-        self, entities: List[Dict[str, Any]], entity_type: Optional[str] = None
+        self,
+        entities: Union[List[Dict[str, Any]], Dict[str, Any]],
+        entity_type: Optional[str] = None,
     ) -> List[Conflict]:
         """
         Detect all conflicts for entities (general method).
@@ -809,12 +875,20 @@ class ConflictDetector:
         temporal, and logical conflicts.
 
         Args:
-            entities: List of entity dictionaries
+            entities: List of entity dictionaries or Graph dictionary (containing "entities" key)
             entity_type: Optional entity type filter
 
         Returns:
             List of all detected conflicts
         """
+        # Handle graph dictionary input
+        if isinstance(entities, dict):
+            if "entities" in entities:
+                entities = entities["entities"]
+            else:
+                # If it's a single entity dict, wrap in list
+                entities = [entities]
+
         tracking_id = self.progress_tracker.start_tracking(
             file=None,
             module="conflicts",
@@ -838,9 +912,9 @@ class ConflictDetector:
             if self.conflict_fields:
                 for entity_type_key, fields in self.conflict_fields.items():
                     if not entity_type or entity_type_key == entity_type:
-                        for field in fields:
+                        for field_name in fields:
                             conflicts = self.detect_value_conflicts(
-                                filtered_entities, field, entity_type
+                                filtered_entities, field_name, entity_type
                             )
                             all_conflicts.extend(conflicts)
             else:
@@ -913,7 +987,7 @@ class ConflictDetector:
         return {
             "resolved_count": resolved_count,
             "unresolved_count": unresolved_count,
-            "total_conflicts": len(conflicts)
+            "total_conflicts": len(conflicts),
         }
 
     def clear_conflicts(self) -> None:

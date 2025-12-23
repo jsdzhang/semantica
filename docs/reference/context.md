@@ -57,7 +57,7 @@ The **Context Module** provides agents with a persistent, searchable, and struct
 The high-level facade that unifies all context operations. It routes data to the appropriate subsystems (Memory, Graph, Vector Store) and manages the lifecycle of context.
 
 #### **Constructor Parameters**
-*   `vector_store` (Required): The backing vector database instance (e.g., FAISS, Pinecone).
+*   `vector_store` (Required): The backing vector database instance (e.g., FAISS, Weaviate).
 *   `knowledge_graph` (Optional): The graph store instance for structured knowledge.
 *   `token_limit` (Default: `2000`): The maximum number of tokens allowed in short-term memory before pruning occurs.
 *   `short_term_limit` (Default: `10`): The maximum number of distinct memory items in short-term memory.
@@ -184,14 +184,42 @@ graph.add_nodes([
 # Add Edges
 graph.add_edges([
     {
-        "source": "FastAPI", 
-        "target": "Python", 
+        "source_id": "FastAPI", 
+        "target_id": "Python", 
         "type": "WRITTEN_IN"
     }
 ])
 
 # Find Neighbors
 neighbors = graph.get_neighbors("FastAPI", hops=1)
+```
+
+---
+
+### Production Graph Store Integration
+
+For production environments, you can replace the in-memory `ContextGraph` with a persistent `GraphStore` (Neo4j, FalkorDB) by passing it to the `knowledge_graph` parameter.
+
+```python
+from semantica.context import AgentContext
+from semantica.graph_store import GraphStore
+
+# 1. Initialize Persistent Graph Store (Neo4j)
+gs = GraphStore(
+    backend="neo4j",
+    uri="bolt://localhost:7687",
+    user="neo4j",
+    password="password"
+)
+
+# 2. Initialize Agent Context with Persistent Graph
+context = AgentContext(
+    vector_store=vs,      # Your VectorStore instance
+    knowledge_graph=gs,   # Your persistent GraphStore
+    use_graph_expansion=True
+)
+
+# Now all graph operations (store, retrieve, build_graph) use Neo4j directly.
 ```
 
 ---

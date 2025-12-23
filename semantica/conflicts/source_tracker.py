@@ -8,7 +8,8 @@ conflict investigation and source disagreement analysis.
 Algorithms Used:
 
 Property Source Tracking:
-    - Dictionary-based Mapping: Uses nested dictionaries (entity -> property -> PropertySource)
+    - Dictionary-based Mapping: Uses nested dictionaries (entity -> property ->
+      PropertySource)
       for efficient property-to-source mapping
     - Source Aggregation: Aggregates multiple sources for the same property value
     - Source Deduplication: Prevents duplicate source entries
@@ -23,12 +24,14 @@ Relationship Source Tracking:
     - Relationship Source Aggregation: Aggregates sources for relationship properties
 
 Credibility Scoring:
-    - Source Credibility Calculation: Calculates source credibility based on historical accuracy
+    - Source Credibility Calculation: Calculates source credibility based on
+      historical accuracy
     - Credibility Weighting: Uses credibility scores for weighted conflict resolution
     - Credibility Updates: Updates credibility based on conflict resolution outcomes
 
 Traceability Chain:
-    - Graph-based Traceability: Builds traceability graph connecting entities, properties, and sources
+    - Graph-based Traceability: Builds traceability graph connecting entities,
+      properties, and sources
     - Chain Generation: Generates traceability chains from entity to source documents
     - Path Finding: Finds paths through the traceability graph
 
@@ -61,7 +64,7 @@ License: MIT
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional
 
 from ..utils.exceptions import ValidationError
 from ..utils.logging import get_logger
@@ -127,6 +130,31 @@ class SourceTracker:
 
         # Source credibility scores
         self.source_credibility: Dict[str, float] = {}
+
+        # Source metadata
+        self.source_metadata: Dict[str, Dict[str, Any]] = {}
+
+    def register_source(
+        self,
+        source_id: str,
+        source_type: str,
+        credibility_score: float = 0.5,
+        **metadata,
+    ) -> bool:
+        """
+        Register a source with metadata and credibility score.
+
+        Args:
+            source_id: Source identifier
+            source_type: Type of source (e.g., "report", "news", "official")
+            credibility_score: Credibility score (0.0 to 1.0)
+            **metadata: Additional metadata
+
+        Returns:
+            True if registered successfully
+        """
+        self.source_metadata[source_id] = {"type": source_type, **metadata}
+        return self.set_source_credibility(source_id, credibility_score)
 
     def track_entity_source(
         self, entity_id: str, source: SourceReference, **metadata
@@ -510,7 +538,8 @@ class SourceTracker:
         self, entity_id: str, property_name: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         """
-        Generate traceability chain for an entity or property (alias for get_traceability_chain).
+        Generate traceability chain for an entity or property (alias for
+        get_traceability_chain).
 
         Args:
             entity_id: Entity identifier

@@ -117,6 +117,11 @@ class NumberNormalizer:
         # Remove formatting characters
         cleaned = number_input.replace(",", "").replace(" ", "").strip()
 
+        # Remove currency symbols
+        for symbol in self.currency_normalizer.currency_symbols:
+            if symbol in cleaned:
+                cleaned = cleaned.replace(symbol, "")
+
         # Handle percentages
         if "%" in cleaned:
             cleaned = cleaned.replace("%", "")
@@ -127,6 +132,22 @@ class NumberNormalizer:
         if "e" in cleaned.lower() or "E" in cleaned:
             parsed = self.scientific_handler.parse_scientific_notation(cleaned)
             return parsed
+
+        # Handle suffixes (K, M, B, T)
+        suffix_map = {
+            'k': 1_000,
+            'm': 1_000_000,
+            'b': 1_000_000_000,
+            't': 1_000_000_000_000
+        }
+        
+        if cleaned and cleaned[-1].lower() in suffix_map:
+            last_char = cleaned[-1].lower()
+            try:
+                number_part = float(cleaned[:-1])
+                return number_part * suffix_map[last_char]
+            except ValueError:
+                pass  # Fall through to standard parsing
 
         # Parse as float or int
         try:

@@ -15,7 +15,7 @@ Semantica's modules are organized into six logical layers:
 | :--- | :--- | :--- |
 | **Input Layer** | [Ingest](#ingest-module), [Parse](#parse-module), [Split](#split-module), [Normalize](#normalize-module) | Data ingestion, parsing, chunking, and cleaning |
 | **Core Processing** | [Semantic Extract](#semantic-extract-module), [Knowledge Graph](#knowledge-graph-kg-module), [Ontology](#ontology-module), [Reasoning](#reasoning-module) | Entity extraction, graph construction, inference |
-| **Storage** | [Embeddings](#embeddings-module), [Vector Store](#vector-store-module), [Graph Store](#graph-store-module), [Triple Store](#triple-store-module) | Vector and graph persistence |
+| **Storage** | [Embeddings](#embeddings-module), [Vector Store](#vector-store-module), [Graph Store](#graph-store-module), [Triplet Store](#triplet-store-module) | Vector, graph, and triplet persistence |
 | **Quality Assurance** | [Deduplication](#deduplication-module), [Conflicts](#conflicts-module) | Data quality and consistency |
 | **Context & Memory** | [Context](#context-module), [Seed](#seed-module) | Agent memory and foundation data |
 | **Output & Orchestration** | [Export](#export-module), [Visualization](#visualization-module), [Pipeline](#pipeline-module) | Export, visualization, and workflow management |
@@ -142,7 +142,7 @@ for doc in parsed_docs:
 - `SlidingWindowChunker` — Fixed-size sliding window chunking
 - `TableChunker` — Table-specific chunking
 - `EntityAwareChunker` — Entity boundary-preserving chunker
-- `RelationAwareChunker` — Triple-preserving chunker
+- `RelationAwareChunker` — Triplet-preserving chunker
 - `GraphBasedChunker` — Graph structure-based chunker
 - `OntologyAwareChunker` — Ontology concept-based chunker
 - `HierarchicalChunker` — Multi-level hierarchical chunker
@@ -290,12 +290,12 @@ for rel in relationships[:5]:
 
 - `GraphBuilder` — Construct knowledge graphs
 - `GraphAnalyzer` — Analyze graph structure and properties
-- `GraphValidator` — Validate graph quality and consistency
 - `EntityResolver` — Resolve entity conflicts and duplicates
 - `ConflictDetector` — Detect conflicting information
 - `CentralityCalculator` — Calculate node importance metrics
-- `CommunityDetector` — Detect communities in graphs
+- `CommunityDetector` — Detect community structure
 - `ConnectivityAnalyzer` — Analyze graph connectivity
+- `SeedManager` — Manage seed data for KG initialization
 - `TemporalQuery` — Query temporal knowledge graphs
 - `Deduplicator` — Remove duplicate entities/relationships
 
@@ -339,7 +339,7 @@ print(f"Density: {metrics['density']:.3f}")
 **Components:**
 
 - `OntologyGenerator` — Generate ontologies from knowledge graphs
-- `OntologyValidator` — Validate ontology structure
+- `OntologyValidator` — Validate ontologies
 - `OWLGenerator` — Generate OWL format ontologies
 - `PropertyGenerator` — Generate ontology properties
 - `ClassInferrer` — Infer ontology classes
@@ -349,13 +349,24 @@ print(f"Density: {metrics['density']:.3f}")
 **Quick Example:**
 
 ```python
-from semantica.ontology import OntologyGenerator
+from semantica.ontology import OntologyEngine
 
-generator = OntologyGenerator(base_uri="https://example.org/ontology/")
-ontology = generator.generate_from_graph(kg)
+# Initialize engine
+engine = OntologyEngine(base_uri="https://example.org/ontology/")
+
+# Generate ontology from data
+ontology = engine.from_data({
+    "entities": [...],
+    "relationships": [...]
+})
+
+# Validate ontology
+result = engine.validate(ontology)
+if result.valid:
+    print("Ontology is valid!")
 
 # Export to OWL
-owl_content = generator.export_owl(ontology, format="turtle")
+owl_content = engine.to_owl(ontology, format="turtle")
 print(f"Generated {len(owl_content)} lines of OWL")
 ```
 
@@ -409,7 +420,7 @@ for c in conclusions:
 
 ## Storage Layer
 
-These modules handle persistence and retrieval of vectors, graphs, and triples.
+These modules handle persistence and retrieval of vectors, graphs, and triplets.
 
 ---
 
@@ -436,7 +447,7 @@ These modules handle persistence and retrieval of vectors, graphs, and triples.
 - `AudioEmbedder` — Generate audio embeddings
 - `MultimodalEmbedder` — Combine multiple modalities
 - `EmbeddingOptimizer` — Optimize embedding quality
-- `ProviderAdapters` — Support for OpenAI, Cohere, etc.
+- `ProviderStores` — Support for OpenAI, Cohere, etc.
 
 **Quick Example:**
 
@@ -465,7 +476,7 @@ print(f"Similarity: {similarity:.3f}")
 
 **Key Features:**
 
-- Multiple backend support (FAISS, Pinecone, Weaviate, Qdrant, Milvus)
+- Multiple backend support (FAISS, Weaviate, Qdrant, Milvus)
 - Hybrid search (vector + keyword)
 - Metadata filtering
 - Batch operations
@@ -476,9 +487,8 @@ print(f"Similarity: {similarity:.3f}")
 **Components:**
 
 - `VectorStore` — Main vector store interface
-- `FAISSAdapter` — FAISS integration
-- `PineconeAdapter` — Pinecone integration
-- `WeaviateAdapter` — Weaviate integration
+- `FAISSStore` — FAISS integration
+- `WeaviateStore` — Weaviate integration
 - `HybridSearch` — Combine vector and keyword search
 - `VectorRetriever` — Retrieve relevant vectors
 
@@ -521,8 +531,8 @@ results = hybrid_search.search(
 **Components:**
 
 - `GraphStore` — Main graph store interface
-- `Neo4jAdapter` — Neo4j database integration
-- `FalkorDBAdapter` — FalkorDB (Redis-based) integration
+- `Neo4jStore` — Neo4j database integration
+- `FalkorDBStore` — FalkorDB (Redis-based) integration
 - `NodeManager` — Node CRUD operations
 - `RelationshipManager` — Relationship CRUD operations
 - `QueryEngine` — Cypher query execution
@@ -560,30 +570,29 @@ results = store.execute_query("MATCH (p:Person) RETURN p.name")
 
 ---
 
-### Triple Store Module
+### Triplet Store Module
 
 !!! abstract "Purpose"
-    RDF triple store integration for semantic web applications. Supports SPARQL queries and multiple backends.
+    RDF triplet store integration for semantic web applications. Supports SPARQL queries and multiple backends.
 
 **Key Features:**
 
-- Multi-backend support (Blazegraph, Jena, RDF4J, Virtuoso)
-- CRUD operations for RDF triples
+- Multi-backend support (Blazegraph, Jena, RDF4J)
+- CRUD operations for RDF triplets
 - SPARQL query execution and optimization
 - Bulk data loading with progress tracking
 - Query caching and optimization
 - Transaction support
-- Store adapter pattern
+- Store backend pattern
 
 **Components:**
 
-- `TripleManager` — Main triple store management coordinator
+- `TripletStore` — Main triplet store interface
 - `QueryEngine` — SPARQL query execution and optimization
 - `BulkLoader` — High-volume data loading with progress tracking
-- `BlazegraphAdapter` — Blazegraph integration
-- `JenaAdapter` — Apache Jena integration
-- `RDF4JAdapter` — Eclipse RDF4J integration
-- `VirtuosoAdapter` — Virtuoso RDF store integration
+- `BlazegraphStore` — Blazegraph integration
+- `JenaStore` — Apache Jena integration
+- `RDF4JStore` — Eclipse RDF4J integration
 - `QueryPlan` — Query execution plan dataclass
 - `LoadProgress` — Bulk loading progress tracking
 
@@ -598,23 +607,22 @@ results = store.execute_query("MATCH (p:Person) RETURN p.name")
 **Quick Example:**
 
 ```python
-from semantica.triple_store import TripleManager, execute_query
+from semantica.triplet_store import TripletStore
 
-manager = TripleManager()
-store = manager.register_store("main", "blazegraph", "http://localhost:9999/blazegraph")
+store = TripletStore(backend="blazegraph", endpoint="http://localhost:9999/blazegraph")
 
-# Add triple
-result = manager.add_triple({
+# Add triplet
+result = store.add_triplet({
     "subject": "http://example.org/Alice",
     "predicate": "http://example.org/knows",
     "object": "http://example.org/Bob"
-}, store_id="main")
+})
 
 # Execute SPARQL
-query_result = execute_query("SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 10", store)
+query_result = store.execute_query("SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 10")
 ```
 
-**API Reference**: [Triple Store Module](reference/triple_store.md)
+**API Reference**: [Triplet Store Module](reference/triplet_store.md)
 
 ---
 
@@ -632,6 +640,8 @@ These modules ensure data quality, handle duplicates, and resolve conflicts.
 **Key Features:**
 
 - Multiple similarity methods (exact, Levenshtein, Jaro-Winkler, cosine, embedding)
+- **Advanced String Matching**: Jaro-Winkler by default for better company/person name resolution
+- **Smart Property Handling**: Neutral scoring for disjoint properties to prevent false negatives
 - Duplicate detection with confidence scoring
 - Entity merging with configurable strategies
 - Cluster-based batch deduplication
@@ -651,16 +661,16 @@ These modules ensure data quality, handle duplicates, and resolve conflicts.
 
 | Strategy | Description |
 | :--- | :--- |
-| `keep_first` | Preserve first entity, merge others |
-| `keep_last` | Preserve last entity, merge others |
-| `keep_most_complete` | Preserve entity with most properties |
-| `keep_highest_confidence` | Preserve entity with highest confidence |
-| `merge_all` | Combine all properties and relationships |
+| `"keep_first"` | Preserve first entity, merge others |
+| `"keep_last"` | Preserve last entity, merge others |
+| `"keep_most_complete"` | Preserve entity with most properties |
+| `"keep_highest_confidence"` | Preserve entity with highest confidence |
+| `"merge_all"` | Combine all properties and relationships |
 
 **Quick Example:**
 
 ```python
-from semantica.deduplication import DuplicateDetector, EntityMerger, MergeStrategy
+from semantica.deduplication import DuplicateDetector, EntityMerger
 
 # Detect duplicates
 detector = DuplicateDetector(similarity_threshold=0.8)
@@ -670,7 +680,7 @@ duplicate_groups = detector.detect_duplicate_groups(entities)
 merger = EntityMerger(preserve_provenance=True)
 merge_operations = merger.merge_duplicates(
     entities,
-    strategy=MergeStrategy.KEEP_MOST_COMPLETE
+    strategy="keep_most_complete"
 )
 
 merged_entities = [op.merged_entity for op in merge_operations]
@@ -714,18 +724,13 @@ print(f"Reduced from {len(entities)} to {len(merged_entities)} entities")
 **Quick Example:**
 
 ```python
-from semantica.conflicts import detect_and_resolve, ConflictDetector
+from semantica.conflicts import ConflictDetector, ConflictResolver
 
-# Using convenience function
-conflicts, results = detect_and_resolve(
-    entities,
-    property_name="name",
-    resolution_strategy="voting"
-)
-
-# Using classes directly
 detector = ConflictDetector()
 conflicts = detector.detect_value_conflicts(entities, "name")
+
+resolver = ConflictResolver()
+results = resolver.resolve_conflicts(conflicts, strategy="voting")
 ```
 
 ---
@@ -788,12 +793,12 @@ These modules provide context engineering for agents and foundation data managem
 
 **Components:**
 
-- `ContextGraphBuilder` — Builds context graphs from various sources
+- `ContextGraph` — In-memory context graph store and builder methods
 - `ContextNode` — Context graph node data structure
 - `ContextEdge` — Context graph edge data structure
 - `AgentMemory` — Manages persistent agent memory with RAG
 - `MemoryItem` — Memory item data structure
-- `EntityLinker` — Links entities across sources with URIs
+- `EntityLinker` — Links entities across sources with URI assignment
 - `ContextRetriever` — Retrieves relevant context from multiple sources
 
 **Algorithms:**
@@ -808,19 +813,19 @@ These modules provide context engineering for agents and foundation data managem
 **Quick Example:**
 
 ```python
-from semantica.context import build_context, ContextGraphBuilder, AgentMemory
+from semantica.context import ContextGraph, AgentMemory
+from semantica.context.methods import build_context_graph
 
 # Using convenience function
-result = build_context(
+result = build_context_graph(
     entities=entities,
     relationships=relationships,
-    vector_store=vs,
-    knowledge_graph=kg
+    method="entities_relationships"
 )
 
 # Using classes directly
-builder = ContextGraphBuilder()
-graph = builder.build_from_entities_and_relationships(entities, relationships)
+graph = ContextGraph()
+graph_data = graph.build_from_entities_and_relationships(entities, relationships)
 
 memory = AgentMemory(vector_store=vs, knowledge_graph=kg)
 memory_id = memory.store("User asked about Python", metadata={"type": "conversation"})
@@ -924,7 +929,6 @@ CSVExporter().export(kg, "output.csv")
 
 - Interactive graph visualization
 - Embedding visualization (t-SNE, PCA, UMAP)
-- Quality metrics visualization
 - Temporal data visualization
 - Ontology visualization
 - Multiple output formats (HTML, PNG, SVG)
@@ -934,7 +938,6 @@ CSVExporter().export(kg, "output.csv")
 
 - `KGVisualizer` — Visualize knowledge graphs
 - `EmbeddingVisualizer` — Visualize embeddings (t-SNE, PCA, UMAP)
-- `QualityVisualizer` — Visualize quality metrics
 - `AnalyticsVisualizer` — Visualize graph analytics
 - `TemporalVisualizer` — Visualize temporal data
 - `OntologyVisualizer` — Visualize ontology structure
@@ -1007,7 +1010,7 @@ result = pipeline.execute(sources=["data/"], parallel=True)
 ### Pattern 1: Complete Knowledge Graph Pipeline
 
 ```python
-from semantica import Semantica
+from semantica.core import Semantica
 
 semantica = Semantica()
 result = semantica.build_knowledge_base(
@@ -1053,7 +1056,7 @@ deduplicated = [op.merged_entity for op in merge_operations]
 ### Pattern 3: GraphRAG with Hybrid Search
 
 ```python
-from semantica import Semantica
+from semantica.core import Semantica
 from semantica.vector_store import VectorStore, HybridSearch
 from semantica.context import AgentMemory
 
@@ -1111,7 +1114,7 @@ new_facts = inference_engine.forward_chain(kg, rule_manager)
 | **Embeddings** | `semantica.embeddings` | `EmbeddingGenerator` | Vector generation |
 | **Vector Store** | `semantica.vector_store` | `VectorStore` | Vector storage |
 | **Graph Store** | `semantica.graph_store` | `GraphStore` | Graph database |
-| **Triple Store** | `semantica.triple_store` | `TripleManager` | RDF storage |
+| **Triplet Store** | `semantica.triplet_store` | `TripletStore` | RDF storage |
 | **Deduplication** | `semantica.deduplication` | `DuplicateDetector` | Duplicate removal |
 | **Conflicts** | `semantica.conflicts` | `ConflictDetector` | Conflict resolution |
 | **Context** | `semantica.context` | `AgentMemory` | Agent context |

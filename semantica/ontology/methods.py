@@ -19,12 +19,6 @@ Class/Property Inference:
     - "pattern": Pattern-based inference
     - "hierarchical": Hierarchy-focused inference
 
-Validation:
-    - "default": Default validation using OntologyValidator
-    - "hermit": HermiT reasoner validation
-    - "pellet": Pellet reasoner validation
-    - "basic": Basic structure validation only
-
 Evaluation:
     - "default": Default evaluation using OntologyEvaluator
     - "coverage": Coverage-focused evaluation
@@ -44,7 +38,6 @@ Ontology Generation (6-Stage Pipeline):
     - Stage 3 - Definition-to-Types: Map definitions to OWL types, type inference, OWL class/property mapping (@type assignment)
     - Stage 4 - Hierarchy Generation: Build taxonomic structures, parent-child relationship inference, hierarchy validation, circular dependency detection (DFS)
     - Stage 5 - TTL Generation: Generate OWL/Turtle syntax using rdflib, namespace prefix handling, RDF serialization (rdflib.serialize)
-    - Stage 6 - Symbolic Validation: HermiT/Pellet reasoning (owlready2.sync_reasoner), consistency checking, satisfiability checking, constraint validation
 
 Class Inference:
     - Pattern-Based Inference: Entity type frequency analysis (Counter), minimum occurrence threshold filtering, similarity-based class merging (threshold matching)
@@ -62,7 +55,7 @@ Ontology Validation:
     - Hallucination Detection: LLM-generated ontology validation, fact verification, relationship validation
 
 OWL/RDF Generation:
-    - RDF Graph Construction: rdflib.Graph creation, namespace binding, triple generation (subject-predicate-object)
+    - RDF Graph Construction: rdflib.Graph creation, namespace binding, triplet generation (subject-predicate-object)
     - Serialization: Turtle format (rdflib.serialize format="turtle"), RDF/XML format, JSON-LD format, N3 format
     - Namespace Management: Prefix declaration, IRI resolution, namespace prefix mapping
 
@@ -120,10 +113,9 @@ Main Functions:
     - list_available_methods: List registered methods
 
 Example Usage:
-    >>> from semantica.ontology.methods import generate_ontology, infer_classes, validate_ontology
+    >>> from semantica.ontology.methods import generate_ontology, infer_classes
     >>> ontology = generate_ontology({"entities": [...], "relationships": [...]}, method="default")
     >>> classes = infer_classes(entities, method="default")
-    >>> result = validate_ontology(ontology, method="default")
 """
 
 from typing import Any, Callable, Dict, List, Optional

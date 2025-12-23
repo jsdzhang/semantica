@@ -59,7 +59,7 @@
 ### SPARQL Reasoning
 - **Query Rewriting**: Modifying queries to include inferred patterns.
 - **Property Paths**: Handling transitive relationships (`foaf:knows+`).
-- **Materialization**: Pre-computing inferred triples for fast read performance.
+- **Materialization**: Pre-computing inferred triplets for fast read performance.
 
 ### Abductive Reasoning
 - **Hypothesis Generation**: Finding rules where the conclusion matches the observation.
@@ -91,7 +91,7 @@ SPARQL-based reasoner for RDF graphs.
 | Method | Description |
 |--------|-------------|
 | `expand_query(query)` | Rewrite query with inference |
-| `infer_results(result)` | Add inferred triples to result |
+| `infer_results(result)` | Add inferred triplets to result |
 
 ### AbductiveReasoner
 
@@ -182,14 +182,15 @@ rules = [
 
 # 2. Load Graph
 kg = KnowledgeGraph()
-facts = kg.get_all_triples()
+facts = kg.get_all_triplets()
 
 <<<<<<< Updated upstream
 # 3. Run Inference
 engine = InferenceEngine()
-inferred_triples = engine.infer(facts, rules)
+inferred_triplets = engine.infer(facts, rules)
 
 # 4. Update Graph
+<<<<<<< HEAD
 kg.add_triples(inferred_triples)
 =======
 # 3. Run Inference 
@@ -207,6 +208,9 @@ inferred = [] # Placeholder for actual inference logic
 # 4. Update Graph
 # kg.add_triplets(inferred)
 >>>>>>> Stashed changes
+=======
+kg.add_triplets(inferred_triplets)
+>>>>>>> main
 ```
 
 ---
@@ -223,5 +227,5 @@ inferred = [] # Placeholder for actual inference logic
 ## See Also
 
 - [Ontology Module](ontology.md) - Source of schema-based rules
-- [Triple Store Module](triple_store.md) - Backend for SPARQL reasoning
+- [Triplet Store Module](triplet_store.md) - Backend for SPARQL reasoning
 - [Modules Guide](../modules.md#quality-assurance) - Consistency checking overview

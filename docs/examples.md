@@ -48,7 +48,7 @@ Real-world examples and use cases for Semantica.
 Build a knowledge graph from a single document.
 
 ```python
-from semantica import Semantica
+from semantica.core import Semantica
 
 semantica = Semantica()
 
@@ -71,7 +71,7 @@ print(f"Relationships: {len(kg['relationships'])}")
 Extract entities from text using Named Entity Recognition.
 
 ```python
-from semantica import Semantica
+from semantica.core import Semantica
 
 semantica = Semantica()
 text = "Apple Inc. is a technology company founded by Steve Jobs."
@@ -88,7 +88,7 @@ for entity in entities["entities"]:
 Combine data from multiple sources into a unified knowledge graph.
 
 ```python
-from semantica import Semantica
+from semantica.core import Semantica
 
 semantica = Semantica()
 sources = [
@@ -111,14 +111,16 @@ print(f"Unified graph: {len(result['knowledge_graph']['entities'])} entities")
 Resolve conflicts in data from multiple sources.
 
 ```python
-from semantica import Semantica
-from semantica.conflicts import ConflictResolver
+from semantica.core import Semantica
+from semantica.conflicts import ConflictDetector, ConflictResolver
 
 semantica = Semantica()
 result = semantica.build_knowledge_base(["source1.pdf", "source2.pdf"])
 
 # Detect and resolve conflicts
-conflicts = semantica.kg.detect_conflicts(result["knowledge_graph"])
+kg = result["knowledge_graph"]
+detector = ConflictDetector()
+conflicts = detector.detect_conflicts(kg["entities"])
 resolver = ConflictResolver(default_strategy="voting")
 resolved = resolver.resolve_conflicts(conflicts)
 ```
@@ -130,7 +132,7 @@ resolved = resolver.resolve_conflicts(conflicts)
 Use custom configuration for specific use cases.
 
 ```python
-from semantica import Semantica, Config
+from semantica.core import Semantica, Config
 
 config = Config(
     embeddings=True,
@@ -150,7 +152,7 @@ result = semantica.build_knowledge_base(["document.pdf"])
 Build knowledge graph incrementally.
 
 ```python
-from semantica import Semantica
+from semantica.core import Semantica
 
 semantica = Semantica()
 
@@ -166,11 +168,33 @@ merged_kg = semantica.kg.merge([kg1, kg2])
 
 ## Advanced Patterns (30+ min examples)
 
-### Example 7: Graph Store (Persistent Storage)
+### Example 7: Graph Visualization
+
+**Difficulty**: Beginner
+
+Visualize your knowledge graph to understand entity relationships.
+
+```python
+import semantica
+from semantica.visualization import GraphVisualizer
+
+# Build a small graph
+kg = semantica.kg.build_graph(["semantica_intro.pdf"])
+
+# Visualize
+viz = GraphVisualizer()
+viz.plot(kg, title="Semantica Knowledge Map")
+```
+
+---
+
+## Advanced Patterns (30+ min examples)
+
+### Example 8: Persistent Storage (Neo4j)
 
 **Difficulty**: Intermediate
 
-Store and query knowledge graphs in a persistent graph database like Neo4j.
+Store and query knowledge graphs in a persistent graph database.
 
 ```python
 from semantica.graph_store import GraphStore
@@ -202,7 +226,7 @@ store.create_relationship(
 store.close()
 ```
 
-### Example 8: FalkorDB for Real-Time Applications
+### Example 9: FalkorDB for Real-Time Applications
 
 **Difficulty**: Intermediate
 
@@ -224,13 +248,40 @@ results = store.execute_query("MATCH (n)-[r]->(m) WHERE n.name CONTAINS 'AI' RET
 store.close()
 ```
 
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 =======
+=======
+>>>>>>> main
 ### Example 10: GraphRAG (Knowledge-Powered Retrieval)
 
 **Difficulty**: Advanced
 
+<<<<<<< HEAD
 Build a production-ready GraphRAG system with hybrid retrieval.
+=======
+Build a production-ready GraphRAG system with logical inference and hybrid retrieval.
+
+```python
+from semantica.context import AgentContext
+from semantica.reasoning import InferenceEngine
+
+# Initialize context with Hybrid Retrieval
+context = AgentContext(
+    vector_store=vs, 
+    knowledge_graph=kg,
+    use_graph_expansion=True,
+    hybrid_alpha=0.7
+)
+
+# Add logical reasoning rules
+engine = InferenceEngine(strategy="forward")
+engine.add_rule("IF ?x :type 'Library' AND ?y :type 'Language' THEN ?x :builtWith ?y")
+
+# Retrieve context for a query
+results = context.retrieve("What technologies are used in this project?")
+```
+>>>>>>> main
 
 [**View Complete GraphRAG Tutorial**](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/advanced_rag/01_GraphRAG_Complete.ipynb)
 
@@ -242,12 +293,15 @@ Benchmark standard Vector RAG against Graph-enhanced retrieval.
 
 [**View RAG vs. GraphRAG Comparison**](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/advanced_rag/02_RAG_vs_GraphRAG_Comparison.ipynb)
 
+<<<<<<< HEAD
 >>>>>>> Stashed changes
+=======
+>>>>>>> main
 ---
 
 ## Production Patterns
 
-### Example 9: Streaming Data Processing
+### Example 12: Streaming Data Processing
 
 **Difficulty**: Advanced
 
@@ -255,7 +309,7 @@ Process data streams in real-time.
 
 ```python
 from semantica.ingest import StreamIngestor
-from semantica import Semantica
+from semantica.core import Semantica
 
 semantica = Semantica()
 stream_ingestor = StreamIngestor(stream_uri="kafka://localhost:9092/topic")
@@ -269,14 +323,14 @@ for batch in stream_ingestor.stream(batch_size=100):
     # Process results
 ```
 
-### Example 10: Batch Processing Large Datasets
+### Example 13: Batch Processing Large Datasets
 
 **Difficulty**: Intermediate
 
 Process large datasets efficiently with batching.
 
 ```python
-from semantica import Semantica
+from semantica.core import Semantica
 
 semantica = Semantica()
 sources = [f"data/doc_{i}.pdf" for i in range(1000)]

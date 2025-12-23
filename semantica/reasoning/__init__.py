@@ -23,7 +23,7 @@ Rete Algorithm:
 SPARQL Reasoning:
     - Query Expansion: Inference rule integration (convert rules to SPARQL patterns), query rewriting (add inferred patterns to WHERE clause), transitive closure (compute transitive relationships), property chain inference (infer relationships through property chains)
     - Query Optimization: Query plan generation (logical plan construction), join ordering (selectivity-based ordering), filter pushdown (apply filters early), projection pushdown (select only needed variables)
-    - Inference Rule Integration: Rule-to-SPARQL translation (convert rule conditions/conclusions to SPARQL triple patterns), query augmentation (add inferred patterns), materialization (pre-compute inferred triples)
+    - Inference Rule Integration: Rule-to-SPARQL translation (convert rule conditions/conclusions to SPARQL triplet patterns), query augmentation (add inferred patterns), materialization (pre-compute inferred triplets)
     - Caching: Query result caching (cache query results by query pattern), cache invalidation (invalidate on data updates), cache hit optimization (fast lookup for repeated queries)
 
 =======
@@ -96,6 +96,8 @@ License: MIT
 
 from .abductive_reasoner import AbductiveReasoner, Explanation as AbductiveExplanation, Hypothesis, HypothesisRanking, Observation
 from .deductive_reasoner import Argument, Conclusion, DeductiveReasoner, Premise, Proof
+from .reasoner import Reasoner
+from .graph_reasoner import GraphReasoner
 from .explanation_generator import (
     Explanation,
     ExplanationGenerator,
@@ -125,6 +127,9 @@ __all__ = [
     "Conclusion",
     "Proof",
     "Argument",
+    # Reasoner facade
+    "Reasoner",
+    "GraphReasoner",
     # Rule management
     "RuleManager",
     "Rule",

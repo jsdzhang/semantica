@@ -2,7 +2,7 @@
 Extraction Methods Module
 
 This module provides all extraction methods as simple, reusable functions for
-entities, relations, and triples. It supports multiple extraction approaches
+entities, relations, and triplets. It supports multiple extraction approaches
 ranging from simple pattern matching to advanced LLM-based extraction.
 
 Supported Methods:
@@ -23,11 +23,11 @@ Relation Extraction:
     - "huggingface": HuggingFace relation extraction models
     - "llm": LLM-based relation extraction
 
-Triple Extraction:
-    - "pattern": Pattern-based triple extraction
-    - "rules": Rule-based triple extraction
+Triplet Extraction:
+    - "pattern": Pattern-based triplet extraction
+    - "rules": Rule-based triplet extraction
     - "huggingface": HuggingFace triplet extraction models
-    - "llm": LLM-based triple extraction
+    - "llm": LLM-based triplet extraction
 
 Algorithms Used:
 
@@ -45,7 +45,7 @@ Relation Extraction:
     - Sequence Classification: Transformer-based relation classification
     - LLM Generation: Language model-based relation extraction
 
-Triple Extraction:
+Triplet Extraction:
     - Pattern Matching: Subject-predicate-object pattern extraction
     - Rule-based Extraction: Linguistic rule application
     - Seq2Seq Models: Encoder-decoder transformer models for triplet generation
@@ -66,11 +66,11 @@ Key Features:
         * Dependency: Dependency parsing-based extraction
         * HuggingFace: Custom HuggingFace relation models
         * LLM-based: LLM-powered relation extraction
-    - Multiple extraction methods for triples:
-        * Pattern-based: Pattern matching for triple extraction
-        * Rules-based: Rule-based triple extraction
+    - Multiple extraction methods for triplets:
+        * Pattern-based: Pattern matching for triplet extraction
+        * Rules-based: Rule-based triplet extraction
         * HuggingFace: Custom HuggingFace triplet models
-        * LLM-based: LLM-powered triple extraction
+        * LLM-based: LLM-powered triplet extraction
     - Method dispatchers with registry support
     - Custom method registration capability
     - Consistent interface across all methods
@@ -88,13 +88,13 @@ Main Functions:
     - extract_relations_dependency: Dependency parsing relation extraction
     - extract_relations_huggingface: HuggingFace relation extraction
     - extract_relations_llm: LLM-based relation extraction
-    - extract_triples_pattern: Pattern-based triple extraction
-    - extract_triples_rules: Rule-based triple extraction
-    - extract_triples_huggingface: HuggingFace triple extraction
-    - extract_triples_llm: LLM-based triple extraction
+    - extract_triplets_pattern: Pattern-based triplet extraction
+    - extract_triplets_rules: Rule-based triplet extraction
+    - extract_triplets_huggingface: HuggingFace triplet extraction
+    - extract_triplets_llm: LLM-based triplet extraction
     - get_entity_method: Get entity extraction method by name
     - get_relation_method: Get relation extraction method by name
-    - get_triple_method: Get triple extraction method by name
+    - get_triplet_method: Get triplet extraction method by name
 
 Example Usage:
     >>> from semantica.semantic_extract.methods import get_entity_method
@@ -114,7 +114,7 @@ from .ner_extractor import Entity
 from .providers import HuggingFaceModelLoader, create_provider
 from .registry import method_registry
 from .relation_extractor import Relation
-from .triple_extractor import Triple
+from .triplet_extractor import Triplet
 
 logger = get_logger("methods")
 
@@ -311,6 +311,10 @@ def extract_entities_llm(
     text: str, provider: str = "openai", model: Optional[str] = None, **kwargs
 ) -> List[Entity]:
     """LLM-based entity extraction."""
+    # Support llm_model parameter to disambiguate from ML model
+    if "llm_model" in kwargs:
+        model = kwargs.pop("llm_model")
+
     llm = create_provider(provider, model=model, **kwargs)
 
     if not llm.is_available():
@@ -375,35 +379,96 @@ def extract_relations_pattern(
     """Pattern-based relation extraction."""
     relations = []
 
+    if not entities:
+        return []
+
+    # Create entity pattern from provided entities
+    # Sort by length descending to match longest entities first (e.g. "Apple Inc." before "Apple")
+    sorted_entities = sorted(entities, key=lambda e: len(e.text), reverse=True)
+    
+    # Escape entity texts and join with OR
+    # We use a non-capturing group for the alternatives
+    entity_texts = [re.escape(e.text) for e in sorted_entities]
+    # Remove duplicates
+    entity_texts = list(dict.fromkeys(entity_texts))
+    
+    if not entity_texts:
+        return []
+        
+    ent_pat = f"(?:{'|'.join(entity_texts)})"
+    
+    # Use entity pattern for subject as well, since we require the subject to be a known entity
+    # This prevents matching long strings of text that happen to end with a relation keyword
+    subject_pat = ent_pat
+
     relation_patterns = {
         "founded_by": [
-            r"(?P<subject>\w+)\s+(?:was\s+)?founded\s+by\s+(?P<object>\w+(?:\s+\w+)*)",
-            r"(?P<object>\w+(?:\s+\w+)*)\s+founded\s+(?P<subject>\w+)",
+            fr"(?P<subject>{subject_pat})\s+(?:was\s+)?founded\s+by\s+(?P<object>{ent_pat})",
+            fr"(?P<object>{ent_pat})\s+founded\s+(?P<subject>{ent_pat})",
+            fr"(?P<subject>{subject_pat})\s+(?:was\s+)?established\s+by\s+(?P<object>{ent_pat})",
+            fr"(?P<object>{ent_pat})\s+established\s+(?P<subject>{ent_pat})",
+            fr"(?P<subject>{subject_pat})\s+(?:was\s+)?created\s+by\s+(?P<object>{ent_pat})",
+            fr"(?P<object>{ent_pat})\s+created\s+(?P<subject>{ent_pat})",
+            fr"(?P<subject>{subject_pat})\s+(?:was\s+)?started\s+by\s+(?P<object>{ent_pat})",
+            fr"(?P<object>{ent_pat})\s+started\s+(?P<subject>{ent_pat})",
+            fr"(?P<subject>{subject_pat})\s+(?:was\s+)?co-founded\s+by\s+(?P<object>{ent_pat})",
+            fr"(?P<object>{ent_pat})\s+co-founded\s+(?P<subject>{ent_pat})",
+            fr"(?P<object>{ent_pat})\s+is\s+(?:the\s+)?founder\s+of\s+(?P<subject>{ent_pat})",
         ],
         "located_in": [
-            r"(?P<subject>\w+)\s+is\s+located\s+in\s+(?P<object>\w+)",
-            r"(?P<subject>\w+)\s+in\s+(?P<object>\w+)",
+            fr"(?P<subject>{subject_pat})\s+is\s+located\s+in\s+(?P<object>{ent_pat})",
+            fr"(?P<subject>{subject_pat})\s+in\s+(?P<object>{ent_pat})",
+            fr"(?P<subject>{subject_pat})\s+(?:is\s+)?headquartered\s+in\s+(?P<object>{ent_pat})",
+            fr"(?P<subject>{subject_pat})\s+(?:is\s+)?based\s+in\s+(?P<object>{ent_pat})",
+            fr"(?P<subject>{subject_pat})\s+has\s+(?:its\s+)?headquarters\s+in\s+(?P<object>{ent_pat})",
+            fr"(?P<subject>{subject_pat})\s+operates\s+(?:out\s+of|from)\s+(?P<object>{ent_pat})",
+            fr"(?P<subject>{subject_pat})\s+has\s+offices\s+in\s+(?P<object>{ent_pat})",
         ],
         "works_for": [
-            r"(?P<subject>\w+)\s+works?\s+for\s+(?P<object>\w+)",
-            r"(?P<subject>\w+)\s+is\s+an?\s+employee\s+of\s+(?P<object>\w+)",
+            fr"(?P<subject>{subject_pat})\s+works?\s+for\s+(?P<object>{ent_pat})",
+            fr"(?P<subject>{subject_pat})\s+works?\s+at\s+(?P<object>{ent_pat})",
+            fr"(?P<subject>{subject_pat})\s+is\s+an?\s+employee\s+of\s+(?P<object>{ent_pat})",
+            fr"(?P<subject>{subject_pat})\s+is\s+(?:the\s+)?(?:CEO|CFO|CTO|COO|director|manager|president|founder)\s+of\s+(?P<object>{ent_pat})",
+            fr"(?P<subject>{subject_pat})\s+joined\s+(?P<object>{ent_pat})",
+            fr"(?P<subject>{subject_pat})\s+was\s+hired\s+by\s+(?P<object>{ent_pat})",
+            fr"(?P<subject>{subject_pat})\s+serves\s+at\s+(?P<object>{ent_pat})",
         ],
         "born_in": [
-            r"(?P<subject>\w+)\s+was\s+born\s+in\s+(?P<object>\w+)",
-            r"(?P<subject>\w+)\s+born\s+in\s+(?P<object>\w+)",
+            fr"(?P<subject>{subject_pat})\s+was\s+born\s+in\s+(?P<object>{ent_pat})",
+            fr"(?P<subject>{subject_pat})\s+born\s+in\s+(?P<object>{ent_pat})",
+            fr"(?P<subject>{subject_pat})\s+is\s+a\s+native\s+of\s+(?P<object>{ent_pat})",
+            fr"(?P<subject>{subject_pat})\s+hails\s+from\s+(?P<object>{ent_pat})",
+            fr"(?P<subject>{subject_pat})\s+is\s+originally\s+from\s+(?P<object>{ent_pat})",
+        ],
+        "acquired_by": [
+            fr"(?P<subject>{subject_pat})\s+(?:was\s+)?acquired\s+by\s+(?P<object>{ent_pat})",
+            fr"(?P<object>{ent_pat})\s+acquired\s+(?P<subject>{ent_pat})",
+            fr"(?P<subject>{subject_pat})\s+(?:was\s+)?bought\s+by\s+(?P<object>{ent_pat})",
+            fr"(?P<object>{ent_pat})\s+bought\s+(?P<subject>{ent_pat})",
+            fr"(?P<subject>{subject_pat})\s+is\s+a\s+subsidiary\s+of\s+(?P<object>{ent_pat})",
         ],
     }
 
     entity_map = {e.text.lower(): e for e in entities}
+    # DEBUG: Print entities in map
+    print(f"DEBUG: Entity map keys: {list(entity_map.keys())}")
 
     for relation_type, patterns in relation_patterns.items():
         for pattern in patterns:
+            # DEBUG: Print pattern being tried
+            # print(f"DEBUG: Trying pattern: {pattern}")
             for match in re.finditer(pattern, text, re.IGNORECASE):
-                subject_text = match.group("subject")
-                object_text = match.group("object")
+                subject_text = match.group("subject").strip()
+                object_text = match.group("object").strip()
+                
+                # DEBUG: Print match details
+                print(f"DEBUG: Match found! Subject='{subject_text}', Object='{object_text}'")
 
                 subject_entity = entity_map.get(subject_text.lower())
                 object_entity = entity_map.get(object_text.lower())
+                
+                # DEBUG: Print lookup results
+                print(f"DEBUG: Subject Entity found: {subject_entity is not None}, Object Entity found: {object_entity is not None}")
 
                 if subject_entity and object_entity:
                     start = max(0, match.start() - 50)
@@ -492,7 +557,7 @@ def extract_relations_cooccurrence(
                         subject=entity1,
                         predicate="related_to",
                         object=entity2,
-                        confidence=0.5,
+                        confidence=0.6,  # Meets default threshold
                         context=context,
                         metadata={
                             "extraction_method": "co_occurrence",
@@ -520,39 +585,116 @@ def extract_relations_dependency(
 
     doc = nlp(text)
     relations = []
-    entity_map = {e.text.lower(): e for e in entities}
+    
+    # Map tokens to entities
+    token_to_entity = {}
+    for token in doc:
+        for entity in entities:
+            # Check if token is within entity span
+            if token.idx >= entity.start_char and (token.idx + len(token)) <= entity.end_char:
+                token_to_entity[token] = entity
+                break
+    
+    # DEBUG: Print token to entity mapping
+    # print(f"DEBUG: Token to entity mapping keys: {[t.text for t in token_to_entity.keys()]}")
+
+    # DEBUG: Dump full dependency tree
+    # print("DEBUG: Dependency Tree:")
+    # for token in doc:
+    #     print(f"  {token.i}: {token.text} ({token.dep_}) -> {token.head.text} ({token.head.i})")
+
+    # Helper to find entity for a token (or its head chain)
+    def find_subject_entity(token):
+        # 1. If acl, check head
+        if token.dep_ == "acl":
+            head = token.head
+            if head in token_to_entity:
+                return token_to_entity[head]
+            
+            # 2. If head is attr/acomp, check its head's nsubj
+            if head.dep_ in ["attr", "acomp", "dobj"] and head.head.pos_ in ["VERB", "AUX"]:
+                copula = head.head
+                for child in copula.children:
+                    if child.dep_ in ["nsubj", "nsubjpass"] and child in token_to_entity:
+                        return token_to_entity[child]
+        return None
+
+    # Helper to expand objects via conjunctions
+    def expand_conjunctions(token):
+        results = [token]
+        for child in token.children:
+            if child.dep_ == "conj":
+                results.extend(expand_conjunctions(child))
+        return results
 
     for token in doc:
-        # Look for subject-verb-object patterns
-        if token.dep_ == "nsubj" or token.dep_ == "nsubjpass":
-            subject = token.text
-            verb = token.head
-            # Find object
-            for child in verb.children:
-                if child.dep_ in ["dobj", "pobj", "attr"]:
-                    obj = child.text
+        # Check if token is a potential predicate (Verb)
+        # We process verbs that have nsubj OR are acl OR are ROOT/VERB
+        
+        subject_entity = None
+        
+        # Case 1: Token has nsubj/nsubjpass
+        nsubj = next((c for c in token.children if c.dep_ in ["nsubj", "nsubjpass"]), None)
+        if nsubj:
+            subject_entity = token_to_entity.get(nsubj)
+        
+        # Case 2: Token is acl or other modifier, try to infer subject from context
+        if not subject_entity:
+             subject_entity = find_subject_entity(token)
+             
+        if not subject_entity:
+            continue
 
-                    subject_entity = entity_map.get(subject.lower())
-                    object_entity = entity_map.get(obj.lower())
+        verb = token
+        # DEBUG: Print found subject
+        # print(f"DEBUG: Found subject {subject_entity.text} for verb {verb.text}")
 
-                    if subject_entity and object_entity:
-                        relations.append(
-                            Relation(
-                                subject=subject_entity,
-                                predicate=verb.lemma_,
-                                object=object_entity,
-                                confidence=0.8,
-                                context=text[
-                                    max(0, token.idx - 30) : min(
-                                        len(text), child.idx + len(obj) + 30
-                                    )
-                                ],
-                                metadata={
-                                    "extraction_method": "dependency",
-                                    "dependency_path": f"{token.dep_} -> {child.dep_}",
-                                },
+        # Find objects
+        potential_objects = []
+        for child in verb.children:
+            # Direct objects
+            if child.dep_ in ["dobj", "attr", "acomp"]:
+                potential_objects.extend(expand_conjunctions(child))
+                # Check for "attr of object" pattern (e.g. "CEO of Apple")
+                for grandchild in child.children:
+                    if grandchild.dep_ == "prep":
+                        for greatgrandchild in grandchild.children:
+                            if greatgrandchild.dep_ == "pobj":
+                                potential_objects.extend(expand_conjunctions(greatgrandchild))
+                                
+            # Prepositional objects (including agent)
+            elif child.dep_ in ["prep", "agent"]:
+                for grandchild in child.children:
+                    if grandchild.dep_ == "pobj":
+                        potential_objects.extend(expand_conjunctions(grandchild))
+        
+        # DEBUG: Print potential objects
+        # print(f"DEBUG: Potential objects for verb {verb.text}: {[t.text for t in potential_objects]}")
+
+        for obj_token in potential_objects:
+            object_entity = token_to_entity.get(obj_token)
+            
+            # DEBUG: Print object checking
+            # print(f"DEBUG: Checking object token: {obj_token.text}, Entity: {object_entity}")
+
+            if object_entity and subject_entity != object_entity:
+                relations.append(
+                    Relation(
+                        subject=subject_entity,
+                        predicate=verb.lemma_,
+                        object=object_entity,
+                        confidence=0.8,
+                        context=text[
+                            max(0, token.idx - 30) : min(
+                                len(text), obj_token.idx + len(obj_token.text) + 30
                             )
-                        )
+                        ],
+                        metadata={
+                            "extraction_method": "dependency",
+                            "dependency_path": f"{token.dep_} -> ... -> {obj_token.dep_}",
+                        },
+                    )
+                )
 
     return relations
 
@@ -639,24 +781,24 @@ Return JSON format: [{{"subject": "...", "predicate": "...", "object": "...", "c
 
 
 # ============================================================================
-# Triple Extraction Methods
+# Triplet Extraction Methods
 # ============================================================================
 
 
-def extract_triples_pattern(
+def extract_triplets_pattern(
     text: str,
     entities: Optional[List[Entity]] = None,
     relations: Optional[List[Relation]] = None,
     **kwargs,
-) -> List[Triple]:
-    """Pattern-based triple extraction."""
-    triples = []
+) -> List[Triplet]:
+    """Pattern-based triplet extraction."""
+    triplets = []
 
     if relations:
-        # Convert relations to triples
+        # Convert relations to triplets
         for relation in relations:
-            triples.append(
-                Triple(
+            triplets.append(
+                Triplet(
                     subject=relation.subject.text,
                     predicate=relation.predicate,
                     object=relation.object.text,
@@ -665,7 +807,7 @@ def extract_triples_pattern(
                 )
             )
     elif entities:
-        # Simple triple extraction from entities
+        # Simple triplet extraction from entities
         # Look for subject-verb-object patterns
         pattern = r"(?P<subject>\w+)\s+(?P<predicate>\w+)\s+(?P<object>\w+)"
         for match in re.finditer(pattern, text):
@@ -681,8 +823,8 @@ def extract_triples_pattern(
             )
 
             if subject_entity and object_entity:
-                triples.append(
-                    Triple(
+                triplets.append(
+                    Triplet(
                         subject=subject_entity.text,
                         predicate=predicate_text,
                         object=object_entity.text,
@@ -691,17 +833,17 @@ def extract_triples_pattern(
                     )
                 )
 
-    return triples
+    return triplets
 
 
-def extract_triples_rules(
+def extract_triplets_rules(
     text: str, entities: Optional[List[Entity]] = None, **kwargs
-) -> List[Triple]:
-    """Rule-based triple extraction."""
-    triples = []
+) -> List[Triplet]:
+    """Rule-based triplet extraction."""
+    triplets = []
 
     if not entities:
-        return triples
+        return triplets
 
     # Rule: Look for verb patterns between entities
     sentences = re.split(r"[.!?]+", text)
@@ -722,8 +864,8 @@ def extract_triples_rules(
                     )
 
                     if subject_entity and object_entity:
-                        triples.append(
-                            Triple(
+                        triplets.append(
+                            Triplet(
                                 subject=subject_entity.text,
                                 predicate=word,
                                 object=object_entity.text,
@@ -732,18 +874,18 @@ def extract_triples_rules(
                             )
                         )
 
-    return triples
+    return triplets
 
 
-def extract_triples_huggingface(
+def extract_triplets_huggingface(
     text: str, model: str, device: Optional[str] = None, **kwargs
-) -> List[Triple]:
-    """HuggingFace triple extraction."""
+) -> List[Triplet]:
+    """HuggingFace triplet extraction."""
     loader = HuggingFaceModelLoader(device=device)
     model_obj = loader.load_triplet_model(model)
     results = loader.extract_triplets(model_obj, text)
 
-    triples = []
+    triplets = []
     for result in results:
         # Parse result based on model output format
         # This is a placeholder - actual parsing would depend on the model
@@ -751,24 +893,24 @@ def extract_triples_huggingface(
             # Parse triplet string (format depends on model)
             pass
 
-    return triples
+    return triplets
 
 
-def extract_triples_llm(
+def extract_triplets_llm(
     text: str,
     entities: Optional[List[Entity]] = None,
     relations: Optional[List[Relation]] = None,
     provider: str = "openai",
     model: Optional[str] = None,
     **kwargs,
-) -> List[Triple]:
-    """LLM-based triple extraction."""
+) -> List[Triplet]:
+    """LLM-based triplet extraction."""
     llm = create_provider(provider, model=model, **kwargs)
 
     if not llm.is_available():
         raise ProcessingError(f"{provider} provider not available")
 
-    prompt = f"""Extract RDF triples (subject-predicate-object) from the following text.
+    prompt = f"""Extract RDF triplets (subject-predicate-object) from the following text.
 
 Text: {text}
 
@@ -776,12 +918,12 @@ Return JSON format: [{{"subject": "...", "predicate": "...", "object": "...", "c
 
     try:
         result = llm.generate_structured(prompt)
-        triples = []
+        triplets = []
 
         if isinstance(result, list):
             for item in result:
-                triples.append(
-                    Triple(
+                triplets.append(
+                    Triplet(
                         subject=item.get("subject", ""),
                         predicate=item.get("predicate", ""),
                         object=item.get("object", ""),
@@ -794,9 +936,9 @@ Return JSON format: [{{"subject": "...", "predicate": "...", "object": "...", "c
                     )
                 )
 
-        return triples
+        return triplets
     except Exception as e:
-        logger.error(f"LLM triple extraction failed: {e}")
+        logger.error(f"LLM triplet extraction failed: {e}")
         return []
 
 
@@ -818,6 +960,7 @@ def get_entity_method(method_name: str):
         "regex": extract_entities_regex,
         "rules": extract_entities_rules,
         "ml": extract_entities_ml,
+        "spacy": extract_entities_ml,  # Alias for ml
         "huggingface": extract_entities_huggingface,
         "llm": extract_entities_llm,
     }
@@ -844,6 +987,8 @@ def get_relation_method(method_name: str):
         "regex": extract_relations_regex,
         "cooccurrence": extract_relations_cooccurrence,
         "dependency": extract_relations_dependency,
+        "ml": extract_relations_dependency,  # Alias for dependency
+        "spacy": extract_relations_dependency,  # Alias for dependency
         "huggingface": extract_relations_huggingface,
         "llm": extract_relations_llm,
     }
@@ -857,19 +1002,19 @@ def get_relation_method(method_name: str):
     return method_func
 
 
-def get_triple_method(method_name: str):
-    """Get triple extraction method - checks registry for custom methods."""
+def get_triplet_method(method_name: str):
+    """Get triplet extraction method - checks registry for custom methods."""
     # Check registry first
-    custom_method = method_registry.get("triple", method_name)
+    custom_method = method_registry.get("triplet", method_name)
     if custom_method:
         return custom_method
 
     # Built-in methods
     builtin = {
-        "pattern": extract_triples_pattern,
-        "rules": extract_triples_rules,
-        "huggingface": extract_triples_huggingface,
-        "llm": extract_triples_llm,
+        "pattern": extract_triplets_pattern,
+        "rules": extract_triplets_rules,
+        "huggingface": extract_triplets_huggingface,
+        "llm": extract_triplets_llm,
     }
 
     method_func = builtin.get(method_name)

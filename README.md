@@ -83,7 +83,7 @@ Semantica operates through three integrated layers that transform raw data into 
 
 **Input Layer** — Universal ingestion from 50+ data formats (PDFs, DOCX, HTML, JSON, CSV, databases, live feeds, APIs, streams, archives, multi-modal content) into a unified pipeline.
 
-**Semantic Layer** — Core intelligence engine performing entity extraction, relationship mapping, ontology generation, context engineering, and quality assurance. This is where unstructured data transforms into structured knowledge.
+**Semantic Layer** — Core intelligence engine performing entity extraction, relationship mapping, ontology generation, context engineering, and quality assurance. Includes **advanced entity deduplication** (Jaro-Winkler, disjoint property handling) to ensure a clean single source of truth.
 
 **Output Layer** — Production-ready knowledge graphs, vector embeddings, and validated ontologies that power GraphRAG systems, AI agents, and multi-agent systems.
 
@@ -102,7 +102,7 @@ flowchart TD
     D --> E[Semantic Layer<br/>Core Intelligence]
     
     E --> F[Entity Extraction<br/>NER + LLM Enhancement]
-    E --> G[Relationship Mapping<br/>Triple Generation]
+    E --> G[Relationship Mapping<br/>Triplet Generation]
     E --> H[Ontology Generation<br/>6-Stage Pipeline]
     E --> I[Context Engineering<br/>Semantic Enrichment]
     E --> J[Quality Assurance<br/>Conflict Detection]
@@ -153,13 +153,15 @@ flowchart TD
 
 ### How Semantica Solves These Problems
 
+**Efficient Embeddings** — Uses **FastEmbed** by default for high-performance, lightweight local embedding generation (faster than sentence-transformers).
+
 **Universal Data Ingestion** — Handles 50+ formats (PDF, DOCX, HTML, JSON, CSV, databases, APIs, streams) with unified pipeline, no custom parsers needed.
 
-**Automated Semantic Extraction** — NER, relationship extraction, and triple generation with LLM enhancement discovers entities and relationships automatically.
+**Automated Semantic Extraction** — NER, relationship extraction, and triplet generation with LLM enhancement discovers entities and relationships automatically.
 
 **Knowledge Graph Construction** — Production-ready graphs with entity resolution, temporal support, and graph analytics. Queryable knowledge ready for AI applications.
 
-**GraphRAG Engine** — Hybrid vector + graph retrieval achieves 91% accuracy (30% improvement) via semantic search + graph traversal for multi-hop reasoning.
+**GraphRAG Engine** — Hybrid vector + graph retrieval achieves 91% accuracy (30% improvement) via semantic search + graph traversal for multi-hop reasoning. [See Comparison Benchmark](cookbook/use_cases/advanced_rag/02_RAG_vs_GraphRAG_Comparison.ipynb)
 
 **AI Agent Context Engineering** — Persistent memory with RAG + knowledge graphs enables context maintenance, action validation, and structured knowledge access.
 
@@ -174,11 +176,11 @@ flowchart TD
 | **Feature Category** | **Capabilities** | **Key Benefits** |
 |:---------------------|:-----------------|:------------------|
 | **Data Ingestion** | 50+ formats (PDF, DOCX, HTML, JSON, CSV, databases, APIs, streams, archives) | Universal ingestion, no custom parsers needed |
-| **Semantic Extraction** | NER, relationship extraction, triple generation, LLM enhancement | Automated discovery of entities and relationships |
+| **Semantic Extraction** | NER, relationship extraction, triplet generation, LLM enhancement | Automated discovery of entities and relationships |
 | **Knowledge Graphs** | Entity resolution, temporal support, graph analytics, query interface | Production-ready, queryable knowledge structures |
 | **Ontology Generation** | 6-stage LLM pipeline, OWL generation, HermiT/Pellet validation | Automated ontology creation from documents |
 | **GraphRAG** | Hybrid vector + graph retrieval, multi-hop reasoning | 91% accuracy, 30% improvement over vector-only |
-| **Agent Memory** | Persistent memory, RAG integration, MCP-compatible tools | Context-aware agents with semantic understanding |
+| **Agent Memory** | Persistent memory (Save/Load), Hybrid Retrieval (Vector+Graph), FastEmbed support | Context-aware agents with semantic understanding |
 | **Pipeline Orchestration** | Parallel execution, custom steps, orchestrator-worker pattern | Scalable, flexible data processing |
 | **Quality Assurance** | Conflict detection, deduplication, quality scoring, provenance | Trusted knowledge graphs ready for production |
 
@@ -227,8 +229,11 @@ python -c "import semantica; print(semantica.__version__)"
 
 **Current Version:** [![PyPI version](https://badge.fury.io/py/semantica.svg)](https://pypi.org/project/semantica/0.0.1/) • [View on PyPI](https://pypi.org/project/semantica/0.0.1/)
 
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 =======
+=======
+>>>>>>> main
 ## 🍳 Semantica Cookbook
 
 > **Interactive Jupyter Notebooks** designed to take you from beginner to expert.
@@ -240,7 +245,11 @@ python -c "import semantica; print(semantica.__version__)"
 | **Recipe** | **Description** | **Link** |
 |:-----------|:----------------|:---------|
 | **GraphRAG Complete** | Build a production-ready **Graph Retrieval Augmented Generation** system. Features **Graph Validation**, **Hybrid Retrieval**, and **Logical Inference**. | [Open Notebook](cookbook/use_cases/advanced_rag/01_GraphRAG_Complete.ipynb) |
+<<<<<<< HEAD
 | **RAG vs. GraphRAG** | Side-by-side comparison. Demonstrates the **Reasoning Gap** and how GraphRAG solves it. | [Open Notebook](cookbook/use_cases/advanced_rag/02_RAG_vs_GraphRAG_Comparison.ipynb) |
+=======
+| **RAG vs. GraphRAG** | Side-by-side comparison. Demonstrates the **Reasoning Gap** and how GraphRAG solves it with **Inference Engines**. | [Open Notebook](cookbook/use_cases/advanced_rag/02_RAG_vs_GraphRAG_Comparison.ipynb) |
+>>>>>>> main
 | **First Knowledge Graph** | Go from raw text to a queryable knowledge graph in 20 minutes. | [Open Notebook](cookbook/introduction/08_Your_First_Knowledge_Graph.ipynb) |
 | **Real-Time Anomalies** | Detect anomalies in streaming data using dynamic graphs. | [Open Notebook](cookbook/use_cases/cybersecurity/01_Anomaly_Detection_Real_Time.ipynb) |
 
@@ -253,7 +262,10 @@ python -c "import semantica; print(semantica.__version__)"
 
 > **Note:** Once published to PyPI, you'll be able to install with `pip install semantica`
 
+<<<<<<< HEAD
 >>>>>>> Stashed changes
+=======
+>>>>>>> main
 ### Install from Source (Development)
 
 ```bash
@@ -311,10 +323,10 @@ print(f" Ingested {len(sources)} sources")
 
 ### Semantic Intelligence Engine
 
-> **Entity & Relation Extraction** • NER, Relationships, Events, Triples with LLM Enhancement
+> **Entity & Relation Extraction** • NER, Relationships, Events, Triplets with LLM Enhancement
 
 ```python
-from semantica import Semantica
+from semantica.core import Semantica
 
 text = "Apple Inc., founded by Steve Jobs in 1976, acquired Beats Electronics for $3 billion."
 
@@ -331,7 +343,7 @@ print(f"Entities: {len(results.entities)}, Relationships: {len(results.relations
 > **Production-Ready KGs** • Entity Resolution • Temporal Support • Graph Analytics
 
 ```python
-from semantica import Semantica
+from semantica.core import Semantica
 from semantica.kg import GraphAnalyzer
 
 documents = ["doc1.txt", "doc2.txt", "doc3.txt"]
@@ -346,44 +358,79 @@ result = kg.query("Who founded the company?", return_format="structured")
 print(f"Nodes: {kg.node_count}, Answer: {result.answer}")
 ```
 
-[**Cookbook: Building Knowledge Graphs**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/introduction/07_Building_Knowledge_Graphs.ipynb) • [**Graph Store**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/introduction/09_Graph_Store.ipynb) • [**Triple Store**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/introduction/20_Triple_Store.ipynb) • [**Visualization**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/introduction/16_Visualization.ipynb)
+[**Cookbook: Building Knowledge Graphs**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/introduction/07_Building_Knowledge_Graphs.ipynb) • [**Graph Store**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/introduction/09_Graph_Store.ipynb) • [**Triplet Store**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/introduction/20_Triplet_Store.ipynb) • [**Visualization**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/introduction/16_Visualization.ipynb)
 
 [**Graph Analytics**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/introduction/10_Graph_Analytics.ipynb) • [**Advanced Graph Analytics**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/advanced/02_Advanced_Graph_Analytics.ipynb)
+
+### Triplet Store Integration
+
+> **SPARQL Support** • **Blazegraph, Jena, RDF4J** • **Reasoning & Inference**
+
+```python
+from semantica.triplet_store import TripletStore
+
+# Initialize store (Blazegraph, Jena, or RDF4J)
+store = TripletStore(backend="blazegraph", endpoint="http://localhost:9999/blazegraph")
+
+# Add triplets and execute SPARQL queries
+store.add_triplet({
+    "subject": "http://example.org/Alice",
+    "predicate": "http://example.org/knows",
+    "object": "http://example.org/Bob"
+})
+
+results = store.execute_query("SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 10")
+```
+
+[**Cookbook: Triplet Store**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/introduction/20_Triplet_Store.ipynb)
 
 ### Ontology Generation & Management
 
 > **6-Stage LLM Pipeline** • Automatic OWL Generation • HermiT/Pellet Validation
 
 ```python
-from semantica.ontology import OntologyGenerator, OntologyValidator
+from semantica.ontology import OntologyGenerator
 
 generator = OntologyGenerator(llm_provider="openai", model="gpt-4")
 ontology = generator.generate_from_documents(sources=["domain_docs/"])
 
-validator = OntologyValidator(reasoner="hermit")
-validation = validator.validate(ontology)
-
-print(f"Classes: {len(ontology.classes)}, Valid: {validation.is_consistent}")
+print(f"Classes: {len(ontology.classes)}")
 ```
 
 [**Cookbook: Ontology**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/introduction/14_Ontology.ipynb)
 
-### Context Engineering for AI Agents
+### Context Engineering & Memory Systems
 
-> **Persistent Memory** • RAG + Knowledge Graphs • MCP-Compatible Tools
+> **Persistent Memory** • **Hybrid Retrieval (Vector + Graph)** • **Production Graph Store (Neo4j)** • **Entity Linking**
 
 ```python
-from semantica.context import AgentMemory, ContextRetriever
+from semantica.context import AgentContext
 from semantica.vector_store import VectorStore
+from semantica.graph_store import GraphStore
 
-memory = AgentMemory(vector_store=VectorStore(backend="faiss"), retention_policy="unlimited")
-memory.store("User prefers technical docs", metadata={"user_id": "user_123"})
+# Initialize Context with Hybrid Retrieval (Graph + Vector)
+context = AgentContext(
+    vector_store=VectorStore(backend="faiss"),
+    knowledge_graph=GraphStore(backend="neo4j"), # Optional: Use persistent graph
+    hybrid_alpha=0.75  # 75% weight to Knowledge Graph, 25% to Vector
+)
 
-retriever = ContextRetriever(memory_store=memory)
-context = retriever.retrieve("What are user preferences?", max_results=5)
+# Store memory with automatic entity linking
+context.store(
+    "User is building a RAG system with Semantica",
+    metadata={"priority": "high", "topic": "rag"}
+)
+
+# Retrieve with context expansion
+results = context.retrieve("What is the user building?", use_graph_expansion=True)
 ```
 
-[**Cookbook: Vector Store**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/introduction/13_Vector_Store.ipynb) • [**Embedding Generation**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/introduction/12_Embedding_Generation.ipynb) • [**Context Module**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/introduction/19_Context_Module.ipynb) • [**Advanced Vector Store**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/advanced/Advanced_Vector_Store_and_Search.ipynb)
+**Core Notebooks:**
+- [**Context Module Introduction**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/introduction/19_Context_Module.ipynb) - Basic memory and storage.
+- [**Advanced Context Engineering**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/advanced/11_Advanced_Context_Engineering.ipynb) - Hybrid retrieval, graph builders, and custom memory policies.
+
+**Related Components:**
+[**Vector Store**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/introduction/13_Vector_Store.ipynb) • [**Embedding Generation**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/introduction/12_Embedding_Generation.ipynb) • [**Advanced Vector Store**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/advanced/Advanced_Vector_Store_and_Search.ipynb)
 
 ### Knowledge Graph-Powered RAG (GraphRAG)
 
@@ -419,7 +466,7 @@ pipeline = PipelineBuilder() \
 result = ExecutionEngine().execute_pipeline(pipeline, parallel=True)
 ```
 
-[**Cookbook: Pipeline Orchestration**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/advanced/07_Pipeline_Orchestration.ipynb)
+
 
 ### Production-Ready Quality Assurance
 
@@ -429,13 +476,14 @@ result = ExecutionEngine().execute_pipeline(pipeline, parallel=True)
 from semantica.deduplication import DuplicateDetector
 from semantica.conflicts import ConflictDetector
 
-conflicts = ConflictDetector().detect_conflicts(kg)
-duplicates = DuplicateDetector().find_duplicates(entities=kg.entities, similarity_threshold=0.85)
+entities = kg.get("entities", [])
+conflicts = ConflictDetector().detect_conflicts(entities)
+duplicates = DuplicateDetector(similarity_threshold=0.85).detect_duplicates(entities)
 
 print(f"Conflicts: {len(conflicts)} | Duplicates: {len(duplicates)}")
 ```
 
-[**Cookbook: Conflict Detection**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/introduction/17_Conflict_Detection.ipynb) • [**Deduplication**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/introduction/18_Deduplication.ipynb) • [**Graph Quality**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/introduction/11_Graph_Quality.ipynb) • [**Conflict Resolution**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/advanced/04_Conflict_Resolution_Strategies.ipynb)
+[**Cookbook: Conflict Detection & Resolution**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/introduction/17_Conflict_Detection_and_Resolution.ipynb) • [**Deduplication**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/introduction/18_Deduplication.ipynb)
 
 ### Export & Integration
 
@@ -456,7 +504,7 @@ exporter.export("graph.ttl", format="turtle")
 > **For comprehensive examples, see the [**Cookbook**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook) with 50+ interactive notebooks!**
 
 ```python
-from semantica import Semantica
+from semantica.core import Semantica
 
 # Initialize and build knowledge graph
 core = Semantica(ner_model="transformer", relation_strategy="hybrid")
@@ -584,6 +632,12 @@ Contributors receive:
 - GitHub badges
 - Semantica swag
 - Featured showcases
+
+## 🏆 Contributors
+
+<a href="https://github.com/Hawksight-AI/semantica/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Hawksight-AI/semantica" alt="Contributors" />
+</a>
 
 ## 📜 License
 

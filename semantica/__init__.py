@@ -20,29 +20,28 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 # Core imports
-from .core import Config, ConfigManager, LifecycleManager, PluginRegistry, Semantica
+# from .core import Config, ConfigManager, LifecycleManager, PluginRegistry, Semantica
 
 
 # Pipeline imports
-from .pipeline import (
-    ExecutionEngine,
-    FailureHandler,
-    ParallelismManager,
-    PipelineBuilder,
-    PipelineValidator,
-    ResourceScheduler,
-)
+# from .pipeline import (
+#     ExecutionEngine,
+#     FailureHandler,
+#     ParallelismManager,
+#     PipelineBuilder,
+#     PipelineValidator,
+#     ResourceScheduler,
+# )
 
 # Visualization
-from .visualization import (
-    AnalyticsVisualizer,
-    EmbeddingVisualizer,
-    KGVisualizer,
-    OntologyVisualizer,
-    QualityVisualizer,
-    SemanticNetworkVisualizer,
-    TemporalVisualizer,
-)
+# from .visualization import (
+#     AnalyticsVisualizer,
+#     EmbeddingVisualizer,
+#     KGVisualizer,
+#     OntologyVisualizer,
+#     SemanticNetworkVisualizer,
+#     TemporalVisualizer,
+# )
 
 
 # Module proxy class for submodule access
@@ -84,7 +83,7 @@ class _SemanticaModules:
         self._normalize = None
         self._export = None
         self._vector_store = None
-        self._triple_store = None
+        self._triplet_store = None
         self._graph_store = None
         self._ontology = None
         self._evals = None
@@ -160,11 +159,11 @@ class _SemanticaModules:
         return self._vector_store
 
     @property
-    def triple_store(self):
-        """Access triple store module."""
-        if self._triple_store is None:
-            self._triple_store = _ModuleProxy("triple_store")
-        return self._triple_store
+    def triplet_store(self):
+        """Access triplet store module."""
+        if self._triplet_store is None:
+            self._triplet_store = _ModuleProxy("triplet_store")
+        return self._triplet_store
 
     @property
     def graph_store(self):
@@ -191,88 +190,10 @@ class _SemanticaModules:
 # Create singleton instance for module access
 _modules = _SemanticaModules()
 
-# Singleton Semantica instance for module-level build()
-_semantica_instance: Optional[Semantica] = None
 
 
-def _get_semantica_instance(
-    config: Optional[Union[Config, Dict[str, Any]]] = None, **kwargs
-) -> Semantica:
-    """Get or create singleton Semantica instance."""
-    global _semantica_instance
-    if _semantica_instance is None:
-        _semantica_instance = Semantica(config=config, **kwargs)
-    return _semantica_instance
 
-
-def build(
-    sources: Union[List[Union[str, Path]], str, Path],
-    config: Optional[Union[Config, Dict[str, Any]]] = None,
-    **kwargs,
-) -> Dict[str, Any]:
-    """
-    Build knowledge base from data sources (module-level convenience function).
-
-    This is a user-friendly wrapper around Semantica.build_knowledge_base()
-    that handles initialization automatically.
-
-    Args:
-        sources: Data source(s) - can be a single path/URL or list of paths/URLs
-        config: Optional configuration object or dict
-        **kwargs: Additional processing options:
-            - embeddings: Whether to generate embeddings (default: True)
-            - graph: Whether to build knowledge graph (default: True)
-            - normalize: Whether to normalize data (default: True)
-            - pipeline: Custom pipeline configuration
-            - fail_fast: Whether to fail on first error (default: False)
-
-    Returns:
-        Dictionary containing:
-            - knowledge_graph: Knowledge graph data
-            - embeddings: Embedding vectors
-            - metadata: Processing metadata
-            - statistics: Processing statistics
-            - results: Processing results
-
-    Examples:
-        >>> from semantica import build
-        >>> result = build(["doc1.pdf", "doc2.docx"], embeddings=True, graph=True)
-        >>> print(result["statistics"])
-    """
-    # Normalize sources to list
-    if isinstance(sources, (str, Path)):
-        sources = [sources]
-
-    # Get or create Semantica instance
-    semantica = _get_semantica_instance(config=config, **kwargs)
-
-    # Build knowledge base (auto-initializes if needed)
-    return semantica.build_knowledge_base(sources, **kwargs)
-
-
-__all__ = [
-    # Core
-    "Semantica",
-    "Config",
-    "ConfigManager",
-    "LifecycleManager",
-    "PluginRegistry",
-    # Pipeline
-    "PipelineBuilder",
-    "ExecutionEngine",
-    "FailureHandler",
-    "ParallelismManager",
-    "ResourceScheduler",
-    "PipelineValidator",
-    # Visualization
-    "KGVisualizer",
-    "OntologyVisualizer",
-    "EmbeddingVisualizer",
-    "SemanticNetworkVisualizer",
-    "QualityVisualizer",
-    "AnalyticsVisualizer",
-    "TemporalVisualizer",
-]
+__all__ = []
 
 
 # Make submodules accessible via dot notation
@@ -289,7 +210,7 @@ def __getattr__(name: str):
         "normalize",
         "export",
         "vector_store",
-        "triple_store",
+        "triplet_store",
         "graph_store",
         "ontology",
         "evals",

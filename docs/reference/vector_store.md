@@ -1,6 +1,6 @@
 # Vector Store
 
-> **Unified vector database interface supporting FAISS, Pinecone, Weaviate, Qdrant, and Milvus with Hybrid Search.**
+> **Unified vector database interface supporting FAISS, Weaviate, Qdrant, and Milvus with Hybrid Search.**
 
 ---
 
@@ -12,7 +12,7 @@
 
     ---
 
-    Seamlessly switch between FAISS (Local), Pinecone, Weaviate, Qdrant, and Milvus
+    Seamlessly switch between FAISS (Local), Weaviate, Qdrant, and Milvus
 
 -   :material-magnify-plus:{ .lg .middle } **Hybrid Search**
 
@@ -226,16 +226,15 @@ results = searcher.search(
 )
 ```
 
-### Adapters
+### Store Backends
 
 Backend-specific implementations:
-- `FAISSAdapter`: Local, in-memory/disk.
-- `PineconeAdapter`: Managed cloud service.
-- `WeaviateAdapter`: Schema-aware vector DB.
-- `QdrantAdapter`: Rust-based high-performance DB.
-- `MilvusAdapter`: Scalable cloud-native DB.
+- `FAISSStore`: Local, in-memory/disk.
+- `WeaviateStore`: Schema-aware vector DB.
+- `QdrantStore`: Rust-based high-performance DB.
+- `MilvusStore`: Scalable cloud-native DB.
 
-#### FAISSAdapter
+#### FAISSStore
 
 Local vector storage with multiple index types.
 
@@ -247,10 +246,10 @@ Local vector storage with multiple index types.
 **Example:**
 
 ```python
-from semantica.vector_store import FAISSAdapter, FAISSIndexBuilder
+from semantica.vector_store import FAISSStore, FAISSIndexBuilder
 import numpy as np
 
-adapter = FAISSAdapter(dimension=768)
+store = FAISSStore(dimension=768)
 
 # Create HNSW index
 builder = FAISSIndexBuilder()
@@ -258,49 +257,14 @@ index = builder.build(index_type="hnsw", dimension=768, m=16)
 
 # Add vectors
 vectors = np.random.rand(1000, 768).astype('float32')
-adapter.add_vectors(index, vectors, ids=[f"vec_{i}" for i in range(1000)])
+store.add_vectors(vectors, ids=[f"vec_{i}" for i in range(1000)])
 
 # Search
 query = np.random.rand(768).astype('float32')
-distances, indices = adapter.search(index, query, k=10)
+distances, indices = store.search(index, query, k=10)
 ```
 
-#### PineconeAdapter
-
-Managed cloud vector database.
-
-**Helper Classes:**
-- `PineconeIndex`: Index management
-- `PineconeQuery`: Query operations
-- `PineconeMetadata`: Metadata handling
-
-**Example:**
-
-```python
-from semantica.vector_store import PineconeAdapter
-
-adapter = PineconeAdapter(api_key="your-key", environment="us-west1-gcp")
-adapter.connect()
-
-# Create index
-index = adapter.create_index("my-index", dimension=768, metric="cosine")
-
-# Upsert with metadata
-adapter.upsert_vectors(
-    vectors=[[0.1, 0.2, ...], ...],
-    ids=["vec_1", "vec_2"],
-    metadata=[{"category": "news"}, ...]
-)
-
-# Query with filter
-results = adapter.query_vectors(
-    query_vector=[0.1, 0.2, ...],
-    top_k=10,
-    filter={"category": {"$eq": "news"}}
-)
-```
-
-#### WeaviateAdapter
+#### WeaviateStore
 
 Schema-aware vector database with GraphQL.
 
@@ -312,25 +276,25 @@ Schema-aware vector database with GraphQL.
 **Example:**
 
 ```python
-from semantica.vector_store import WeaviateAdapter
+from semantica.vector_store import WeaviateStore
 
-adapter = WeaviateAdapter(url="http://localhost:8080")
-adapter.connect()
+store = WeaviateStore(url="http://localhost:8080")
+store.connect()
 
 # Create schema
-adapter.create_schema(
+store.create_schema(
     "Document",
     properties=[{"name": "text", "dataType": "text"}]
 )
 
 # Add objects
-adapter.add_objects(
+store.add_objects(
     objects=[{"text": "Hello world"}],
     vectors=[[0.1, 0.2, ...]]
 )
 ```
 
-#### QdrantAdapter
+#### QdrantStore
 
 High-performance Rust-based vector database.
 
@@ -342,16 +306,16 @@ High-performance Rust-based vector database.
 **Example:**
 
 ```python
-from semantica.vector_store import QdrantAdapter
+from semantica.vector_store import QdrantStore
 
-adapter = QdrantAdapter(url="http://localhost:6333")
-adapter.connect()
+store = QdrantStore(url="http://localhost:6333")
+store.connect()
 
 # Create collection
-collection = adapter.create_collection("my-collection", dimension=768)
+collection = store.create_collection("my-collection", dimension=768)
 
 # Upsert with payload
-adapter.upsert_vectors(
+store.upsert_vectors(
     collection,
     vectors=[[0.1, 0.2, ...], ...],
     ids=["vec_1", "vec_2"],
@@ -359,7 +323,7 @@ adapter.upsert_vectors(
 )
 ```
 
-#### MilvusAdapter
+#### MilvusStore
 
 Scalable cloud-native vector database.
 
@@ -371,20 +335,20 @@ Scalable cloud-native vector database.
 **Example:**
 
 ```python
-from semantica.vector_store import MilvusAdapter
+from semantica.vector_store import MilvusStore
 
-adapter = MilvusAdapter(host="localhost", port="19530")
-adapter.connect()
+store = MilvusStore(host="localhost", port="19530")
+store.connect()
 
 # Create collection
-collection = adapter.create_collection(
+collection = store.create_collection(
     "my-collection",
     dimension=768,
     metric_type="L2"
 )
 
 # Insert vectors
-adapter.insert_vectors(collection, vectors, ids)
+store.insert_vectors(collection, vectors, ids)
 ```
 
 ---
@@ -716,25 +680,23 @@ print(f"Available methods: {methods}")
 ### Environment Variables
 
 ```bash
-export VECTOR_STORE_BACKEND=pinecone
-export PINECONE_API_KEY=sk-...
-export PINECONE_ENV=us-west1-gcp
+export VECTOR_STORE_BACKEND=weaviate
+export WEAVIATE_URL=http://localhost:8080
 ```
 
 ### YAML Configuration
 
 ```yaml
 vector_store:
-  backend: faiss # or pinecone, weaviate, etc.
+  backend: faiss # or weaviate, qdrant, milvus
   dimension: 1536
   metric: cosine
   
   faiss:
     index_type: HNSW
     
-  pinecone:
-    environment: us-west1-gcp
-    index_name: my-index
+  weaviate:
+    url: http://localhost:8080
 ```
 
 ---
@@ -777,7 +739,7 @@ print(f"Context: {context}")
 **Solution**: Ensure your embedding model dimension (e.g., 1536 for OpenAI) matches the VectorStore dimension.
 
 **Issue**: FAISS index not saved.
-**Solution**: Call `store.save("index.faiss")` explicitly for local FAISS indices, or use a persistent backend like Pinecone/Qdrant.
+**Solution**: Call `store.save("index.faiss")` explicitly for local FAISS indices, or use a persistent backend like Weaviate/Qdrant.
 
 ---
 

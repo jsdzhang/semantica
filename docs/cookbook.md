@@ -44,6 +44,40 @@ Hand-picked tutorials to show you the power of Semantica.
     
     [Open Notebook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/advanced_rag/01_GraphRAG_Complete.ipynb)
 
+-   :material-scale-balance: **RAG vs. GraphRAG Comparison**
+    ---
+    Side-by-side comparison of Standard RAG vs. GraphRAG using real-world data.
+    
+    **Topics**: RAG, GraphRAG, Benchmarking, Visualization
+    
+    **Difficulty**: Intermediate
+    
+    [Open Notebook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/advanced_rag/02_RAG_vs_GraphRAG_Comparison.ipynb)
+
+-   :material-robot: **GraphRAG Complete**
+    ---
+    Build a production-ready Graph Retrieval Augmented Generation system.
+    
+    **New Features**: Graph Validation, Logical Inference, Hybrid Context.
+    
+    **Topics**: RAG, LLMs, Vector Search, Graph Traversal
+    
+    **Difficulty**: Advanced
+    
+    [Open Notebook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/advanced_rag/01_GraphRAG_Complete.ipynb)
+
+-   :material-scale-balance: **RAG vs. GraphRAG Comparison**
+    ---
+    Side-by-side comparison of Standard RAG vs. GraphRAG using real-world data.
+    
+    **New Features**: Inference-Enhanced GraphRAG, Reasoning Gap Analysis.
+    
+    **Topics**: RAG, GraphRAG, Benchmarking, Visualization
+    
+    **Difficulty**: Intermediate
+    
+    [Open Notebook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/advanced_rag/02_RAG_vs_GraphRAG_Comparison.ipynb)
+
 -   :material-graph: **Your First Knowledge Graph**
     ---
     Go from raw text to a queryable knowledge graph in 20 minutes.
@@ -202,6 +236,16 @@ Deep dive into advanced features, customization, and complex workflows.
     
     [Open Notebook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/advanced/02_Advanced_Graph_Analytics.ipynb)
 
+-   :material-brain: **Advanced Context Engineering**
+    ---
+    Build a production-grade memory system for AI agents using persistent Vector (FAISS) and Graph (Neo4j) stores.
+    
+    **Topics**: Agent Memory, GraphRAG, Entity Injection, Lifecycle Management
+    
+    **Difficulty**: Advanced
+    
+    [Open Notebook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/advanced/11_Advanced_Context_Engineering.ipynb)
+
 -   :material-monitor-dashboard: **Complete Visualization Suite**
     ---
     Creating interactive, publication-ready visualizations of your graphs.
@@ -220,7 +264,7 @@ Deep dive into advanced features, customization, and complex workflows.
     
     **Difficulty**: Advanced
     
-    [Open Notebook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/advanced/04_Conflict_Resolution_Strategies.ipynb)
+    [Open Notebook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/introduction/17_Conflict_Detection_and_Resolution.ipynb)
 
 -   :material-export: **Multi-Format Export**
     ---
@@ -242,6 +286,7 @@ Deep dive into advanced features, customization, and complex workflows.
     
     [Open Notebook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/advanced/06_Multi_Source_Data_Integration.ipynb)
 
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 -   :material-pipe: **Pipeline Orchestration**
     ---
@@ -252,6 +297,8 @@ Deep dive into advanced features, customization, and complex workflows.
     **Difficulty**: Advanced
     
     [Open Notebook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/advanced/07_Pipeline_Orchestration.ipynb)
+=======
+>>>>>>> main
 
 -   :material-brain: **Reasoning and Inference**
     ---

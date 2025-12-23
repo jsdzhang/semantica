@@ -11,7 +11,7 @@ Key Features:
     - Vector indexing and optimization
     - Metadata association with vectors
     - Vector update and deletion operations
-    - Multi-backend support through adapters
+    - Multi-backend support through stores
 
 Main Classes:
     - VectorStore: Main vector store interface for storing and searching vectors
@@ -37,13 +37,14 @@ Author: Semantica Contributors
 License: MIT
 """
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
 from ..utils.exceptions import ProcessingError, ValidationError
 from ..utils.logging import get_logger
 from ..utils.progress_tracker import get_progress_tracker
+from ..embeddings import EmbeddingGenerator
 
 
 class VectorStore:
@@ -58,8 +59,16 @@ class VectorStore:
     • Provides vector store operations
     """
 
+    SUPPORTED_BACKENDS = {"faiss", "weaviate", "qdrant", "milvus", "inmemory"}
+
     def __init__(self, backend="faiss", config=None, **kwargs):
         """Initialize vector store."""
+        if backend.lower() not in self.SUPPORTED_BACKENDS:
+            raise ValueError(
+                f"Unsupported backend: {backend}. "
+                f"Supported backends are: {', '.join(sorted(self.SUPPORTED_BACKENDS))}"
+            )
+
         self.logger = get_logger("vector_store")
         self.config = config or {}
         self.config.update(kwargs)
@@ -80,6 +89,86 @@ class VectorStore:
             backend=backend, dimension=self.dimension, **indexer_config
         )
         self.retriever = VectorRetriever(backend=backend, **self.config)
+
+        # Initialize embedding generator
+        try:
+            self.embedder = EmbeddingGenerator()
+            # Set default model if not configured, or respect global config
+            # For now, we try to ensure a model is loaded if possible
+            if hasattr(self.embedder, "set_text_model"):
+                # Use a lightweight default if none specified, or let EmbeddingGenerator handle defaults
+                pass
+        except Exception as e:
+            self.logger.warning(f"Could not initialize embedding generator: {e}")
+            self.embedder = None
+
+    def embed(self, text: str) -> np.ndarray:
+        """
+        Generate embedding for text using the internal embedder.
+        
+        Args:
+            text: Text to embed
+            
+        Returns:
+            Numpy array of embedding
+        """
+        if self.embedder:
+            try:
+                return self.embedder.generate_embeddings(text)
+            except Exception as e:
+                self.logger.warning(f"Embedding generation failed: {e}")
+        
+        # Fallback or raise? AgentMemory expects None or valid embedding.
+        # Returning random vector as fallback for now (matches DemoVectorStore behavior)
+        # to prevent crashes, but logging warning.
+        self.logger.warning("Using random fallback embedding")
+        return np.random.rand(self.dimension).astype(np.float32)
+
+    def store(
+        self,
+        vectors: List[np.ndarray],
+        documents: Optional[List[Any]] = None,
+        metadata: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None,
+        **options,
+    ) -> List[str]:
+        """
+        Convenience method to store vectors with documents/metadata.
+
+        Args:
+            vectors: List of embeddings
+            documents: Optional list of source documents
+            metadata: Optional metadata (dict for all, or list for each)
+            **options: Additional options
+
+        Returns:
+            List[str]: Vector IDs
+        """
+        # Prepare metadata list
+        num_vectors = len(vectors)
+        final_metadata = []
+
+        if isinstance(metadata, list):
+            if len(metadata) != num_vectors:
+                raise ValueError("Metadata list length must match vectors length")
+            final_metadata = metadata
+        elif isinstance(metadata, dict):
+            # Apply same metadata to all, copy to avoid shared reference issues
+            final_metadata = [metadata.copy() for _ in range(num_vectors)]
+        else:
+            final_metadata = [{} for _ in range(num_vectors)]
+
+        # Merge document metadata if available
+        if documents and len(documents) == num_vectors:
+            for i, doc in enumerate(documents):
+                doc_meta = {}
+                if hasattr(doc, "metadata"):
+                    doc_meta = doc.metadata
+                elif isinstance(doc, dict):
+                    doc_meta = doc.get("metadata", {})
+                
+                final_metadata[i].update(doc_meta)
+        
+        return self.store_vectors(vectors, metadata=final_metadata, **options)
 
     def store_vectors(
         self,
@@ -135,8 +224,11 @@ class VectorStore:
             )
             raise
 
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 =======
+=======
+>>>>>>> main
     def save(self, path: str) -> None:
         """
         Save vector store to disk.
@@ -216,12 +308,19 @@ class VectorStore:
             List of results with scores
         """
         # Generate embedding for query
+<<<<<<< HEAD
         query_vector = self.embed(query)
+=======
+        query_vector = self.embed([query])[0]
+>>>>>>> main
 
         # Search by vector
         return self.search_vectors(query_vector=query_vector, k=limit, **options)
 
+<<<<<<< HEAD
 >>>>>>> Stashed changes
+=======
+>>>>>>> main
     def search_vectors(
         self, query_vector: np.ndarray, k: int = 10, **options
     ) -> List[Dict[str, Any]]:

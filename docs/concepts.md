@@ -65,7 +65,7 @@ graph LR
     Build a knowledge graph from a document with just a few lines:
     
     ```python
-    from semantica import Semantica
+    from semantica.core import Semantica
 
     # Initialize Semantica with default settings
     semantica = Semantica()
@@ -127,7 +127,7 @@ graph LR
     Merge knowledge from multiple data sources:
     
     ```python
-    from semantica import Semantica
+    from semantica.core import Semantica
 
     semantica = Semantica()
 
@@ -345,7 +345,7 @@ graph LR
     ```python
     from semantica.semantic_extract import (
         NamedEntityRecognizer,
-        LLMEnhancer,
+        LLMExtraction,
         create_provider
     )
     
@@ -543,14 +543,14 @@ graph LR
         print(f"  {rel['source_text']} {arrow} {rel['target_text']}")
         print(f"    Relation: {rel['type']}")
     ```
-=== "Triple Extraction (RDF)"
-    Extract subject-predicate-object triples for RDF/semantic web:
+=== "Triplet Extraction (RDF)"
+    Extract subject-predicate-object triplets for RDF/semantic web:
     
     ```python
     from semantica.semantic_extract import (
-        TripleExtractor,
+        TripletExtractor,
         RDFSerializer,
-        TripleValidator
+        TripletValidator
     )
     
     text = """
@@ -559,30 +559,30 @@ graph LR
     Einstein worked at Princeton University until his death in 1955.
     """
     
-    # Extract RDF-style triples
-    extractor = TripleExtractor(
+    # Extract RDF-style triplets
+    extractor = TripletExtractor(
         include_temporal=True,  # Include time information
         include_provenance=True  # Track source sentences
     )
     
-    triples = extractor.extract_triples(text)
+    triplets = extractor.extract_triplets(text)
     
-    print("Extracted Triples (Subject-Predicate-Object):")
-    for triple in triples:
-        print(f"  Subject:   {triple['subject']}")
-        print(f"  Predicate: {triple['predicate']}")
-        print(f"  Object:    {triple['object']}")
-        if triple.get('temporal'):
-            print(f"  When:      {triple['temporal']}")
+    print("Extracted Triplets (Subject-Predicate-Object):")
+    for triplet in triplets:
+        print(f"  Subject:   {triplet['subject']}")
+        print(f"  Predicate: {triplet['predicate']}")
+        print(f"  Object:    {triplet['object']}")
+        if triplet.get('temporal'):
+            print(f"  When:      {triplet['temporal']}")
         print()
     
-    validator = TripleValidator()
-    validation = validator.validate(triples)
-    print(f"Valid triples: {validation['valid_count']}/{len(triples)}")
+    validator = TripletValidator()
+    validation = validator.validate(triplets)
+    print(f"Valid triplets: {validation['valid_count']}/{len(triplets)}")
     
     serializer = RDFSerializer(format="turtle")
     turtle_output = serializer.serialize(
-        triples,
+        triplets,
         base_uri="https://example.org/knowledge/"
     )
     print("Turtle Output:")
@@ -1220,7 +1220,7 @@ flowchart TD
     Build a knowledge base and query with GraphRAG:
     
     ```python
-    from semantica import Semantica
+    from semantica.core import Semantica
     from semantica.vector_store import VectorStore, store_vectors, search_vectors
     from semantica.semantic_extract import NamedEntityRecognizer
     from semantica.embeddings import embed_text
@@ -1414,7 +1414,7 @@ flowchart TD
     Integrate with LLM providers for answer generation:
     
     ```python
-    from semantica import Semantica
+    from semantica.core import Semantica
     from semantica.semantic_extract import create_provider, OpenAIProvider
     from semantica.context import ContextRetriever
     from semantica.vector_store import VectorStore
@@ -1675,55 +1675,6 @@ classDiagram
     print("Ontology saved to company_ontology.ttl")
     ```
 
-=== "Ontology Validation"
-    Validate ontologies with symbolic reasoners:
-    
-    ```python
-    from semantica.ontology import OntologyValidator, validate_ontology
-    
-    # Load or create ontology
-    ontology_file = "company_ontology.ttl"
-    
-    # Method 1: Using the convenience function
-    result = validate_ontology(ontology_file, method="default")
-    print(f"Quick validation: {'Valid' if result['valid'] else 'Invalid'}")
-    
-    # Method 2: Using OntologyValidator for more control
-    validator = OntologyValidator(
-        reasoner="hermit",  # hermit, pellet, or auto
-        check_consistency=True,
-        check_satisfiability=True
-    )
-    
-    # Validate the ontology
-    validation_result = validator.validate(ontology_file)
-    
-    print(f"Validation Results:")
-    print(f"  Consistent: {'Yes' if validation_result.consistent else 'No'}")
-    print(f"  Satisfiable: {'Yes' if validation_result.satisfiable else 'No'}")
-    
-    if validation_result.errors:
-        print(f"Errors ({len(validation_result.errors)}):")
-        for error in validation_result.errors:
-            print(f"  - {error}")
-    
-    if validation_result.warnings:
-        print(f"Warnings ({len(validation_result.warnings)}):")
-        for warning in validation_result.warnings:
-            print(f"  - {warning}")
-    
-    # Check specific constraints
-    constraints = [
-        "Every CEO must work for exactly one Company",
-        "A Person cannot be their own manager"
-    ]
-    
-    for constraint in constraints:
-        is_valid = validator.check_constraint(constraint)
-        status = "PASS" if is_valid else "FAIL"
-        print(f"  [{status}] {constraint}")
-    ```
-
 === "Competency Questions"
     Define and evaluate competency questions:
     
@@ -1832,197 +1783,8 @@ classDiagram
 
 ---
 
-### 8. Quality Assurance
-
-!!! abstract "Definition"
-    **Quality Assurance** encompasses processes and metrics to ensure knowledge graph quality, including completeness, consistency, accuracy, and coverage validation.
-
-**Quality Dimensions**:
-
-| Dimension | Description | Metrics |
-| :--- | :--- | :--- |
-| **Completeness** | Percentage of entities with required properties | Property coverage, missing fields |
-| **Consistency** | Absence of contradictions | Conflict count, validation errors |
-| **Accuracy** | Correctness of extracted information | Precision, recall, F1-score |
-| **Coverage** | Breadth of domain coverage | Entity diversity, relationship types |
-| **Freshness** | How up-to-date the data is | Last update timestamp, staleness |
 
 
-**Practical Examples**:
-
-=== "Quality Assessment"
-    Assess the quality of your knowledge graph:
-    
-    ```python
-    from semantica import (
-        KGQualityAssessor,
-        QualityMetrics,
-        CompletenessMetrics,
-        ConsistencyMetrics
-    )
-    
-    # Initialize quality assessor
-    assessor = KGQualityAssessor()
-    
-    # Run comprehensive quality assessment
-    quality_report = assessor.assess(kg)
-    
-    print("Knowledge Graph Quality Report")
-    print(f"Overall Score: {quality_report['overall_score']:.1%}")
-    
-    # Completeness analysis
-    completeness = quality_report['completeness']
-    print(f"Completeness: {completeness['score']:.1%}")
-    print(f"  Entities with all required fields: {completeness['complete_entities']}/{completeness['total_entities']}")
-    print(f"  Missing fields: {completeness['missing_fields']}")
-    
-    # Consistency analysis
-    consistency = quality_report['consistency']
-    print(f"Consistency: {consistency['score']:.1%}")
-    print(f"  Conflicts detected: {consistency['conflict_count']}")
-    print(f"  Type mismatches: {consistency['type_mismatches']}")
-    
-    # Coverage analysis
-    coverage = quality_report['coverage']
-    print(f"Coverage: {coverage['score']:.1%}")
-    print(f"  Entity types: {coverage['entity_type_count']}")
-    print(f"  Relationship types: {coverage['relationship_type_count']}")
-    print(f"  Orphaned entities: {coverage['orphaned_count']}")
-    ```
-
-=== "Validation and Constraints"
-    Validate your graph against rules and constraints:
-    
-    ```python
-    from semantica import ValidationEngine, ConstraintValidator
-    from semantica.kg import GraphValidator
-    
-    # Initialize validation engine
-    validator = ValidationEngine()
-    graph_validator = GraphValidator()
-    
-    # Define custom validation rules
-    rules = [
-        {
-            "name": "entity_has_type",
-            "description": "Every entity must have a type",
-            "check": lambda e: "type" in e and e["type"]
-        },
-        {
-            "name": "relationship_has_valid_endpoints",
-            "description": "Relationships must reference existing entities",
-            "check": lambda r, entities: r["source"] in entities and r["target"] in entities
-        },
-        {
-            "name": "person_has_name",
-            "description": "Person entities must have a name property",
-            "check": lambda e: e.get("type") != "Person" or "name" in e.get("properties", {})
-        }
-    ]
-    
-    # Run validation with custom rules
-    results = validator.validate(kg, rules=rules)
-    
-    print("Validation Results:")
-    for rule_name, result in results['rule_results'].items():
-        status = "PASS" if result['passed'] else "FAIL"
-        print(f"[{status}] {rule_name}")
-        if not result['passed']:
-            print(f"  Failed: {len(result['violations'])} violations")
-            for v in result['violations'][:3]:
-                print(f"  - {v['entity_id']}: {v['message']}")
-    
-    # Validate graph structure
-    graph_result = graph_validator.validate(kg)
-    print(f"Graph Valid: {graph_result['valid']}")
-    if graph_result['errors']:
-        for error in graph_result['errors'][:3]:
-            print(f"  Error: {error}")
-    
-    # Check cardinality constraints
-    constraint_validator = ConstraintValidator()
-    constraint_results = constraint_validator.validate(kg, [
-        {"property": "CEO_OF", "max_cardinality": 1},
-        {"property": "WORKS_FOR", "min_cardinality": 0, "max_cardinality": 3}
-    ])
-    ```
-
-=== "Automated Fixes"
-    Automatically fix common quality issues:
-    
-    ```python
-    from semantica import AutomatedFixer, IssueTracker, KGQualityAssessor
-    
-    # Track and find issues
-    tracker = IssueTracker()
-    issues = tracker.find_issues(kg)
-    
-    print(f"Found {len(issues)} issues:")
-    for issue in issues[:5]:
-        print(f"  [{issue['severity']}] {issue['type']}: {issue['message']}")
-    
-    # Initialize fixer
-    fixer = AutomatedFixer()
-    
-    # Apply automated fixes
-    fixed_kg, fix_report = fixer.fix(
-        kg,
-        fix_types=[
-            "missing_entity_type",
-            "orphaned_relationships", 
-            "duplicate_relationships",
-            "empty_properties"
-        ],
-        dry_run=False
-    )
-    
-    print(f"Applied {fix_report['fixes_applied']} fixes:")
-    for fix_type, count in fix_report['by_type'].items():
-        print(f"  {fix_type}: {count}")
-    
-    # Measure quality improvement
-    assessor = KGQualityAssessor()
-    quality_after = assessor.assess(fixed_kg)
-    print(f"Quality after fixes: {quality_after['overall_score']:.1%}")
-    ```
-
-=== "Quality Reporting"
-    Generate detailed quality reports:
-    
-    ```python
-    from semantica import QualityReporter, ImprovementSuggestions
-    
-    # Initialize reporter
-    reporter = QualityReporter()
-    
-    # Generate HTML report
-    reporter.generate_report(
-        kg,
-        output_path="quality_report.html",
-        format="html",
-        include_visualizations=True
-    )
-    
-    # Generate JSON report for programmatic use
-    json_report = reporter.generate_report(kg, format="json")
-    
-    print(f"Report generated with {len(json_report.get('sections', []))} sections")
-    
-    # Get improvement suggestions
-    suggestions = ImprovementSuggestions()
-    recommendations = suggestions.analyze(kg)
-    
-    print("Improvement Suggestions:")
-    for rec in recommendations:
-        print(f"  Priority {rec['priority']}: {rec['suggestion']}")
-        print(f"    Impact: {rec['expected_improvement']}")
-        print(f"    Effort: {rec['effort_level']}")
-    ```
-
-
-**Related Modules**:
-- [`kg_qa` Module](reference/evals.md) - Quality assurance and evaluation
-- [`conflicts` Module](reference/conflicts.md) - Conflict detection
 
 ---
 
@@ -2505,24 +2267,25 @@ flowchart LR
     Find conflicts in your knowledge graph:
     
     ```python
-    from semantica.kg import ConflictDetector
-    from semantica.conflicts import ConflictAnalyzer, detect_conflicts
+    from semantica.conflicts import ConflictAnalyzer, ConflictDetector
     
     # Sample knowledge graph with conflicts
     kg = {
         "entities": [
             {
-                "id": "e1", 
-                "text": "Apple Inc.", 
+                "id": "e1",
+                "text": "Apple Inc.",
                 "type": "Organization",
-                "properties": {"founded": "1976", "employees": "160000"},
+                "founded": "1976",
+                "employees": "160000",
                 "source": "wikipedia"
             },
             {
-                "id": "e2", 
-                "text": "Apple Inc.", 
+                "id": "e1",
+                "text": "Apple Inc.",
                 "type": "Organization",
-                "properties": {"founded": "1977", "employees": "164000"},
+                "founded": "1977",
+                "employees": "164000",
                 "source": "bloomberg"
             },
         ],
@@ -2534,14 +2297,6 @@ flowchart LR
         ]
     }
     
-    # Method 1: Using convenience function
-    conflicts = detect_conflicts(
-        kg["entities"],
-        method="value",
-        property_name="founded"
-    )
-    
-    # Method 2: Using ConflictDetector class
     detector = ConflictDetector()
     all_conflicts = detector.detect_value_conflicts(kg["entities"], "founded")
     
@@ -2550,17 +2305,17 @@ flowchart LR
         print(f"  Type: {conflict.conflict_type.value}")
         print(f"  Entity: {conflict.entity_id}")
         print(f"  Property: {conflict.property_name}")
-        print(f"  Values: {[v['value'] for v in conflict.values]}")
+        print(f"  Values: {conflict.conflicting_values}")
         print(f"  Sources: {conflict.sources}")
     
     # Analyze conflicts
     analyzer = ConflictAnalyzer()
-    analysis = analyzer.analyze(all_conflicts)
+    analysis = analyzer.analyze_conflicts(all_conflicts)
     
     print(f"Conflict Analysis:")
     print(f"  Total conflicts: {analysis['total_conflicts']}")
-    print(f"  By type: {analysis['by_type']}")
-    print(f"  By severity: {analysis['by_severity']}")
+    print(f"  By type: {analysis.get('by_type', {}).get('counts')}")
+    print(f"  By severity: {analysis.get('by_severity', {}).get('counts')}")
     ```
 
 === "Resolution Strategies"
@@ -2569,7 +2324,6 @@ flowchart LR
     ```python
     from semantica.conflicts import (
         ConflictResolver,
-        ResolutionStrategy,
         Conflict,
         ConflictType
     )
@@ -2579,95 +2333,76 @@ flowchart LR
         Conflict(
             conflict_id="c1",
             entity_id="e1",
-            conflict_type=ConflictType.VALUE,
+            conflict_type=ConflictType.VALUE_CONFLICT,
             property_name="founded",
-            values=[
-                {"value": "1976", "source": "wikipedia", "confidence": 0.95},
-                {"value": "1976", "source": "sec_filing", "confidence": 0.99},
-                {"value": "1977", "source": "news_article", "confidence": 0.70}
+            conflicting_values=["1976", "1976", "1977"],
+            sources=[
+                {"document": "wikipedia", "confidence": 0.95},
+                {"document": "sec_filing", "confidence": 0.99},
+                {"document": "news_article", "confidence": 0.70},
             ],
-            sources=["wikipedia", "sec_filing", "news_article"]
         )
     ]
     
     # Strategy 1: Voting (most common value wins)
-    resolver_voting = ConflictResolver(strategy=ResolutionStrategy.VOTING)
-    resolved_voting = resolver_voting.resolve(conflicts)
+    resolver = ConflictResolver()
+    resolved_voting = resolver.resolve_conflicts(conflicts, strategy="voting")
     
     print("Voting Resolution:")
     for r in resolved_voting:
-        print(f"  {r.property_name}: {r.resolved_value}")
+        print(f"  {r.conflict_id}: {r.resolved_value} (confidence: {r.confidence:.2f})")
     
     # Strategy 2: Highest confidence
-    resolver_conf = ConflictResolver(strategy=ResolutionStrategy.HIGHEST_CONFIDENCE)
-    resolved_conf = resolver_conf.resolve(conflicts)
+    resolved_conf = resolver.resolve_conflicts(conflicts, strategy="highest_confidence")
     
     print("Highest Confidence Resolution:")
     for r in resolved_conf:
-        print(f"  {r.property_name}: {r.resolved_value} (confidence: {r.confidence:.2f})")
+        print(f"  {r.conflict_id}: {r.resolved_value} (confidence: {r.confidence:.2f})")
     
-    # Strategy 3: Source priority
-    resolver_priority = ConflictResolver(
-        strategy=ResolutionStrategy.SOURCE_PRIORITY,
-        source_priority=["sec_filing", "wikipedia", "news_article"]
-    )
-    resolved_priority = resolver_priority.resolve(conflicts)
+    # Strategy 3: Credibility weighted
+    resolved_cred = resolver.resolve_conflicts(conflicts, strategy="credibility_weighted")
     
-    print("Source Priority Resolution:")
-    for r in resolved_priority:
-        print(f"  {r.property_name}: {r.resolved_value} (source: {r.selected_source})")
+    print("Credibility Weighted Resolution:")
+    for r in resolved_cred:
+        print(f"  {r.conflict_id}: {r.resolved_value} (confidence: {r.confidence:.2f})")
     ```
 
 === "Custom Resolution Rules"
     Define custom resolution rules per property:
     
     ```python
-    from semantica.conflicts import (
-        ConflictResolver,
-        ResolutionStrategy,
-        resolve_conflicts
-    )
+    from semantica.conflicts import ConflictResolver
     
     # Define property-specific resolution rules
     resolution_config = {
         "founded": {
-            "strategy": ResolutionStrategy.SOURCE_PRIORITY,
-            "source_priority": ["official_records", "sec_filing", "wikipedia"]
+            "strategy": "highest_confidence",
         },
         "revenue": {
-            "strategy": ResolutionStrategy.MOST_RECENT,
+            "strategy": "most_recent",
         },
         "employees": {
-            "strategy": ResolutionStrategy.VOTING,
+            "strategy": "voting",
         },
         "ceo": {
-            "strategy": ResolutionStrategy.HIGHEST_CONFIDENCE,
+            "strategy": "highest_confidence",
         }
     }
     
-    # Create resolver with custom config
-    resolver = ConflictResolver(
-        strategy=ResolutionStrategy.HIGHEST_CONFIDENCE,
-        min_confidence=0.7
-    )
+    resolver = ConflictResolver()
     
     # Resolve conflicts for each property
     resolved_values = {}
     for property_name, config in resolution_config.items():
-        property_resolver = ConflictResolver(
-            strategy=config["strategy"],
-            source_priority=config.get("source_priority")
-        )
-        
         # Get conflicts for this property
         property_conflicts = [c for c in conflicts if c.property_name == property_name]
         
         if property_conflicts:
-            results = property_resolver.resolve(property_conflicts)
+            results = resolver.resolve_conflicts(property_conflicts, strategy=config["strategy"])
             for result in results:
                 resolved_values[property_name] = {
                     "value": result.resolved_value,
-                    "strategy": config["strategy"].value,
+                    "strategy": config["strategy"],
                     "confidence": result.confidence
                 }
     
@@ -2681,54 +2416,45 @@ flowchart LR
     
     ```python
     from semantica.conflicts import SourceTracker, SourceReference
+    from datetime import datetime
     
     # Initialize source tracker
     tracker = SourceTracker()
     
-    # Add entities from different sources
-    tracker.add_source(SourceReference(
-        entity_id="e1",
-        property_name="founded",
-        value="1976",
-        source="wikipedia",
-        timestamp="2024-01-15",
-        confidence=0.95
-    ))
+    tracker.track_property_source(
+        "e1",
+        "founded",
+        "1976",
+        SourceReference(document="wikipedia", confidence=0.95, timestamp=datetime(2024, 1, 15)),
+    )
+    tracker.track_property_source(
+        "e1",
+        "founded",
+        "1976",
+        SourceReference(document="sec_filing", confidence=0.99, timestamp=datetime(2024, 3, 1)),
+    )
+    tracker.track_property_source(
+        "e1",
+        "founded",
+        "1977",
+        SourceReference(document="news_article", confidence=0.70, timestamp=datetime(2024, 2, 20)),
+    )
     
-    tracker.add_source(SourceReference(
-        entity_id="e1",
-        property_name="founded",
-        value="1976",
-        source="sec_filing",
-        timestamp="2024-03-01",
-        confidence=0.99
-    ))
-    
-    tracker.add_source(SourceReference(
-        entity_id="e1",
-        property_name="founded",
-        value="1977",
-        source="news_article",
-        timestamp="2024-02-20",
-        confidence=0.70
-    ))
-    
-    # Get all sources for an entity
-    sources = tracker.get_sources("e1")
+    sources = tracker.get_entity_sources("e1")
     
     print("Entity Sources:")
     for source in sources:
-        print(f"  Source: {source.source}")
-        print(f"  Property: {source.property_name}")
-        print(f"  Value: {source.value}")
+        print(f"  Source: {source.document}")
         print(f"  Confidence: {source.confidence}")
     
     # Get property-specific sources
     property_sources = tracker.get_property_sources("e1", "founded")
     
     print("Property Sources for 'founded':")
-    for ps in property_sources:
-        print(f"  {ps.value} from {ps.source} ({ps.timestamp})")
+    if property_sources:
+        print(f"  Value: {property_sources.value}")
+        for ps in property_sources.sources:
+            print(f"  {ps.document} ({ps.timestamp})")
     ```
 
 === "Conflict Investigation"
@@ -2737,7 +2463,6 @@ flowchart LR
     ```python
     from semantica.conflicts import (
         InvestigationGuideGenerator,
-        ConflictDetector,
         Conflict,
         ConflictType
     )
@@ -2749,14 +2474,14 @@ flowchart LR
     conflict = Conflict(
         conflict_id="c1",
         entity_id="e1",
-        conflict_type=ConflictType.VALUE,
+        conflict_type=ConflictType.VALUE_CONFLICT,
         property_name="founded",
-        values=[
-            {"value": "1976", "source": "wikipedia", "confidence": 0.95},
-            {"value": "1977", "source": "news", "confidence": 0.70}
+        conflicting_values=["1976", "1977"],
+        sources=[
+            {"document": "wikipedia", "confidence": 0.95},
+            {"document": "news", "confidence": 0.70},
         ],
-        sources=["wikipedia", "news"],
-        severity=0.6
+        severity="medium"
     )
     
     # Generate investigation guide
@@ -2765,25 +2490,14 @@ flowchart LR
     print("Conflict Investigation Guide:")
     print(f"  Conflict ID: {guide.conflict_id}")
     print(f"  Title: {guide.title}")
-    print(f"  Summary: {guide.summary}")
+    print(f"  Summary: {guide.conflict_summary}")
     
     print("Investigation Steps:")
-    for i, step in enumerate(guide.steps, 1):
+    for i, step in enumerate(guide.investigation_steps, 1):
         print(f"  {i}. {step.description}")
-        print(f"     Priority: {step.priority}")
         if step.expected_outcome:
             print(f"     Expected: {step.expected_outcome}")
-    
-    print("Checklist:")
-    for item in guide.checklist:
-        print(f"  [ ] {item}")
-    
-    # Get context for the conflict
-    context = guide_generator.get_conflict_context(conflict)
-    print(f"Context:")
-    print(f"  Entity: {context.get('entity_text', 'Unknown')}")
-    print(f"  Property: {context.get('property', 'Unknown')}")
-    print(f"  Value count: {len(conflict.values)}")
+    print(f"  Value count: {len(conflict.conflicting_values)}")
 
     ```
 
@@ -2850,7 +2564,7 @@ import os
 api_key = os.getenv("OPENAI_API_KEY")
 
 # Good: Use config files
-from semantica import Config
+from semantica.core import Config
 config = Config.from_file("config.yaml")
 semantica = Semantica(config=config)
 ```
@@ -2875,7 +2589,7 @@ semantica = Semantica(config=config)
 - Gracefully handle API failures
 
 ```python
-from semantica import Semantica
+from semantica.core import Semantica
 import logging
 
 logging.basicConfig(level=logging.INFO)

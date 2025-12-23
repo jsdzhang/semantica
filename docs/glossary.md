@@ -85,10 +85,10 @@ A comprehensive reference of terms and concepts used in Semantica.
 ## K
 
 **Knowledge Graph (KG)**
-: A structured representation of entities and their relationships, typically stored as a graph with nodes representing entities and edges representing relationships.
+:   A structured representation of knowledge using entities (nodes) and relationships (edges). KGs enable reasoning, querying, and semantic analysis of data.
 
-**Knowledge Graph Quality Assurance (KG QA)**
-: The process of ensuring knowledge graph quality through completeness validation, consistency checking, and conflict detection.
+**Knowledge Graph Analytics**
+:   The application of graph algorithms (e.g., centrality, community detection) to gain insights from the structure of a knowledge graph.
 
 ---
 
@@ -147,7 +147,7 @@ A comprehensive reference of terms and concepts used in Semantica.
 : A technique that enhances LLM responses by retrieving relevant information from a knowledge base before generating an answer.
 
 **RDF (Resource Description Framework)**
-: A W3C standard for representing information about resources in the form of subject-predicate-object triples.
+: A W3C standard for representing information about resources in the form of subject-predicate-object triplets.
 
 **Reasoning**
 : The process of deriving new knowledge from existing facts using logical rules and inference.
@@ -178,11 +178,11 @@ A comprehensive reference of terms and concepts used in Semantica.
 **Temporal Graph**
 : A knowledge graph that tracks changes over time, allowing queries about the state of the graph at specific time points.
 
-**Triple**
+**Triplet**
 : A basic unit of knowledge in RDF, consisting of a subject, predicate, and object (e.g., `<Apple_Inc> <founded_by> <Steve_Jobs>`).
 
-**Triple Store**
-: A database designed specifically for storing and querying RDF triples.
+**Triplet Store**
+: A database designed specifically for storing and querying RDF triplets.
 
 ---
 
