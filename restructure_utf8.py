@@ -81,22 +81,24 @@ nb.cells.append(nbf.v4.new_markdown_cell("""## 2. Standard Vector RAG Pipeline
 Linear retrieval via semantic embedding overlap."""))
 
 nb.cells.append(nbf.v4.new_code_cell("""from semantica.core import Semantica
-from semantica.split import TextSplitter
+from semantica.split import EntityAwareChunker
 from semantica.vector_store import VectorStore
 
 # v_core = Semantica(embedding={"provider": "openai", "model": "text-embedding-3-small"})
 # Using framework defaults which utilize the core.config
 v_core = Semantica()
 
-splitter = TextSplitter(method="recursive", chunk_size=600, chunk_overlap=50)
+# Using EntityAwareChunker for better intelligence-domain chunking
+splitter = EntityAwareChunker(chunk_size=600, chunk_overlap=50)
 chunks = []
 for doc in clean_docs[:10]:
-    chunks.extend(splitter.split(doc))
+    chunks.extend(splitter.chunk(doc))
 
 # Initialize Vector Store
 vs = VectorStore(backend="faiss", dimension=1536) 
-embeddings = v_core.embedding_generator.generate_embeddings([str(c) for c in chunks[:15]])
-vs.store_vectors(vectors=embeddings, metadata=[{"text": str(c)} for c in chunks[:15]])
+# Use the core embedding generator
+embeddings = v_core.embedding_generator.generate_embeddings([str(c.text) for c in chunks[:15]])
+vs.store_vectors(vectors=embeddings, metadata=[{"content": str(c.text)} for c in chunks[:15]])
 
 print(f"Vector RAG ready with {len(chunks[:15])} encoded fragments.")"""))
 
@@ -105,13 +107,22 @@ nb.cells.append(nbf.v4.new_markdown_cell("""## 3. High-Fidelity GraphRAG Pipelin
 Synthesizing entities and relationships from fragmented reports."""))
 
 nb.cells.append(nbf.v4.new_code_cell("""from semantica.kg import GraphBuilder
-from semantica.deduplication import DuplicateDetector
+from semantica.context import AgentContext
 
 gb = GraphBuilder(merge_entities=True)
 # We process a subset for demonstration
-kg = gb.build(sources=[{"text": str(c)} for c in chunks[:10]])
+kg_data = gb.build(sources=[{"text": str(c.text)} for c in chunks[:10]])
 
-print(f"GraphRAG Synthesis Complete: {len(kg.get('entities', []))} entities, {len(kg.get('relationships', []))} relationships.")"""))
+# Initialize AgentContext for GraphRAG
+# This combines Vector Store and Knowledge Graph for hybrid retrieval
+ctx = AgentContext(
+    vector_store=vs,
+    knowledge_graph=kg_data,
+    use_graph_expansion=True,
+    max_expansion_hops=2
+)
+
+print(f"GraphRAG Synthesis Complete: {len(kg_data.get('entities', []))} entities, {len(kg_data.get('relationships', []))} relationships.")"""))
 
 # Phase 4: Comparative Test
 nb.cells.append(nbf.v4.new_markdown_cell("""## 4. The Intelligence Challenge: Multi-Hop Inference
@@ -121,35 +132,37 @@ Query: **"Identify high-risk security escalations and their regional implication
 
 nb.cells.append(nbf.v4.new_code_cell("""from semantica.reasoning import InferenceEngine
 
+user_query = "Identify high-risk security escalations and their regional implications."
+
 print("--- Standard Vector Recall ---")
-q_vec = v_core.embedding_generator.generate_embeddings("security risks and regional conflict")
-v_res = vs.search_vectors(q_vec, k=3)
+# Direct search in vector store
+v_res = vs.search(user_query, limit=3)
 for r in v_res:
-    print(f"Recall: {r['metadata']['text'][:120]}...")
+    text = r.get('metadata', {}).get('content', 'No content')
+    print(f"Recall: {text[:120]}... (Score: {r['score']:.4f})")
 
-print("\\n--- Graph Intelligence Reasoning ---")
-engine = InferenceEngine(strategy="forward")
+print("\\n--- Graph Intelligence Reasoning (Hybrid Retrieval) ---")
+# Use AgentContext for multi-hop retrieval
+graph_res = ctx.retrieve(user_query, max_results=3)
 
-# Prefix Rule: IF Conflict(?x) AND LocatedIn(?x, ?y) THEN HighRisk(?y)
-engine.add_rule("IF Conflict(?x) AND LocatedIn(?x, ?y) THEN HighRisk(?y)")
+for i, res in enumerate(graph_res):
+    print(f"Result {i+1}: {res['content'][:120]}...")
+    if res.get('related_entities'):
+        print(f"  🔗 Multi-hop connections: {[e['content'] for e in res['related_entities'][:3]]}")
 
-# Add facts from extracted KG
-for rel in kg.get('relationships', []):
-    source = rel.get('source', '')
-    target = rel.get('target', '')
-    rtype = rel.get('type', '').lower()
-    
-    if 'locate' in rtype or 'in' in rtype:
-        engine.add_fact(f"LocatedIn({source}, {target})")
+# Final Synthesis using InferenceEngine
+engine = InferenceEngine(provider="groq", model="llama-3.1-70b-versatile")
+context_text = "\\n".join([r['content'] for r in graph_res])
+prompt = f"Based on the following intelligence context, {user_query}\\n\\nContext:\\n{context_text}"
 
-# Simulated High-Priority Facts for demonstration
-engine.add_fact("Conflict(Political_Internal_Unrest)")
-engine.add_fact("LocatedIn(Political_Internal_Unrest, Strategic_Region_A)")
-
-# Perform Inference
-results = engine.forward_chain()
-for res in results:
-    print(f"Inferred: {res.conclusion}")"""))
+# Note: Requires GROQ_API_KEY
+try:
+    answer = engine.generate(prompt)
+    print("\\n--- ✨ FINAL INTELLIGENCE SYNTHESIS ---")
+    print(answer)
+except Exception as e:
+    print(f"\\n(LLM synthesis skipped: {e})")
+"""))
 
 # Phase 5: Visualization
 nb.cells.append(nbf.v4.new_markdown_cell("""## 5. Visualizing the Intelligence Landscape

@@ -290,6 +290,24 @@ class VectorStore:
         
         self.logger.info(f"Loaded vector store from {path}")
 
+    def search(self, query: str, limit: int = 10, **options) -> List[Dict[str, Any]]:
+        """
+        Search for similar vectors by query string.
+
+        Args:
+            query: Query string
+            limit: Number of results
+            **options: Additional options
+
+        Returns:
+            List of results with scores
+        """
+        # Generate embedding for query
+        query_vector = self.embed([query])[0]
+
+        # Search by vector
+        return self.search_vectors(query_vector=query_vector, k=limit, **options)
+
     def search_vectors(
         self, query_vector: np.ndarray, k: int = 10, **options
     ) -> List[Dict[str, Any]]:
