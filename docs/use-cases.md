@@ -127,7 +127,7 @@ ontology = ontology_gen.generate_from_graph(kg)
     
     **Goal**: Ingest earnings call transcripts, news articles, and analyst reports to gauge market sentiment.
     
-    [:material-arrow-right: View Cookbook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/finance/01_Financial_Data_Integration.ipynb)
+    [:material-arrow-right: View Cookbook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/finance/01_Financial_Data_Integration_MCP.ipynb)
 
 -   :material-chart-line: **Algorithmic Trading Signals**
     ---
@@ -135,7 +135,7 @@ ontology = ontology_gen.generate_from_graph(kg)
     
     **Goal**: Build a graph of companies, supply chains, and global events to identify non-obvious trading signals.
     
-    [:material-arrow-right: View Cookbook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/trading/01_Market_Data_Analysis.ipynb)
+    [:material-arrow-right: View Cookbook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/trading/01_Risk_Assessment.ipynb)
 
 -   :material-bitcoin: **Blockchain Analytics**
     ---
@@ -181,37 +181,31 @@ ontology = ontology_gen.generate_from_graph(kg)
     
     **Goal**: Ingest threat feeds (STIX/TAXII), CVE databases, and system logs to map attack vectors.
     
-    [:material-arrow-right: View Cookbook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/cybersecurity/01_Anomaly_Detection_Real_Time.ipynb)
-
--   :material-eye: **Open Source Intelligence (OSINT)**
-    ---
-    Gather and analyze public information for intelligence purposes.
-    
-    **Goal**: Connect data from social media, news, and public records to build profiles.
-    
-    [:material-arrow-right: View Cookbook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/intelligence/01_Criminal_Network_Analysis.ipynb)
+    [:material-arrow-right: View Cookbook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/cybersecurity/01_Real_Time_Anomaly_Detection.ipynb)
 
 -   :material-account-network: **Criminal Network Analysis**
     ---
-    Analyze criminal networks to identify key players, communities, and suspicious patterns.
+    Analyze criminal networks to identify key players, communities, and suspicious patterns using OSINT RSS feeds, deduplication, and network centrality analysis.
     
     **Goal**: Build knowledge graphs from police reports, court records, and surveillance data.
     
     [:material-arrow-right: View Cookbook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/intelligence/01_Criminal_Network_Analysis.ipynb)
 
--   :material-shield-search: **Law Enforcement and Forensics**
+-   :material-file-search: **Intelligence Analysis Orchestrator Worker**
     ---
-    Process forensic evidence and correlate cases using temporal knowledge graphs.
+    Comprehensive intelligence analysis using pipeline orchestrator with multiple RSS feeds, conflict detection, and multi-source integration.
     
-    **Goal**: Extract entities from case files to build temporal case timelines.
+    **Goal**: Process multiple intelligence sources in parallel using orchestrator-worker pattern.
     
-    [:material-arrow-right: View Cookbook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/intelligence/03_Law_Enforcement_Forensics.ipynb)
+    [:material-arrow-right: View Cookbook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/intelligence/02_Intelligence_Analysis_Orchestrator_Worker.ipynb)
 
 -   :material-incognito: **Fraud Detection**
     ---
-    Detect complex fraud rings.
+    Detect complex fraud rings using temporal knowledge graphs and pattern detection.
     
     **Goal**: Build a graph of Users, Devices, IP Addresses, and Transactions to find cycles.
+    
+    [:material-arrow-right: View Cookbook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/finance/02_Fraud_Detection.ipynb)
 
 </div>
 

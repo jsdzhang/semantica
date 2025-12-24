@@ -242,7 +242,7 @@ python -c "import semantica; print(semantica.__version__)"
 | **GraphRAG Complete** | Build a production-ready **Graph Retrieval Augmented Generation** system. Features **Graph Validation**, **Hybrid Retrieval**, and **Logical Inference**. | [Open Notebook](cookbook/use_cases/advanced_rag/01_GraphRAG_Complete.ipynb) |
 | **RAG vs. GraphRAG** | Side-by-side comparison. Demonstrates the **Reasoning Gap** and how GraphRAG solves it with **Inference Engines**. | [Open Notebook](cookbook/use_cases/advanced_rag/02_RAG_vs_GraphRAG_Comparison.ipynb) |
 | **First Knowledge Graph** | Go from raw text to a queryable knowledge graph in 20 minutes. | [Open Notebook](cookbook/introduction/08_Your_First_Knowledge_Graph.ipynb) |
-| **Real-Time Anomalies** | Detect anomalies in streaming data using dynamic graphs. | [Open Notebook](cookbook/use_cases/cybersecurity/01_Anomaly_Detection_Real_Time.ipynb) |
+| **Real-Time Anomalies** | Detect anomalies in streaming data using temporal knowledge graphs and pattern detection. | [Open Notebook](cookbook/use_cases/cybersecurity/01_Real_Time_Anomaly_Detection.ipynb) |
 
 ### Core Tutorials
 
@@ -250,6 +250,46 @@ python -c "import semantica; print(semantica.__version__)"
 - [**Data Ingestion**](cookbook/introduction/02_Data_Ingestion.ipynb) - Universal Ingestion
 - [**Entity Extraction**](cookbook/introduction/05_Entity_Extraction.ipynb) - NER & Relationships
 - [**Building Knowledge Graphs**](cookbook/introduction/07_Building_Knowledge_Graphs.ipynb) - Graph Construction
+
+### Industry Use Cases (18 Cookbooks)
+
+**Domain-Specific Cookbooks** showcasing real-world applications with real data sources, advanced chunking strategies, temporal KGs, GraphRAG, and comprehensive Semantica module integration:
+
+#### Biomedical
+- [**Drug Discovery Pipeline**](cookbook/use_cases/biomedical/01_Drug_Discovery_Pipeline.ipynb) - PubMed RSS, entity-aware chunking, GraphRAG, vector similarity search
+- [**Genomic Variant Analysis**](cookbook/use_cases/biomedical/02_Genomic_Variant_Analysis.ipynb) - bioRxiv RSS, temporal KGs, deduplication, pathway analysis
+
+#### Healthcare
+- [**Clinical Reports Processing**](cookbook/use_cases/healthcare/01_Clinical_Reports_Processing.ipynb) - FDA RSS, HL7/FHIR integration, patient deduplication
+- [**Drug Interactions Analysis**](cookbook/use_cases/healthcare/02_Drug_Interactions_Analysis.ipynb) - Medical RSS, relation-aware chunking, conflict detection, safety ontology
+
+#### Finance
+- [**Financial Data Integration MCP**](cookbook/use_cases/finance/01_Financial_Data_Integration_MCP.ipynb) - Alpha Vantage API, MCP servers, seed data, real-time ingestion
+- [**Fraud Detection**](cookbook/use_cases/finance/02_Fraud_Detection.ipynb) - Transaction streams, temporal KGs, pattern detection, conflict resolution
+
+#### Blockchain
+- [**DeFi Protocol Intelligence**](cookbook/use_cases/blockchain/01_DeFi_Protocol_Intelligence.ipynb) - CoinDesk RSS, ontology-aware chunking, conflict detection, ontology generation
+- [**Transaction Network Analysis**](cookbook/use_cases/blockchain/02_Transaction_Network_Analysis.ipynb) - Blockchain APIs, deduplication, network analytics
+
+#### Cybersecurity
+- [**Real-Time Anomaly Detection**](cookbook/use_cases/cybersecurity/01_Real_Time_Anomaly_Detection.ipynb) - CVE RSS, Kafka streams, temporal KGs, sentence chunking
+- [**Threat Intelligence Hybrid RAG**](cookbook/use_cases/cybersecurity/02_Threat_Intelligence_Hybrid_RAG.ipynb) - Security RSS, entity-aware chunking, enhanced GraphRAG, deduplication
+
+#### Intelligence & Law Enforcement
+- [**Criminal Network Analysis**](cookbook/use_cases/intelligence/01_Criminal_Network_Analysis.ipynb) - OSINT RSS, deduplication, network centrality, graph analytics
+- [**Intelligence Analysis Orchestrator Worker**](cookbook/use_cases/intelligence/02_Intelligence_Analysis_Orchestrator_Worker.ipynb) - Pipeline orchestrator, multi-source integration, conflict detection
+
+#### Trading
+- [**Risk Assessment**](cookbook/use_cases/trading/01_Risk_Assessment.ipynb) - Yahoo Finance API, GraphRAG, entity-aware chunking, portfolio risk modeling
+- [**News Sentiment Analysis**](cookbook/use_cases/trading/02_News_Sentiment_Analysis.ipynb) - Financial RSS, semantic transformer chunking, enhanced GraphRAG, sentiment extraction
+
+#### Renewable Energy
+- [**Energy Market Analysis**](cookbook/use_cases/renewable_energy/01_Energy_Market_Analysis.ipynb) - Energy RSS, EIA API, temporal KGs, TemporalPatternDetector, trend prediction
+- [**Smart Grid Management**](cookbook/use_cases/renewable_energy/02_Smart_Grid_Management.ipynb) - Sensor streams, temporal KGs, token chunking, real-time monitoring
+
+#### Supply Chain
+- [**Supply Chain Data Integration**](cookbook/use_cases/supply_chain/01_Supply_Chain_Data_Integration.ipynb) - Logistics RSS, deduplication, relationship mapping
+- [**Supply Chain Risk Management**](cookbook/use_cases/supply_chain/02_Supply_Chain_Risk_Management.ipynb) - Supply chain RSS, conflict detection, dependency analysis
 
 > **Note:** Once published to PyPI, you'll be able to install with `pip install semantica`
 
@@ -547,7 +587,7 @@ print(f"Answer: {result.answer} | Nodes: {kg.node_count}, Edges: {kg.edge_count}
 
 **Healthcare & Biomedical** — Clinical reports, drug discovery, medical literature analysis.
 
-[**Explore Use Case Examples**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/use_cases) — See real-world implementations in finance, healthcare, cybersecurity, trading, and more.
+[**Explore Use Case Examples**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/use_cases) — See real-world implementations in finance, healthcare, cybersecurity, trading, and more. **18 comprehensive domain-specific cookbooks** with real data sources, advanced chunking strategies, temporal KGs, GraphRAG, and full Semantica module integration.
 
 ## 🔬 Advanced Features
 
