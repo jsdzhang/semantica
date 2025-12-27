@@ -263,6 +263,28 @@ class GraphBuilder:
         if isinstance(sources, dict) and ("entities" in sources or "relationships" in sources):
             source_dict = sources
             sources = [sources]  # Normalize for tracking
+        elif isinstance(sources, list) and len(sources) > 0:
+            # Check if first item is a dict with entities/relationships
+            first_item = sources[0]
+            if isinstance(first_item, dict) and ("entities" in first_item or "relationships" in first_item):
+                # If all items are dicts with entities/relationships, merge them
+                if all(isinstance(item, dict) and ("entities" in item or "relationships" in item) for item in sources):
+                    # Merge all sources into one dict
+                    source_dict = {
+                        "entities": [],
+                        "relationships": []
+                    }
+                    for item in sources:
+                        if "entities" in item:
+                            if isinstance(item["entities"], list):
+                                source_dict["entities"].extend(item["entities"])
+                            else:
+                                source_dict["entities"].append(item["entities"])
+                        if "relationships" in item:
+                            if isinstance(item["relationships"], list):
+                                source_dict["relationships"].extend(item["relationships"])
+                            else:
+                                source_dict["relationships"].append(item["relationships"])
         elif not isinstance(sources, list):
             sources = [sources]
 
