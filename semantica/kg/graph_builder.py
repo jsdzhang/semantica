@@ -192,6 +192,16 @@ class GraphBuilder:
                 elif "id" in item or "entity_id" in item or "name" in item:
                     all_entities.append(item)
                     found_something = True
+                elif "text" in item and "type" in item:
+                    # Entity with text and type fields (common format)
+                    # Normalize to standard format
+                    entity_dict = item.copy()
+                    if "name" not in entity_dict:
+                        entity_dict["name"] = entity_dict["text"]
+                    if "id" not in entity_dict and "entity_id" not in entity_dict:
+                        entity_dict["id"] = entity_dict.get("name") or entity_dict.get("text")
+                    all_entities.append(entity_dict)
+                    found_something = True
                 
                 # If still nothing found and has 'text', try extraction
                 if not found_something and "text" in item:
@@ -316,50 +326,122 @@ class GraphBuilder:
                     print(f"Processing {len(entities_list)} entities, {len(relationships_list)} relationships ({total_items} total)...")
                 
                 # Process entities with progress and ETA
+                # Optimize: directly append dictionaries instead of processing each item
                 if entities_list:
                     entity_start_time = time.time()
-                    batch_size = max(100, len(entities_list) // 20)  # Show ~20 progress updates for better granularity
-                    for i in range(0, len(entities_list), batch_size):
-                        batch_start = time.time()
-                        batch = entities_list[i:i + batch_size]
-                        for item in batch:
-                            self._process_item(item, all_entities, all_relationships, **options)
-                        processed = min(i + batch_size, len(entities_list))
-                        remaining = len(entities_list) - processed
-                        
-                        # Calculate ETA
-                        elapsed = time.time() - entity_start_time
-                        if processed > 0 and elapsed > 0:
-                            rate = processed / elapsed
-                            eta_seconds = remaining / rate if rate > 0 else 0
-                            eta_str = f"{eta_seconds:.1f}s" if eta_seconds < 60 else f"{eta_seconds/60:.1f}m"
-                            progress_pct = (processed / len(entities_list)) * 100
-                            print(f"  Entities: {processed}/{len(entities_list)} ({progress_pct:.1f}%) | ETA: {eta_str} | Rate: {rate:.1f}/s")
-                        else:
-                            print(f"  Entities: {processed}/{len(entities_list)}")
+                    # Check if entities are already in dictionary format
+                    sample_entity = entities_list[0] if entities_list else None
+                    is_dict_format = isinstance(sample_entity, dict) and (
+                        "id" in sample_entity or "entity_id" in sample_entity or 
+                        "name" in sample_entity or "text" in sample_entity
+                    )
+                    
+                    if is_dict_format:
+                        # Fast path: directly append dictionaries after normalizing
+                        batch_size = max(100, len(entities_list) // 20)
+                        for i in range(0, len(entities_list), batch_size):
+                            batch = entities_list[i:i + batch_size]
+                            for item in batch:
+                                # Normalize entity dict format
+                                if isinstance(item, dict):
+                                    # Ensure required fields exist
+                                    entity_dict = item.copy()
+                                    if "text" in entity_dict and "name" not in entity_dict:
+                                        entity_dict["name"] = entity_dict["text"]
+                                    if "id" not in entity_dict and "entity_id" not in entity_dict:
+                                        entity_dict["id"] = entity_dict.get("name") or entity_dict.get("text") or str(hash(str(item)))
+                                    all_entities.append(entity_dict)
+                                else:
+                                    # Fallback to _process_item for non-dict items
+                                    self._process_item(item, all_entities, all_relationships, **options)
+                            
+                            processed = min(i + batch_size, len(entities_list))
+                            remaining = len(entities_list) - processed
+                            
+                            # Calculate ETA
+                            elapsed = time.time() - entity_start_time
+                            if processed > 0 and elapsed > 0:
+                                rate = processed / elapsed
+                                eta_seconds = remaining / rate if rate > 0 else 0
+                                eta_str = f"{eta_seconds:.1f}s" if eta_seconds < 60 else f"{eta_seconds/60:.1f}m"
+                                progress_pct = (processed / len(entities_list)) * 100
+                                print(f"  Entities: {processed}/{len(entities_list)} ({progress_pct:.1f}%) | ETA: {eta_str} | Rate: {rate:.1f}/s")
+                            else:
+                                print(f"  Entities: {processed}/{len(entities_list)}")
+                    else:
+                        # Slow path: use _process_item for complex objects
+                        batch_size = max(100, len(entities_list) // 20)
+                        for i in range(0, len(entities_list), batch_size):
+                            batch = entities_list[i:i + batch_size]
+                            for item in batch:
+                                self._process_item(item, all_entities, all_relationships, **options)
+                            processed = min(i + batch_size, len(entities_list))
+                            remaining = len(entities_list) - processed
+                            
+                            elapsed = time.time() - entity_start_time
+                            if processed > 0 and elapsed > 0:
+                                rate = processed / elapsed
+                                eta_seconds = remaining / rate if rate > 0 else 0
+                                eta_str = f"{eta_seconds:.1f}s" if eta_seconds < 60 else f"{eta_seconds/60:.1f}m"
+                                progress_pct = (processed / len(entities_list)) * 100
+                                print(f"  Entities: {processed}/{len(entities_list)} ({progress_pct:.1f}%) | ETA: {eta_str} | Rate: {rate:.1f}/s")
+                            else:
+                                print(f"  Entities: {processed}/{len(entities_list)}")
                 
                 # Process relationships with progress and ETA
+                # Optimize: directly append dictionaries instead of processing each item
                 if relationships_list:
                     rel_start_time = time.time()
-                    batch_size = max(100, len(relationships_list) // 20)  # Show ~20 progress updates
-                    for i in range(0, len(relationships_list), batch_size):
-                        batch_start = time.time()
-                        batch = relationships_list[i:i + batch_size]
-                        for item in batch:
-                            self._process_item(item, all_entities, all_relationships, **options)
-                        processed = min(i + batch_size, len(relationships_list))
-                        remaining = len(relationships_list) - processed
-                        
-                        # Calculate ETA
-                        elapsed = time.time() - rel_start_time
-                        if processed > 0 and elapsed > 0:
-                            rate = processed / elapsed
-                            eta_seconds = remaining / rate if rate > 0 else 0
-                            eta_str = f"{eta_seconds:.1f}s" if eta_seconds < 60 else f"{eta_seconds/60:.1f}m"
-                            progress_pct = (processed / len(relationships_list)) * 100
-                            print(f"  Relationships: {processed}/{len(relationships_list)} ({progress_pct:.1f}%) | ETA: {eta_str} | Rate: {rate:.1f}/s")
-                        else:
-                            print(f"  Relationships: {processed}/{len(relationships_list)}")
+                    # Check if relationships are already in dictionary format
+                    sample_rel = relationships_list[0] if relationships_list else None
+                    is_dict_format = isinstance(sample_rel, dict) and (
+                        "source" in sample_rel and "target" in sample_rel
+                    )
+                    
+                    if is_dict_format:
+                        # Fast path: directly append dictionaries
+                        batch_size = max(100, len(relationships_list) // 20)
+                        for i in range(0, len(relationships_list), batch_size):
+                            batch = relationships_list[i:i + batch_size]
+                            for item in batch:
+                                if isinstance(item, dict):
+                                    all_relationships.append(item)
+                                else:
+                                    # Fallback to _process_item for non-dict items
+                                    self._process_item(item, all_entities, all_relationships, **options)
+                            
+                            processed = min(i + batch_size, len(relationships_list))
+                            remaining = len(relationships_list) - processed
+                            
+                            # Calculate ETA
+                            elapsed = time.time() - rel_start_time
+                            if processed > 0 and elapsed > 0:
+                                rate = processed / elapsed
+                                eta_seconds = remaining / rate if rate > 0 else 0
+                                eta_str = f"{eta_seconds:.1f}s" if eta_seconds < 60 else f"{eta_seconds/60:.1f}m"
+                                progress_pct = (processed / len(relationships_list)) * 100
+                                print(f"  Relationships: {processed}/{len(relationships_list)} ({progress_pct:.1f}%) | ETA: {eta_str} | Rate: {rate:.1f}/s")
+                            else:
+                                print(f"  Relationships: {processed}/{len(relationships_list)}")
+                    else:
+                        # Slow path: use _process_item for complex objects
+                        batch_size = max(100, len(relationships_list) // 20)
+                        for i in range(0, len(relationships_list), batch_size):
+                            batch = relationships_list[i:i + batch_size]
+                            for item in batch:
+                                self._process_item(item, all_entities, all_relationships, **options)
+                            processed = min(i + batch_size, len(relationships_list))
+                            remaining = len(relationships_list) - processed
+                            
+                            elapsed = time.time() - rel_start_time
+                            if processed > 0 and elapsed > 0:
+                                rate = processed / elapsed
+                                eta_seconds = remaining / rate if rate > 0 else 0
+                                eta_str = f"{eta_seconds:.1f}s" if eta_seconds < 60 else f"{eta_seconds/60:.1f}m"
+                                progress_pct = (processed / len(relationships_list)) * 100
+                                print(f"  Relationships: {processed}/{len(relationships_list)} ({progress_pct:.1f}%) | ETA: {eta_str} | Rate: {rate:.1f}/s")
+                            else:
+                                print(f"  Relationships: {processed}/{len(relationships_list)}")
             else:
                 # Process sources (which might be entities)
                 for source in sources:
