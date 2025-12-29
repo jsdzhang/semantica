@@ -304,19 +304,38 @@ class ConflictResolver:
         try:
             results = []
             total_conflicts = len(conflicts)
-            update_interval = max(1, total_conflicts // 20)  # Update every 5%
+            if total_conflicts <= 10:
+                update_interval = 1  # Update every item for small datasets
+            else:
+                update_interval = max(1, min(10, total_conflicts // 100))
+            
+            # Initial progress update
+            remaining = total_conflicts
+            self.progress_tracker.update_progress(
+                tracking_id,
+                processed=0,
+                total=total_conflicts,
+                message=f"Resolving conflicts... 0/{total_conflicts} (remaining: {remaining})"
+            )
 
             for i, conflict in enumerate(conflicts):
                 result = self.resolve_conflict(conflict, strategy)
                 results.append(result)
                 
-                # Update progress periodically
-                if (i + 1) % update_interval == 0 or (i + 1) == total_conflicts:
+                remaining = total_conflicts - (i + 1)
+                # Update progress: always update for small datasets, or at intervals for large ones
+                should_update = (
+                    (i + 1) % update_interval == 0 or 
+                    (i + 1) == total_conflicts or 
+                    i == 0 or
+                    total_conflicts <= 10  # Always update for small datasets
+                )
+                if should_update:
                     self.progress_tracker.update_progress(
                         tracking_id,
                         processed=i + 1,
                         total=total_conflicts,
-                        message=f"Resolving conflicts... {i + 1}/{total_conflicts}"
+                        message=f"Resolving conflicts... {i + 1}/{total_conflicts} (remaining: {remaining})"
                     )
 
             self.progress_tracker.stop_tracking(

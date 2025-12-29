@@ -194,15 +194,19 @@ class RelationExtractor:
                 results = []
                 # Ensure lists are same length
                 min_len = min(len(text), len(entities))
-                # Update more frequently: every 1% or at least every 10 items
-                update_interval = max(1, min(10, min_len // 100))
+                # Update more frequently: every 1% or at least every 10 items, but always update for small datasets
+                if min_len <= 10:
+                    update_interval = 1  # Update every item for small datasets
+                else:
+                    update_interval = max(1, min(10, min_len // 100))
                 
-                # Initial progress update
+                # Initial progress update - ALWAYS show this
+                remaining = min_len
                 self.progress_tracker.update_progress(
                     tracking_id,
                     processed=0,
                     total=min_len,
-                    message=f"Starting batch extraction... 0/{min_len}"
+                    message=f"Starting batch extraction... 0/{min_len} (remaining: {remaining})"
                 )
                 
                 for i in range(min_len):
@@ -223,13 +227,20 @@ class RelationExtractor:
                     
                     results.append(self.extract_relations(doc_text, ent_item, **kwargs))
                     
-                    # Update progress more frequently
-                    if (i + 1) % update_interval == 0 or (i + 1) == min_len or i == 0:
+                    remaining = min_len - (i + 1)
+                    # Update progress: always update for small datasets, or at intervals for large ones
+                    should_update = (
+                        (i + 1) % update_interval == 0 or 
+                        (i + 1) == min_len or 
+                        i == 0 or
+                        min_len <= 10  # Always update for small datasets
+                    )
+                    if should_update:
                         self.progress_tracker.update_progress(
                             tracking_id,
                             processed=i + 1,
                             total=min_len,
-                            message=f"Processing documents... {i + 1}/{min_len}"
+                            message=f"Processing documents... {i + 1}/{min_len} (remaining: {remaining})"
                         )
                 
                 self.progress_tracker.stop_tracking(

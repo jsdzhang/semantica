@@ -139,31 +139,54 @@ class CoreferenceResolver:
         )
 
         try:
-            # Extract mentions
-            self.progress_tracker.update_tracking(
-                tracking_id, message="Extracting mentions..."
+            total_steps = 4  # Extract mentions, resolve pronouns, detect coreferences, build chains
+            current_step = 0
+            
+            # Step 1: Extract mentions
+            current_step += 1
+            remaining_steps = total_steps - current_step
+            self.progress_tracker.update_progress(
+                tracking_id,
+                processed=current_step,
+                total=total_steps,
+                message=f"Extracting mentions... ({current_step}/{total_steps}, remaining: {remaining_steps} steps)"
             )
             mentions = self._extract_mentions(text)
 
-            # Resolve pronouns
-            self.progress_tracker.update_tracking(
-                tracking_id, message="Resolving pronouns..."
+            # Step 2: Resolve pronouns
+            current_step += 1
+            remaining_steps = total_steps - current_step
+            self.progress_tracker.update_progress(
+                tracking_id,
+                processed=current_step,
+                total=total_steps,
+                message=f"Resolving pronouns... ({current_step}/{total_steps}, {len(mentions)} mentions, remaining: {remaining_steps} steps)"
             )
             pronoun_resolutions = self.pronoun_resolver.resolve_pronouns(
                 text, mentions, **options
             )
 
-            # Detect entity coreferences
-            self.progress_tracker.update_tracking(
-                tracking_id, message="Detecting entity coreferences..."
+            # Step 3: Detect entity coreferences
+            current_step += 1
+            remaining_steps = total_steps - current_step
+            self.progress_tracker.update_progress(
+                tracking_id,
+                processed=current_step,
+                total=total_steps,
+                message=f"Detecting entity coreferences... ({current_step}/{total_steps}, remaining: {remaining_steps} steps)"
             )
             entity_corefs = self.entity_detector.detect_entity_coreferences(
                 text, mentions, **options
             )
 
-            # Build chains
-            self.progress_tracker.update_tracking(
-                tracking_id, message="Building coreference chains..."
+            # Step 4: Build chains
+            current_step += 1
+            remaining_steps = total_steps - current_step
+            self.progress_tracker.update_progress(
+                tracking_id,
+                processed=current_step,
+                total=total_steps,
+                message=f"Building coreference chains... ({current_step}/{total_steps}, remaining: {remaining_steps} steps)"
             )
             chains = self.chain_builder.build_coreference_chains(mentions, **options)
 
@@ -207,8 +230,18 @@ class CoreferenceResolver:
             "their": r"\btheir\b",
         }
 
-        for pronoun, pattern in pronoun_patterns.items():
-            for match in re.finditer(pattern, text, re.IGNORECASE):
+        total_patterns = len(pronoun_patterns)
+        if total_patterns <= 10:
+            pattern_update_interval = 1  # Update every pattern for small datasets
+        else:
+            pattern_update_interval = max(1, min(5, total_patterns // 20))
+
+        for pattern_idx, (pronoun, pattern) in enumerate(pronoun_patterns.items(), 1):
+            # Count matches first
+            matches = list(re.finditer(pattern, text, re.IGNORECASE))
+            total_matches = len(matches)
+            
+            for match in matches:
                 mentions.append(
                     Mention(
                         text=match.group(0),

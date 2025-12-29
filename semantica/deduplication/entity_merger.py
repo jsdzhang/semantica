@@ -218,16 +218,19 @@ class EntityMerger:
             mergeable_groups = [g for g in duplicate_groups if len(g.entities) >= 2]
             total_groups = len(mergeable_groups)
             # Update more frequently: every item if small, or every 1% if large
-            update_interval = max(1, min(5, total_groups // 100))
+            if total_groups <= 10:
+                update_interval = 1  # Update every item for small datasets
+            else:
+                update_interval = max(1, min(5, total_groups // 100))
             
-            # Initial progress update
-            if total_groups > 0:
-                self.progress_tracker.update_progress(
-                    tracking_id,
-                    processed=0,
-                    total=total_groups,
-                    message=f"Starting merge operations... 0/{total_groups}"
-                )
+            # Initial progress update - ALWAYS show this
+            remaining = total_groups
+            self.progress_tracker.update_progress(
+                tracking_id,
+                processed=0,
+                total=total_groups,
+                message=f"Starting merge operations... 0/{total_groups} (remaining: {remaining})"
+            )
 
             # Merge each duplicate group
             for i, group in enumerate(mergeable_groups):
@@ -262,13 +265,20 @@ class EntityMerger:
                 merge_operations.append(operation)
                 self.merge_history.append(operation)
                 
-                # Update progress more frequently
-                if (i + 1) % update_interval == 0 or (i + 1) == total_groups or i == 0:
+                remaining = total_groups - (i + 1)
+                # Update progress: always update for small datasets, or at intervals for large ones
+                should_update = (
+                    (i + 1) % update_interval == 0 or 
+                    (i + 1) == total_groups or 
+                    i == 0 or
+                    total_groups <= 10  # Always update for small datasets
+                )
+                if should_update:
                     self.progress_tracker.update_progress(
                         tracking_id,
                         processed=i + 1,
                         total=total_groups,
-                        message=f"Merging groups... {i + 1}/{total_groups}"
+                        message=f"Merging groups... {i + 1}/{total_groups} (remaining: {remaining})"
                     )
 
             self.logger.info(

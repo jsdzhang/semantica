@@ -168,15 +168,19 @@ class NERExtractor:
             try:
                 results = []
                 total_items = len(text)
-                # Update more frequently: every 1% or at least every 10 items
-                update_interval = max(1, min(10, total_items // 100))
+                # Update more frequently: every 1% or at least every 10 items, but always update for small datasets
+                if total_items <= 10:
+                    update_interval = 1  # Update every item for small datasets
+                else:
+                    update_interval = max(1, min(10, total_items // 100))
                 
-                # Initial progress update
+                # Initial progress update - ALWAYS show this
+                remaining = total_items
                 self.progress_tracker.update_progress(
                     tracking_id,
                     processed=0,
                     total=total_items,
-                    message=f"Starting batch extraction... 0/{total_items}"
+                    message=f"Starting batch extraction... 0/{total_items} (remaining: {remaining})"
                 )
                 
                 for idx, item in enumerate(text, 1):
@@ -194,13 +198,20 @@ class NERExtractor:
                     except Exception:
                         results.append([])
                     
-                    # Update progress more frequently
-                    if idx % update_interval == 0 or idx == total_items or idx == 1:
+                    remaining = total_items - idx
+                    # Update progress: always update for small datasets, or at intervals for large ones
+                    should_update = (
+                        idx % update_interval == 0 or 
+                        idx == total_items or 
+                        idx == 1 or
+                        total_items <= 10  # Always update for small datasets
+                    )
+                    if should_update:
                         self.progress_tracker.update_progress(
                             tracking_id,
                             processed=idx,
                             total=total_items,
-                            message=f"Processing documents... {idx}/{total_items}"
+                            message=f"Processing documents... {idx}/{total_items} (remaining: {remaining})"
                         )
                 
                 self.progress_tracker.stop_tracking(

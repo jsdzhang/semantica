@@ -217,10 +217,18 @@ class SemanticNetworkExtractor:
                 relations = rel_extractor.extract_relations(text, entities, **options)
 
             # Build network
-            self.progress_tracker.update_tracking(
-                tracking_id, message="Building semantic network..."
+            total_steps = 2  # Create nodes, create edges
+            current_step = 0
+            
+            current_step += 1
+            remaining_steps = total_steps - current_step
+            self.progress_tracker.update_progress(
+                tracking_id,
+                processed=current_step,
+                total=total_steps,
+                message=f"Building semantic network... Creating nodes from {len(entities)} entities ({current_step}/{total_steps}, remaining: {remaining_steps} steps)"
             )
-            network = self._build_network(entities, relations)
+            network = self._build_network(entities, relations, tracking_id, total_steps, current_step)
 
             self.progress_tracker.stop_tracking(
                 tracking_id,
@@ -236,7 +244,7 @@ class SemanticNetworkExtractor:
             raise
 
     def _build_network(
-        self, entities: List[Entity], relations: List[Relation]
+        self, entities: List[Entity], relations: List[Relation], tracking_id: str = None, total_steps: int = 2, current_step: int = 1
     ) -> SemanticNetwork:
         """Build semantic network from entities and relations."""
         nodes = []
@@ -244,7 +252,23 @@ class SemanticNetworkExtractor:
         node_map = {}
 
         # Create nodes from entities
-        for entity in entities:
+        total_entities = len(entities)
+        if total_entities <= 10:
+            entity_update_interval = 1  # Update every item for small datasets
+        else:
+            entity_update_interval = max(1, min(10, total_entities // 100))
+        
+        # Initial progress update for entities
+        if tracking_id and total_entities > 0:
+            remaining_entities = total_entities
+            self.progress_tracker.update_progress(
+                tracking_id,
+                processed=0,
+                total=total_entities,
+                message=f"Creating nodes from entities... 0/{total_entities} (remaining: {remaining_entities})"
+            )
+        
+        for i, entity in enumerate(entities):
             node_id = f"entity_{len(nodes)}"
             node_map[entity.text] = node_id
 
@@ -260,9 +284,42 @@ class SemanticNetworkExtractor:
                 metadata=entity.metadata,
             )
             nodes.append(node)
+            
+            remaining_entities = total_entities - (i + 1)
+            # Update progress: always update for small datasets, or at intervals for large ones
+            if tracking_id:
+                should_update = (
+                    (i + 1) % entity_update_interval == 0 or 
+                    (i + 1) == total_entities or 
+                    i == 0 or
+                    total_entities <= 10  # Always update for small datasets
+                )
+                if should_update:
+                    self.progress_tracker.update_progress(
+                        tracking_id,
+                        processed=i + 1,
+                        total=total_entities,
+                        message=f"Creating nodes from entities... {i + 1}/{total_entities} (remaining: {remaining_entities})"
+                    )
 
         # Create edges from relations
-        for relation in relations:
+        total_relations = len(relations)
+        if total_relations <= 10:
+            relation_update_interval = 1  # Update every item for small datasets
+        else:
+            relation_update_interval = max(1, min(10, total_relations // 100))
+        
+        if tracking_id and total_relations > 0:
+            # Initial progress update for relations
+            remaining_relations = total_relations
+            self.progress_tracker.update_progress(
+                tracking_id,
+                processed=0,
+                total=total_relations,
+                message=f"Creating edges from relations... 0/{total_relations} (remaining: {remaining_relations})"
+            )
+        
+        for j, relation in enumerate(relations):
             subject_id = node_map.get(relation.subject.text)
             object_id = node_map.get(relation.object.text)
 
@@ -278,6 +335,23 @@ class SemanticNetworkExtractor:
                     metadata=relation.metadata,
                 )
                 edges.append(edge)
+            
+            remaining_relations = len(relations) - (j + 1)
+            # Update progress: always update for small datasets, or at intervals for large ones
+            if tracking_id:
+                should_update = (
+                    (j + 1) % relation_update_interval == 0 or 
+                    (j + 1) == len(relations) or 
+                    j == 0 or
+                    len(relations) <= 10  # Always update for small datasets
+                )
+                if should_update:
+                    self.progress_tracker.update_progress(
+                        tracking_id,
+                        processed=j + 1,
+                        total=len(relations),
+                        message=f"Creating edges from relations... {j + 1}/{len(relations)} (remaining: {remaining_relations})"
+                    )
 
         return SemanticNetwork(
             nodes=nodes,

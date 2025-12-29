@@ -217,7 +217,19 @@ class ConflictDetector:
             )
 
             total_entities = len(entities)
-            update_interval = max(1, total_entities // 20)  # Update every 5%
+            if total_entities <= 10:
+                update_interval = 1  # Update every item for small datasets
+            else:
+                update_interval = max(1, min(10, total_entities // 100))
+            
+            # Initial progress update - ALWAYS show this
+            remaining = total_entities
+            self.progress_tracker.update_progress(
+                tracking_id,
+                processed=0,
+                total=total_entities,
+                message=f"Analyzing entities... 0/{total_entities} (remaining: {remaining})"
+            )
             
             for i, entity in enumerate(entities):
                 entity_id = entity.get("id") or entity.get("entity_id")
@@ -231,18 +243,37 @@ class ConflictDetector:
                     entity_groups[entity_id] = []
                 entity_groups[entity_id].append(entity)
                 
-                # Update progress periodically
-                if (i + 1) % update_interval == 0 or (i + 1) == total_entities:
+                remaining = total_entities - (i + 1)
+                # Update progress: always update for small datasets, or at intervals for large ones
+                should_update = (
+                    (i + 1) % update_interval == 0 or 
+                    (i + 1) == total_entities or 
+                    i == 0 or
+                    total_entities <= 10  # Always update for small datasets
+                )
+                if should_update:
                     self.progress_tracker.update_progress(
                         tracking_id,
                         processed=i + 1,
                         total=total_entities,
-                        message=f"Analyzing entities... {i + 1}/{total_entities}"
+                        message=f"Analyzing entities... {i + 1}/{total_entities} (remaining: {remaining})"
                     )
 
             # Check each entity group for conflicts
             total_groups = len(entity_groups)
-            group_update_interval = max(1, total_groups // 20)  # Update every 5%
+            if total_groups <= 10:
+                group_update_interval = 1  # Update every item for small datasets
+            else:
+                group_update_interval = max(1, min(10, total_groups // 100))
+            
+            # Initial progress update for group checking
+            remaining_groups = total_groups
+            self.progress_tracker.update_progress(
+                tracking_id,
+                processed=0,
+                total=total_groups,
+                message=f"Checking entity groups for conflicts... 0/{total_groups} (remaining: {remaining_groups})"
+            )
             
             for j, (entity_id, entity_list) in enumerate(entity_groups.items()):
                 if len(entity_list) < 2:
@@ -302,13 +333,20 @@ class ConflictDetector:
                         f"has conflicting values: {unique_values}"
                     )
                 
-                # Update progress periodically for group checking
-                if (j + 1) % group_update_interval == 0 or (j + 1) == total_groups:
+                remaining_groups = total_groups - (j + 1)
+                # Update progress: always update for small datasets, or at intervals for large ones
+                should_update = (
+                    (j + 1) % group_update_interval == 0 or 
+                    (j + 1) == total_groups or 
+                    j == 0 or
+                    total_groups <= 10  # Always update for small datasets
+                )
+                if should_update:
                     self.progress_tracker.update_progress(
                         tracking_id,
                         processed=j + 1,
                         total=total_groups,
-                        message=f"Checking entity groups for conflicts... {j + 1}/{total_groups}"
+                        message=f"Checking entity groups for conflicts... {j + 1}/{total_groups} (remaining: {remaining_groups})"
                     )
 
             self.progress_tracker.stop_tracking(
@@ -365,7 +403,19 @@ class ConflictDetector:
             # Group relationships by ID
             rel_groups: Dict[str, List[Dict[str, Any]]] = {}
             total_rels = len(relationships)
-            update_interval = max(1, total_rels // 20)  # Update every 5%
+            if total_rels <= 10:
+                update_interval = 1  # Update every item for small datasets
+            else:
+                update_interval = max(1, min(10, total_rels // 100))
+            
+            # Initial progress update
+            remaining = total_rels
+            self.progress_tracker.update_progress(
+                tracking_id,
+                processed=0,
+                total=total_rels,
+                message=f"Grouping relationships... 0/{total_rels} (remaining: {remaining})"
+            )
 
             for i, rel in enumerate(relationships):
                 rel_id = (
@@ -377,18 +427,37 @@ class ConflictDetector:
                     rel_groups[rel_id] = []
                 rel_groups[rel_id].append(rel)
                 
-                # Update progress periodically
-                if (i + 1) % update_interval == 0 or (i + 1) == total_rels:
+                remaining = total_rels - (i + 1)
+                # Update progress: always update for small datasets, or at intervals for large ones
+                should_update = (
+                    (i + 1) % update_interval == 0 or 
+                    (i + 1) == total_rels or 
+                    i == 0 or
+                    total_rels <= 10  # Always update for small datasets
+                )
+                if should_update:
                     self.progress_tracker.update_progress(
                         tracking_id,
                         processed=i + 1,
                         total=total_rels,
-                        message=f"Grouping relationships... {i + 1}/{total_rels}"
+                        message=f"Grouping relationships... {i + 1}/{total_rels} (remaining: {remaining})"
                     )
 
             # Check for conflicts
             total_groups = len(rel_groups)
-            group_update_interval = max(1, total_groups // 20)  # Update every 5%
+            if total_groups <= 10:
+                group_update_interval = 1  # Update every item for small datasets
+            else:
+                group_update_interval = max(1, min(10, total_groups // 100))
+            
+            # Initial progress update for group checking
+            remaining_groups = total_groups
+            self.progress_tracker.update_progress(
+                tracking_id,
+                processed=0,
+                total=total_groups,
+                message=f"Checking relationship groups... 0/{total_groups} (remaining: {remaining_groups})"
+            )
             
             for j, (rel_id, rel_list) in enumerate(rel_groups.items()):
                 if len(rel_list) < 2:
@@ -413,13 +482,20 @@ class ConflictDetector:
                         conflicts.append(conflict)
                         self.detected_conflicts[conflict.conflict_id] = conflict
                 
-                # Update progress periodically
-                if (j + 1) % group_update_interval == 0 or (j + 1) == total_groups:
+                remaining_groups = total_groups - (j + 1)
+                # Update progress: always update for small datasets, or at intervals for large ones
+                should_update = (
+                    (j + 1) % group_update_interval == 0 or 
+                    (j + 1) == total_groups or 
+                    j == 0 or
+                    total_groups <= 10  # Always update for small datasets
+                )
+                if should_update:
                     self.progress_tracker.update_progress(
                         tracking_id,
                         processed=j + 1,
                         total=total_groups,
-                        message=f"Checking relationship groups... {j + 1}/{total_groups}"
+                        message=f"Checking relationship groups... {j + 1}/{total_groups} (remaining: {remaining_groups})"
                     )
 
             self.progress_tracker.stop_tracking(
@@ -472,20 +548,39 @@ class ConflictDetector:
                 )
 
             total_fields = len(fields_to_check)
-            update_interval = max(1, total_fields // 20)  # Update every 5%
+            if total_fields <= 10:
+                update_interval = 1  # Update every item for small datasets
+            else:
+                update_interval = max(1, min(10, total_fields // 100))
+            
+            # Initial progress update
+            remaining = total_fields
+            self.progress_tracker.update_progress(
+                tracking_id,
+                processed=0,
+                total=total_fields,
+                message=f"Checking fields for conflicts... 0/{total_fields} (remaining: {remaining})"
+            )
 
             # Check each field
             for i, field_name in enumerate(fields_to_check):
                 conflicts = self.detect_value_conflicts(entities, field_name, entity_type)
                 all_conflicts.extend(conflicts)
                 
-                # Update progress periodically
-                if (i + 1) % update_interval == 0 or (i + 1) == total_fields:
+                remaining = total_fields - (i + 1)
+                # Update progress: always update for small datasets, or at intervals for large ones
+                should_update = (
+                    (i + 1) % update_interval == 0 or 
+                    (i + 1) == total_fields or 
+                    i == 0 or
+                    total_fields <= 10  # Always update for small datasets
+                )
+                if should_update:
                     self.progress_tracker.update_progress(
                         tracking_id,
                         processed=i + 1,
                         total=total_fields,
-                        message=f"Checking fields for conflicts... {i + 1}/{total_fields}"
+                        message=f"Checking fields for conflicts... {i + 1}/{total_fields} (remaining: {remaining})"
                     )
 
             self.progress_tracker.stop_tracking(
@@ -626,7 +721,19 @@ class ConflictDetector:
             # Group entities by ID
             entity_groups: Dict[str, List[Dict[str, Any]]] = {}
             total_entities = len(entities)
-            update_interval = max(1, total_entities // 20)  # Update every 5%
+            if total_entities <= 10:
+                update_interval = 1  # Update every item for small datasets
+            else:
+                update_interval = max(1, min(10, total_entities // 100))
+            
+            # Initial progress update
+            remaining = total_entities
+            self.progress_tracker.update_progress(
+                tracking_id,
+                processed=0,
+                total=total_entities,
+                message=f"Grouping entities... 0/{total_entities} (remaining: {remaining})"
+            )
 
             for i, entity in enumerate(entities):
                 entity_id = entity.get("id") or entity.get("entity_id")
@@ -637,18 +744,37 @@ class ConflictDetector:
                     entity_groups[entity_id] = []
                 entity_groups[entity_id].append(entity)
                 
-                # Update progress periodically
-                if (i + 1) % update_interval == 0 or (i + 1) == total_entities:
+                remaining = total_entities - (i + 1)
+                # Update progress: always update for small datasets, or at intervals for large ones
+                should_update = (
+                    (i + 1) % update_interval == 0 or 
+                    (i + 1) == total_entities or 
+                    i == 0 or
+                    total_entities <= 10  # Always update for small datasets
+                )
+                if should_update:
                     self.progress_tracker.update_progress(
                         tracking_id,
                         processed=i + 1,
                         total=total_entities,
-                        message=f"Grouping entities... {i + 1}/{total_entities}"
+                        message=f"Grouping entities... {i + 1}/{total_entities} (remaining: {remaining})"
                     )
 
             # Check each entity group for type conflicts
             total_groups = len(entity_groups)
-            group_update_interval = max(1, total_groups // 20)  # Update every 5%
+            if total_groups <= 10:
+                group_update_interval = 1  # Update every item for small datasets
+            else:
+                group_update_interval = max(1, min(10, total_groups // 100))
+            
+            # Initial progress update for group checking
+            remaining_groups = total_groups
+            self.progress_tracker.update_progress(
+                tracking_id,
+                processed=0,
+                total=total_groups,
+                message=f"Checking entity groups for type conflicts... 0/{total_groups} (remaining: {remaining_groups})"
+            )
             
             for j, (entity_id, entity_list) in enumerate(entity_groups.items()):
                 if len(entity_list) < 2:
@@ -706,13 +832,20 @@ class ConflictDetector:
                         f"{unique_types}"
                     )
                 
-                # Update progress periodically for group checking
-                if (j + 1) % group_update_interval == 0 or (j + 1) == total_groups:
+                remaining_groups = total_groups - (j + 1)
+                # Update progress: always update for small datasets, or at intervals for large ones
+                should_update = (
+                    (j + 1) % group_update_interval == 0 or 
+                    (j + 1) == total_groups or 
+                    j == 0 or
+                    total_groups <= 10  # Always update for small datasets
+                )
+                if should_update:
                     self.progress_tracker.update_progress(
                         tracking_id,
                         processed=j + 1,
                         total=total_groups,
-                        message=f"Checking entity groups for type conflicts... {j + 1}/{total_groups}"
+                        message=f"Checking entity groups for type conflicts... {j + 1}/{total_groups} (remaining: {remaining_groups})"
                     )
 
             self.progress_tracker.stop_tracking(
@@ -765,7 +898,19 @@ class ConflictDetector:
             # Group entities by ID
             entity_groups: Dict[str, List[Dict[str, Any]]] = {}
             total_entities = len(entities)
-            update_interval = max(1, total_entities // 20)  # Update every 5%
+            if total_entities <= 10:
+                update_interval = 1  # Update every item for small datasets
+            else:
+                update_interval = max(1, min(10, total_entities // 100))
+            
+            # Initial progress update
+            remaining = total_entities
+            self.progress_tracker.update_progress(
+                tracking_id,
+                processed=0,
+                total=total_entities,
+                message=f"Grouping entities... 0/{total_entities} (remaining: {remaining})"
+            )
 
             for i, entity in enumerate(entities):
                 entity_id = entity.get("id") or entity.get("entity_id")
@@ -776,18 +921,37 @@ class ConflictDetector:
                     entity_groups[entity_id] = []
                 entity_groups[entity_id].append(entity)
                 
-                # Update progress periodically
-                if (i + 1) % update_interval == 0 or (i + 1) == total_entities:
+                remaining = total_entities - (i + 1)
+                # Update progress: always update for small datasets, or at intervals for large ones
+                should_update = (
+                    (i + 1) % update_interval == 0 or 
+                    (i + 1) == total_entities or 
+                    i == 0 or
+                    total_entities <= 10  # Always update for small datasets
+                )
+                if should_update:
                     self.progress_tracker.update_progress(
                         tracking_id,
                         processed=i + 1,
                         total=total_entities,
-                        message=f"Grouping entities... {i + 1}/{total_entities}"
+                        message=f"Grouping entities... {i + 1}/{total_entities} (remaining: {remaining})"
                     )
 
             # Check each entity group for temporal conflicts
             total_groups = len(entity_groups)
-            group_update_interval = max(1, total_groups // 20)  # Update every 5%
+            if total_groups <= 10:
+                group_update_interval = 1  # Update every item for small datasets
+            else:
+                group_update_interval = max(1, min(10, total_groups // 100))
+            
+            # Initial progress update for group checking
+            remaining_groups = total_groups
+            self.progress_tracker.update_progress(
+                tracking_id,
+                processed=0,
+                total=total_groups,
+                message=f"Checking entity groups for temporal conflicts... 0/{total_groups} (remaining: {remaining_groups})"
+            )
             
             for j, (entity_id, entity_list) in enumerate(entity_groups.items()):
                 if len(entity_list) < 2:
@@ -875,13 +1039,20 @@ class ConflictDetector:
                                 f"has conflicting values: {unique_values}"
                             )
                 
-                # Update progress periodically for group checking
-                if (j + 1) % group_update_interval == 0 or (j + 1) == total_groups:
+                remaining_groups = total_groups - (j + 1)
+                # Update progress: always update for small datasets, or at intervals for large ones
+                should_update = (
+                    (j + 1) % group_update_interval == 0 or 
+                    (j + 1) == total_groups or 
+                    j == 0 or
+                    total_groups <= 10  # Always update for small datasets
+                )
+                if should_update:
                     self.progress_tracker.update_progress(
                         tracking_id,
                         processed=j + 1,
                         total=total_groups,
-                        message=f"Checking entity groups for temporal conflicts... {j + 1}/{total_groups}"
+                        message=f"Checking entity groups for temporal conflicts... {j + 1}/{total_groups} (remaining: {remaining_groups})"
                     )
 
             self.progress_tracker.stop_tracking(
@@ -930,7 +1101,19 @@ class ConflictDetector:
             # Group entities by ID
             entity_groups: Dict[str, List[Dict[str, Any]]] = {}
             total_entities = len(entities)
-            update_interval = max(1, total_entities // 20)  # Update every 5%
+            if total_entities <= 10:
+                update_interval = 1  # Update every item for small datasets
+            else:
+                update_interval = max(1, min(10, total_entities // 100))
+            
+            # Initial progress update
+            remaining = total_entities
+            self.progress_tracker.update_progress(
+                tracking_id,
+                processed=0,
+                total=total_entities,
+                message=f"Grouping entities... 0/{total_entities} (remaining: {remaining})"
+            )
 
             for i, entity in enumerate(entities):
                 entity_id = entity.get("id") or entity.get("entity_id")
@@ -941,18 +1124,37 @@ class ConflictDetector:
                     entity_groups[entity_id] = []
                 entity_groups[entity_id].append(entity)
                 
-                # Update progress periodically
-                if (i + 1) % update_interval == 0 or (i + 1) == total_entities:
+                remaining = total_entities - (i + 1)
+                # Update progress: always update for small datasets, or at intervals for large ones
+                should_update = (
+                    (i + 1) % update_interval == 0 or 
+                    (i + 1) == total_entities or 
+                    i == 0 or
+                    total_entities <= 10  # Always update for small datasets
+                )
+                if should_update:
                     self.progress_tracker.update_progress(
                         tracking_id,
                         processed=i + 1,
                         total=total_entities,
-                        message=f"Grouping entities... {i + 1}/{total_entities}"
+                        message=f"Grouping entities... {i + 1}/{total_entities} (remaining: {remaining})"
                     )
 
             # Check each entity group for logical conflicts
             total_groups = len(entity_groups)
-            group_update_interval = max(1, total_groups // 20)  # Update every 5%
+            if total_groups <= 10:
+                group_update_interval = 1  # Update every item for small datasets
+            else:
+                group_update_interval = max(1, min(10, total_groups // 100))
+            
+            # Initial progress update for group checking
+            remaining_groups = total_groups
+            self.progress_tracker.update_progress(
+                tracking_id,
+                processed=0,
+                total=total_groups,
+                message=f"Checking entity groups for logical conflicts... 0/{total_groups} (remaining: {remaining_groups})"
+            )
             
             for j, (entity_id, entity_list) in enumerate(entity_groups.items()):
                 if len(entity_list) < 2:
@@ -1017,13 +1219,20 @@ class ConflictDetector:
                                     )
                                     break
                 
-                # Update progress periodically for group checking
-                if (j + 1) % group_update_interval == 0 or (j + 1) == total_groups:
+                remaining_groups = total_groups - (j + 1)
+                # Update progress: always update for small datasets, or at intervals for large ones
+                should_update = (
+                    (j + 1) % group_update_interval == 0 or 
+                    (j + 1) == total_groups or 
+                    j == 0 or
+                    total_groups <= 10  # Always update for small datasets
+                )
+                if should_update:
                     self.progress_tracker.update_progress(
                         tracking_id,
                         processed=j + 1,
                         total=total_groups,
-                        message=f"Checking entity groups for logical conflicts... {j + 1}/{total_groups}"
+                        message=f"Checking entity groups for logical conflicts... {j + 1}/{total_groups} (remaining: {remaining_groups})"
                     )
 
             self.progress_tracker.stop_tracking(
@@ -1165,8 +1374,23 @@ class ConflictDetector:
 
         resolved_count = 0
         unresolved_count = 0
+        
+        total_conflicts = len(conflicts)
+        if total_conflicts <= 10:
+            update_interval = 1  # Update every item for small datasets
+        else:
+            update_interval = max(1, min(10, total_conflicts // 100))
+        
+        # Initial progress update
+        remaining = total_conflicts
+        self.progress_tracker.update_progress(
+            tracking_id,
+            processed=0,
+            total=total_conflicts,
+            message=f"Resolving conflicts... 0/{total_conflicts} (remaining: {remaining})"
+        )
 
-        for conflict in conflicts:
+        for i, conflict in enumerate(conflicts):
             if self.auto_resolve:
                 # Simple resolution logic: pick value with highest confidence
                 # This is a placeholder for more complex logic
@@ -1177,6 +1401,22 @@ class ConflictDetector:
                     unresolved_count += 1
             else:
                 unresolved_count += 1
+            
+            remaining = total_conflicts - (i + 1)
+            # Update progress: always update for small datasets, or at intervals for large ones
+            should_update = (
+                (i + 1) % update_interval == 0 or 
+                (i + 1) == total_conflicts or 
+                i == 0 or
+                total_conflicts <= 10  # Always update for small datasets
+            )
+            if should_update:
+                self.progress_tracker.update_progress(
+                    tracking_id,
+                    processed=i + 1,
+                    total=total_conflicts,
+                    message=f"Resolving conflicts... {i + 1}/{total_conflicts} (remaining: {remaining})"
+                )
 
         self.progress_tracker.stop_tracking(
             tracking_id,
