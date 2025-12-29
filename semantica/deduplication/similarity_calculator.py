@@ -560,23 +560,27 @@ class SimilarityCalculator:
             # Calculate total pairs: n*(n-1)/2
             total_pairs = len(entities) * (len(entities) - 1) // 2
             processed = 0
-            # Update more frequently: every 1% or at least every 50 items
-            update_interval = max(1, min(50, total_pairs // 100))
+            # Update more frequently: every 1% or at least every 10 items, but always update for small datasets
+            if total_pairs <= 10:
+                update_interval = 1  # Update every item for small datasets
+            else:
+                update_interval = max(1, min(10, total_pairs // 100))
             
-            # Initial progress update to show tracking started
+            # Initial progress update to show tracking started - ALWAYS show this
             self.progress_tracker.update_tracking(
                 tracking_id,
                 status="running",
                 message=f"Calculating similarity for {len(entities)} entities ({total_pairs} pairs)..."
             )
             
-            if total_pairs > 0:
-                self.progress_tracker.update_progress(
-                    tracking_id,
-                    processed=0,
-                    total=total_pairs,
-                    message=f"Starting similarity calculation... 0/{total_pairs}"
-                )
+            # Always show initial progress, even if total_pairs is 0
+            remaining = total_pairs - processed
+            self.progress_tracker.update_progress(
+                tracking_id,
+                processed=0,
+                total=total_pairs,
+                message=f"Starting similarity calculation... 0/{total_pairs} (remaining: {remaining})"
+            )
 
             for i in range(len(entities)):
                 for j in range(i + 1, len(entities)):
@@ -586,13 +590,20 @@ class SimilarityCalculator:
                         results.append((entities[i], entities[j], similarity.score))
                     
                     processed += 1
-                    # Update progress more frequently
-                    if processed % update_interval == 0 or processed == total_pairs or processed == 1:
+                    remaining = total_pairs - processed
+                    # Update progress: always update for small datasets, or at intervals for large ones
+                    should_update = (
+                        processed % update_interval == 0 or 
+                        processed == total_pairs or 
+                        processed == 1 or
+                        total_pairs <= 10  # Always update for small datasets
+                    )
+                    if should_update:
                         self.progress_tracker.update_progress(
                             tracking_id,
                             processed=processed,
                             total=total_pairs,
-                            message=f"Comparing entity pairs... {processed}/{total_pairs}"
+                            message=f"Comparing entity pairs... {processed}/{total_pairs} (remaining: {remaining})"
                         )
 
             self.progress_tracker.stop_tracking(

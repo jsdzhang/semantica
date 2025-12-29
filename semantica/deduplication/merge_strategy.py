@@ -144,8 +144,10 @@ class MergeStrategyManager:
         # Custom merge strategies (callable functions)
         self.custom_strategies: Dict[str, Callable] = {}
 
-        # Initialize progress tracker
+        # Initialize progress tracker and ensure it's enabled
         self.progress_tracker = get_progress_tracker()
+        if not self.progress_tracker.enabled:
+            self.progress_tracker.enabled = True
 
         self.logger.debug(
             f"Merge strategy manager initialized (default: {self.default_strategy.value})"
@@ -238,28 +240,54 @@ class MergeStrategyManager:
             if not isinstance(strategy, MergeStrategy):
                  strategy = self.default_strategy
 
-            self.progress_tracker.update_tracking(
-                tracking_id, message=f"Selecting base entity using {strategy.value}..."
+            total_steps = 4  # Select base, merge properties, merge relationships, build entity
+            current_step = 0
+            
+            # Step 1: Select base entity
+            current_step += 1
+            remaining_steps = total_steps - current_step
+            self.progress_tracker.update_progress(
+                tracking_id,
+                processed=current_step,
+                total=total_steps,
+                message=f"Selecting base entity using {strategy.value}... ({current_step}/{total_steps}, remaining: {remaining_steps} steps)"
             )
-            # Select base entity
             base_entity = self._select_base_entity(entities, strategy)
 
-            self.progress_tracker.update_tracking(
-                tracking_id, message="Merging properties..."
+            # Step 2: Merge properties
+            current_step += 1
+            remaining_steps = total_steps - current_step
+            total_properties = sum(len(e.get("properties", {})) for e in entities)
+            self.progress_tracker.update_progress(
+                tracking_id,
+                processed=current_step,
+                total=total_steps,
+                message=f"Merging properties... ({current_step}/{total_steps}, {total_properties} properties, remaining: {remaining_steps} steps)"
             )
-            # Merge properties
             merged_properties, property_conflicts = self._merge_properties(
                 entities, base_entity, strategy
             )
 
-            self.progress_tracker.update_tracking(
-                tracking_id, message="Merging relationships..."
+            # Step 3: Merge relationships
+            current_step += 1
+            remaining_steps = total_steps - current_step
+            total_relationships = sum(len(e.get("relationships", [])) for e in entities)
+            self.progress_tracker.update_progress(
+                tracking_id,
+                processed=current_step,
+                total=total_steps,
+                message=f"Merging relationships... ({current_step}/{total_steps}, {total_relationships} relationships, remaining: {remaining_steps} steps)"
             )
-            # Merge relationships
             merged_relationships = self._merge_relationships(entities, base_entity)
 
-            self.progress_tracker.update_tracking(
-                tracking_id, message="Building merged entity..."
+            # Step 4: Build merged entity
+            current_step += 1
+            remaining_steps = total_steps - current_step
+            self.progress_tracker.update_progress(
+                tracking_id,
+                processed=current_step,
+                total=total_steps,
+                message=f"Building merged entity... ({current_step}/{total_steps}, remaining: {remaining_steps} steps)"
             )
             # Build merged entity
             merged_entity = {

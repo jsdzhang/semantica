@@ -176,11 +176,46 @@ class EventDetector:
                 }
 
             # Detect events using patterns
-            self.progress_tracker.update_tracking(
-                tracking_id, message="Scanning text for event patterns..."
+            total_event_types = len(event_patterns_to_use)
+            if total_event_types <= 10:
+                event_type_update_interval = 1  # Update every type for small datasets
+            else:
+                event_type_update_interval = max(1, min(5, total_event_types // 20))
+            
+            # Initial progress update
+            remaining_types = total_event_types
+            self.progress_tracker.update_progress(
+                tracking_id,
+                processed=0,
+                total=total_event_types,
+                message=f"Scanning text for event patterns... 0/{total_event_types} event types (remaining: {remaining_types})"
             )
+            
+            event_type_idx = 0
             for event_type, pattern in event_patterns_to_use.items():
-                for match in re.finditer(pattern, text, re.IGNORECASE):
+                event_type_idx += 1
+                remaining_types = total_event_types - event_type_idx
+                
+                # Count matches first to show progress
+                matches = list(re.finditer(pattern, text, re.IGNORECASE))
+                total_matches = len(matches)
+                
+                # Initialize match update interval
+                if total_matches <= 10:
+                    match_update_interval = 1
+                else:
+                    match_update_interval = max(1, min(10, total_matches // 100))
+                
+                if tracking_id and total_matches > 0:
+                    remaining_matches = total_matches
+                    self.progress_tracker.update_progress(
+                        tracking_id,
+                        processed=0,
+                        total=total_matches,
+                        message=f"Processing {event_type} events... 0/{total_matches} matches (remaining: {remaining_matches})"
+                    )
+                
+                for match_idx, match in enumerate(matches, 1):
                     # Extract surrounding context
                     start = max(0, match.start() - 50)
                     end = min(len(text), match.end() + 50)
@@ -213,6 +248,39 @@ class EventDetector:
                         metadata={"context": context},
                     )
                     events.append(event)
+                    
+                    # Update progress for matches
+                    if tracking_id and total_matches > 0:
+                        remaining_matches = total_matches - match_idx
+                        should_update = (
+                            match_idx % match_update_interval == 0 or 
+                            match_idx == total_matches or 
+                            match_idx == 1 or
+                            total_matches <= 10  # Always update for small datasets
+                        )
+                        if should_update:
+                            self.progress_tracker.update_progress(
+                                tracking_id,
+                                processed=match_idx,
+                                total=total_matches,
+                                message=f"Processing {event_type} events... {match_idx}/{total_matches} matches (remaining: {remaining_matches})"
+                            )
+                
+                # Update progress for event types
+                if tracking_id:
+                    should_update = (
+                        event_type_idx % event_type_update_interval == 0 or 
+                        event_type_idx == total_event_types or 
+                        event_type_idx == 1 or
+                        total_event_types <= 10  # Always update for small datasets
+                    )
+                    if should_update:
+                        self.progress_tracker.update_progress(
+                            tracking_id,
+                            processed=event_type_idx,
+                            total=total_event_types,
+                            message=f"Scanning text for event patterns... {event_type_idx}/{total_event_types} event types (remaining: {remaining_types})"
+                        )
 
             self.progress_tracker.stop_tracking(
                 tracking_id,

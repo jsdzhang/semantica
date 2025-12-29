@@ -367,6 +367,10 @@ class SemanticClusterer:
         """Initialize semantic clusterer."""
         self.logger = get_logger("semantic_clusterer")
         self.config = config
+        # Initialize progress tracker and ensure it's enabled
+        self.progress_tracker = get_progress_tracker()
+        if not self.progress_tracker.enabled:
+            self.progress_tracker.enabled = True
 
     def cluster(self, texts: List[str], **options) -> List[SemanticCluster]:
         """
@@ -384,38 +388,89 @@ class SemanticClusterer:
         if not texts:
             return []
 
-        similarity_threshold = options.get("similarity_threshold", 0.5)
-        similarity_analyzer = SimilarityAnalyzer()
+        # Track clustering
+        tracking_id = self.progress_tracker.start_tracking(
+            module="semantic_extract",
+            submodule="SemanticClusterer",
+            message=f"Clustering {len(texts)} texts",
+        )
 
-        clusters = []
-        assigned = set()
+        try:
+            similarity_threshold = options.get("similarity_threshold", 0.5)
+            similarity_analyzer = SimilarityAnalyzer()
 
-        cluster_id = 0
-        for i, text1 in enumerate(texts):
-            if i in assigned:
-                continue
+            clusters = []
+            assigned = set()
 
-            cluster_texts = [text1]
-            assigned.add(i)
+            total_texts = len(texts)
+            if total_texts <= 10:
+                update_interval = 1  # Update every item for small datasets
+            else:
+                update_interval = max(1, min(10, total_texts // 100))
+            
+            # Initial progress update
+            remaining = total_texts
+            self.progress_tracker.update_progress(
+                tracking_id,
+                processed=0,
+                total=total_texts,
+                message=f"Clustering texts... 0/{total_texts} (remaining: {remaining})"
+            )
 
-            # Find similar texts
-            for j, text2 in enumerate(texts[i + 1 :], start=i + 1):
-                if j in assigned:
+            cluster_id = 0
+            for i, text1 in enumerate(texts):
+                if i in assigned:
                     continue
 
-                similarity = similarity_analyzer.calculate_similarity(text1, text2)
-                if similarity >= similarity_threshold:
-                    cluster_texts.append(text2)
-                    assigned.add(j)
+                cluster_texts = [text1]
+                assigned.add(i)
 
-            # Create cluster
-            cluster = SemanticCluster(
-                texts=cluster_texts,
-                cluster_id=cluster_id,
-                centroid=cluster_texts[0],  # Use first as centroid
-                similarity_score=similarity_threshold,
+                # Find similar texts
+                remaining_texts = len(texts) - (i + 1)
+                for j, text2 in enumerate(texts[i + 1 :], start=i + 1):
+                    if j in assigned:
+                        continue
+
+                    similarity = similarity_analyzer.calculate_similarity(text1, text2)
+                    if similarity >= similarity_threshold:
+                        cluster_texts.append(text2)
+                        assigned.add(j)
+
+                # Create cluster
+                cluster = SemanticCluster(
+                    texts=cluster_texts,
+                    cluster_id=cluster_id,
+                    centroid=cluster_texts[0],  # Use first as centroid
+                    similarity_score=similarity_threshold,
+                )
+                clusters.append(cluster)
+                cluster_id += 1
+                
+                remaining = total_texts - (i + 1)
+                # Update progress: always update for small datasets, or at intervals for large ones
+                should_update = (
+                    (i + 1) % update_interval == 0 or 
+                    (i + 1) == total_texts or 
+                    i == 0 or
+                    total_texts <= 10  # Always update for small datasets
+                )
+                if should_update:
+                    self.progress_tracker.update_progress(
+                        tracking_id,
+                        processed=i + 1,
+                        total=total_texts,
+                        message=f"Clustering texts... {i + 1}/{total_texts} (remaining: {remaining})"
+                    )
+
+            self.progress_tracker.stop_tracking(
+                tracking_id,
+                status="completed",
+                message=f"Created {len(clusters)} clusters",
             )
-            clusters.append(cluster)
-            cluster_id += 1
+            return clusters
 
-        return clusters
+        except Exception as e:
+            self.progress_tracker.stop_tracking(
+                tracking_id, status="failed", message=str(e)
+            )
+            raise

@@ -206,11 +206,29 @@ class TripletExtractor:
 
             # Try each method in order (fallback chain)
             all_triplets = []
-            for method_name in methods:
+            total_methods = len(methods)
+            if total_methods <= 10:
+                method_update_interval = 1  # Update every method for small datasets
+            else:
+                method_update_interval = max(1, min(5, total_methods // 20))
+            
+            # Initial progress update for methods
+            remaining_methods = total_methods
+            self.progress_tracker.update_progress(
+                tracking_id,
+                processed=0,
+                total=total_methods,
+                message=f"Starting triplet extraction... 0/{total_methods} methods (remaining: {remaining_methods})"
+            )
+            
+            for method_idx, method_name in enumerate(methods, 1):
                 try:
-                    self.progress_tracker.update_tracking(
+                    remaining_methods = total_methods - method_idx
+                    self.progress_tracker.update_progress(
                         tracking_id,
-                        message=f"Extracting triplets using {method_name}...",
+                        processed=method_idx,
+                        total=total_methods,
+                        message=f"Extracting triplets using {method_name}... ({method_idx}/{total_methods}, remaining: {remaining_methods} methods)"
                     )
                     method_func = get_triplet_method(method_name)
 

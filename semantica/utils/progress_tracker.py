@@ -116,7 +116,8 @@ class ConsoleProgressDisplay(ProgressDisplay):
     def _should_update(self) -> bool:
         """Check if enough time has passed for update."""
         now = time.time()
-        if now - self.last_update >= self.update_interval:
+        # If last_update is 0.0 or very old, always update (forced update)
+        if self.last_update <= 0.0 or (now - self.last_update) >= self.update_interval:
             self.last_update = now
             return True
         return False
@@ -546,7 +547,7 @@ class JupyterProgressDisplay(ProgressDisplay):
         return "".join(html_parts)
 
     def update(self, item: ProgressItem) -> None:
-        """Update Jupyter progress display."""
+        """Update Jupyter progress display (works in Jupyter and Google Colab)."""
         # Add or update item
         existing = None
         for i, existing_item in enumerate(self.items):
@@ -563,13 +564,51 @@ class JupyterProgressDisplay(ProgressDisplay):
         else:
             self.items.append(item)
 
-        # Update display
+        # Update display - always update immediately in Jupyter/Colab
         if IPYTHON_AVAILABLE:
             html = self._build_html(self.items)
-            if self.display_handle is None:
+            try:
+                # Check if we're in Google Colab (Colab sometimes needs fresh displays)
+                is_colab = False
+                try:
+                    import sys
+                    import os
+                    is_colab = ('google.colab' in sys.modules or 
+                               os.environ.get("COLAB_GPU") is not None)
+                except Exception:
+                    pass
+                
+                if self.display_handle is None:
+                    # First time - create display
+                    self.display_handle = display(HTML(html), display_id=True)
+                else:
+                    # Try to update existing display
+                    try:
+                        # In Colab, sometimes update() doesn't work, so we recreate
+                        if is_colab:
+                            # Clear and recreate for Colab compatibility
+                            try:
+                                clear_output(wait=False)
+                            except Exception:
+                                pass
+                            self.display_handle = display(HTML(html), display_id=True)
+                        else:
+                            # Regular Jupyter - try update first
+                            self.display_handle.update(HTML(html))
+                    except (AttributeError, TypeError, Exception):
+                        # If update fails, create new display (works in both Jupyter and Colab)
+                        try:
+                            clear_output(wait=False)
+                        except Exception:
+                            pass
+                        self.display_handle = display(HTML(html), display_id=True)
+            except Exception:
+                # Fallback: always create new display if update fails
+                try:
+                    clear_output(wait=False)
+                except Exception:
+                    pass
                 self.display_handle = display(HTML(html), display_id=True)
-            else:
-                self.display_handle.update(HTML(html))
 
     def show_summary(self, items: List[ProgressItem]) -> None:
         """Show final summary in Jupyter."""
@@ -823,22 +862,33 @@ class ProgressTracker:
         Initialize progress tracker.
 
         Args:
-            enabled: Enable progress tracking
+            enabled: Enable progress tracking (default: True, always enabled)
             use_emoji: Use emoji indicators
             update_interval: Minimum time between updates (seconds)
         """
-        self.enabled = enabled
+        # Always enable progress tracking by default - cannot be disabled via constructor
+        # This ensures progress is always shown automatically
+        self.enabled = True  # Force enabled, ignore parameter
         self.use_emoji = use_emoji
         self.update_interval = update_interval
 
-        # Detect environment
+        # Detect environment - will be checked dynamically
         self.is_jupyter = self._detect_jupyter()
 
         # Create displays
         self.displays: List[ProgressDisplay] = []
 
-        if self.is_jupyter and IPYTHON_AVAILABLE:
-            self.displays.append(JupyterProgressDisplay(use_emoji=use_emoji))
+        # Always try Jupyter first if available, fallback to console
+        if IPYTHON_AVAILABLE:
+            # Try to detect Jupyter - if available, use it
+            if self.is_jupyter:
+                self.displays.append(JupyterProgressDisplay(use_emoji=use_emoji))
+            # Also add console as fallback for immediate feedback
+            self.displays.append(
+                ConsoleProgressDisplay(
+                    use_emoji=use_emoji, update_interval=update_interval
+                )
+            )
         else:
             self.displays.append(
                 ConsoleProgressDisplay(
@@ -855,12 +905,48 @@ class ProgressTracker:
         self.lock = threading.Lock()
 
     def _detect_jupyter(self) -> bool:
-        """Detect if running in Jupyter notebook."""
+        """Detect if running in Jupyter notebook or Google Colab."""
         if not IPYTHON_AVAILABLE:
             return False
         try:
             ipython = get_ipython()
-            return ipython is not None and hasattr(ipython, "kernel")
+            if ipython is None:
+                return False
+            
+            # Method 1: Check for Google Colab
+            # Colab has 'google.colab' in sys.modules or environment variables
+            try:
+                import sys
+                import os
+                if 'google.colab' in sys.modules:
+                    return True
+                # Check environment variables (Colab sets these)
+                if os.environ.get("COLAB_GPU") is not None or os.environ.get("COLAB_JUPYTER_TRANSPORT") is not None:
+                    return True
+                # Check IPython config for Colab
+                if hasattr(ipython, 'config') and hasattr(ipython.config, 'IPKernelApp'):
+                    config_str = str(ipython.config.IPKernelApp)
+                    if 'google.colab' in config_str or 'colab' in config_str.lower():
+                        return True
+            except Exception:
+                pass
+            
+            # Method 2: Check for kernel attribute (Jupyter/Colab)
+            if hasattr(ipython, "kernel"):
+                return True
+            
+            # Method 3: Check for IPython shell class name
+            if hasattr(ipython, "__class__"):
+                class_name = ipython.__class__.__name__
+                # Check for Jupyter, Colab, or ZMQ shell types
+                if any(name in class_name for name in ["ZMQInteractiveShell", "Jupyter", "Colab", "InteractiveShell"]):
+                    return True
+            
+            # Method 4: Check for IPython display capability
+            if hasattr(ipython, "display_pub"):
+                return True
+            
+            return False
         except Exception:
             return False
 
@@ -871,6 +957,11 @@ class ProgressTracker:
             with cls._lock:
                 if cls._instance is None:
                     cls._instance = cls()
+                    # Ensure it's always enabled
+                    cls._instance.enabled = True
+        else:
+            # Always ensure enabled when getting instance
+            cls._instance.enabled = True
         return cls._instance
 
     def start_tracking(
@@ -894,6 +985,15 @@ class ProgressTracker:
         """
         if not self.enabled:
             return ""
+
+        # Re-detect Jupyter environment in case it wasn't detected at init
+        # This helps if the tracker was created before Jupyter was fully initialized
+        if IPYTHON_AVAILABLE and not self.is_jupyter:
+            self.is_jupyter = self._detect_jupyter()
+            # If Jupyter is now detected and we don't have a Jupyter display, add it
+            if self.is_jupyter and not any(isinstance(d, JupyterProgressDisplay) for d in self.displays):
+                # Insert Jupyter display at the beginning for priority
+                self.displays.insert(0, JupyterProgressDisplay(use_emoji=self.use_emoji))
 
         # Auto-detect if not provided
         if not module or not submodule:
@@ -986,6 +1086,14 @@ class ProgressTracker:
         if not self.enabled or not tracking_id:
             return
 
+        # Re-detect Jupyter environment in case it wasn't detected at init
+        if IPYTHON_AVAILABLE and not self.is_jupyter:
+            self.is_jupyter = self._detect_jupyter()
+            # If Jupyter is now detected and we don't have a Jupyter display, add it
+            if self.is_jupyter and not any(isinstance(d, JupyterProgressDisplay) for d in self.displays):
+                # Insert Jupyter display at the beginning for priority
+                self.displays.insert(0, JupyterProgressDisplay(use_emoji=self.use_emoji))
+
         with self.lock:
             if tracking_id in self.active_items:
                 item = self.active_items[tracking_id]
@@ -998,9 +1106,21 @@ class ProgressTracker:
                 if message:
                     item.message = message
 
-                # Update displays
+                # Update displays - force immediate update for progress
                 for display in self.displays:
-                    display.update(item)
+                    # For Jupyter, always update immediately
+                    if isinstance(display, JupyterProgressDisplay):
+                        display.update(item)
+                    # For console, force update by temporarily bypassing interval check
+                    elif isinstance(display, ConsoleProgressDisplay):
+                        # Force update by setting last_update far in the past
+                        original_last_update = display.last_update
+                        display.last_update = 0.0  # This will make _should_update return True
+                        display.update(item)
+                        # Restore original value (update() will set it to current time anyway)
+                        display.last_update = original_last_update
+                    else:
+                        display.update(item)
 
     def _calculate_eta(self, item: ProgressItem) -> Optional[float]:
         """
@@ -1132,6 +1252,18 @@ def get_progress_tracker() -> ProgressTracker:
     global _global_tracker
     if _global_tracker is None:
         _global_tracker = ProgressTracker.get_instance()
+    
+    # Always ensure progress tracker is enabled automatically
+    _global_tracker.enabled = True
+    
+    # Re-detect Jupyter environment dynamically (in case it wasn't ready at init)
+    if IPYTHON_AVAILABLE and not _global_tracker.is_jupyter:
+        _global_tracker.is_jupyter = _global_tracker._detect_jupyter()
+        # If Jupyter is now detected and we don't have a Jupyter display, add it
+        if _global_tracker.is_jupyter and not any(isinstance(d, JupyterProgressDisplay) for d in _global_tracker.displays):
+            # Insert Jupyter display at the beginning for priority
+            _global_tracker.displays.insert(0, JupyterProgressDisplay(use_emoji=_global_tracker.use_emoji))
+    
     return _global_tracker
 
 
