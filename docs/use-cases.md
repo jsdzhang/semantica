@@ -153,14 +153,6 @@ ontology = ontology_gen.generate_from_graph(kg)
 
 <div class="grid cards" markdown>
 
--   :material-hospital-box: **Medical Record Analysis**
-    ---
-    Transform unstructured patient notes into structured medical histories.
-    
-    **Goal**: Extract Symptoms, Diagnoses, Medications, and Procedures, linking them temporally.
-    
-    [:material-arrow-right: View Cookbook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/healthcare/01_Clinical_Reports_Processing.ipynb)
-
 -   :material-account-heart: **Patient Journey Mapping**
     ---
     Visualize and analyze the complete patient experience.

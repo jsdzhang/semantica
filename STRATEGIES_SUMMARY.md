@@ -5,7 +5,6 @@
 | Use Case | Deduplication Method | Merge Strategy | Conflict Detection | Conflict Resolution |
 |----------|---------------------|----------------|-------------------|---------------------|
 | **Healthcare** |
-| `01_Clinical_Reports_Processing` | `DuplicateDetector` (batch) | `keep_most_complete` | `value` | `credibility_weighted` |
 | `02_Drug_Interactions_Analysis` | `EntityResolver` (semantic) | - | `relationship` | `voting` |
 | **Finance** |
 | `01_Financial_Data_Integration_MCP` | `DuplicateDetector` (incremental) | `keep_highest_confidence` | `temporal` | `most_recent` |
@@ -35,7 +34,6 @@
 ## Strategy Rationale by Domain
 
 ### Healthcare
-- **Clinical Reports**: Batch processing for large patient datasets; credibility weighting for medical sources
 - **Drug Interactions**: Semantic matching for drug names; voting for interaction data aggregation
 
 ### Finance

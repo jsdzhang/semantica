@@ -363,16 +363,6 @@ Real-world examples and end-to-end applications across various industries.
 
 <div class="grid cards" markdown>
 
--   :material-hospital-box: **Clinical Reports Processing**
-    ---
-    Processing and structuring unstructured clinical reports with FDA RSS feeds, HL7/FHIR integration, and patient record deduplication.
-    
-    **Topics**: NLP, Medical Records, EHR Integration, Deduplication
-    
-    **Difficulty**: Intermediate
-    
-    [Open Notebook](https://github.com/Hawksight-AI/semantica/blob/main/cookbook/use_cases/healthcare/01_Clinical_Reports_Processing.ipynb)
-
 -   :material-pill-multiple: **Drug Interactions Analysis**
     ---
     Identifying potential drug interactions and contraindications using medical RSS feeds, relation-aware chunking, conflict detection, and safety ontology generation.

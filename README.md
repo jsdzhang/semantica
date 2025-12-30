@@ -261,7 +261,6 @@ python -c "import semantica; print(semantica.__version__)"
 - [**Genomic Variant Analysis**](cookbook/use_cases/biomedical/02_Genomic_Variant_Analysis.ipynb) - bioRxiv RSS, temporal KGs, deduplication, pathway analysis
 
 #### Healthcare
-- [**Clinical Reports Processing**](cookbook/use_cases/healthcare/01_Clinical_Reports_Processing.ipynb) - FDA RSS, HL7/FHIR integration, patient deduplication
 - [**Drug Interactions Analysis**](cookbook/use_cases/healthcare/02_Drug_Interactions_Analysis.ipynb) - Medical RSS, relation-aware chunking, conflict detection, safety ontology
 
 #### Finance
