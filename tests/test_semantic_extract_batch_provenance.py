@@ -92,8 +92,8 @@ class TestSemanticExtractBatch(unittest.TestCase):
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0]["batch_index"], 0)
         self.assertEqual(results[0]["document_id"], "doc_1")
-        self.assertEqual(results[0]["semantic_roles"][0]["batch_index"], 0)
-        self.assertEqual(results[0]["semantic_roles"][0]["document_id"], "doc_1")
+        self.assertEqual(results[0]["semantic_roles"][0]["metadata"]["batch_index"], 0)
+        self.assertEqual(results[0]["semantic_roles"][0]["metadata"]["document_id"], "doc_1")
 
     def test_coreference_resolver_batch(self):
         print("Running test_coreference_resolver_batch")

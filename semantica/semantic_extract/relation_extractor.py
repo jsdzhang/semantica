@@ -453,7 +453,6 @@ class RelationExtractor:
 
     def _extract_last_resort_relations(self, text: str, entities: List[Entity]) -> List[Relation]:
         """Last resort relation extraction based on simple adjacency."""
-        print(f"DEBUG: Last Resort Relations - {len(entities)} entities")
         relations = []
         # Connect adjacent entities
         for i in range(len(entities) - 1):
@@ -482,7 +481,6 @@ class RelationExtractor:
                 metadata={"extraction_method": "last_resort_adjacency"}
             )
             relations.append(rel)
-            print(f"DEBUG: Created relation {rel.subject.text} -> {rel.object.text}")
         return relations
 
     def _extract_with_patterns(
