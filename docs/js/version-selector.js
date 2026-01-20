@@ -9,7 +9,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Define versions
         var versions = [
-            { name: "0.1.1", url: "#", current: true },
+            { name: "0.2.3", url: "#", current: true },
+            { name: "0.2.2", url: "#", current: false },
+            { name: "0.2.1", url: "#", current: false },
+            { name: "0.2.0", url: "#", current: false },
+            { name: "0.1.1", url: "#", current: false },
             { name: "0.1.0", url: "#", current: false }
         ];
 
