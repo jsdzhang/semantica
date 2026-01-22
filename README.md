@@ -1,10 +1,9 @@
 <div align="center">
 
-<img src="semantica_logo.png" alt="Semantica Logo" width="450"/>
+<img src="semantica_logo.png" alt="Semantica Logo" width="460"/>
 
 # 🧠 Semantica
-
-**Open-Source Semantic Layer & Knowledge Engineering Framework**
+### Open-Source Semantic Layer & Knowledge Engineering Framework
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -14,124 +13,140 @@
 [![CI](https://github.com/Hawksight-AI/semantica/workflows/CI/badge.svg)](https://github.com/Hawksight-AI/semantica/actions)
 [![Discord](https://img.shields.io/badge/Discord-Join-7289da?logo=discord&logoColor=white)](https://discord.gg/pMHguUzG)
 
-⭐ **Star** • 🍴 **Fork** • 💬 **Join Discord**
+### ⭐ Give us a Star • 🍴 Fork us • 💬 Join our Discord
 
-> **Transform messy, unstructured data into AI-ready knowledge.**
+> ** Transform Choas into Intelligence. Build AI systems that are explainable, traceable, and trustworthy — not black boxes.**
 
 </div>
 
 ---
 
-## 🚀 What is Semantica?
+## 🔍 What is Semantica?
 
-**Semantica** is the missing semantic fabric between raw data and intelligent AI systems.  
-It converts PDFs, documents, APIs, databases, and streams into **validated knowledge graphs, ontologies, and GraphRAG-ready intelligence** powering **AI agents, multi-agent systems, and reasoning models**.
+**Semantica** is an **open-source semantic intelligence framework** that transforms raw, unstructured data into **validated, explainable, and auditable knowledge** for modern AI systems.
 
-**100% Open Source (MIT)** • **Production Ready** • **Latest: v0.2.4** • **Community Driven**
+It provides the **semantic foundation** for:
+- **GraphRAG systems**
+- **AI Agents & Multi-Agent Systems**
+- **Reasoning and decision-support models**
+- **High-stakes enterprise AI platforms**
+
+Semantica is built for environments where **every answer must be explainable, traceable, and governed**.
+
 
 ---
 
-## 🎯 Why Semantica?
+## 🚨 The Core Problem: The Semantic & Trust Gap
 
-Traditional RAG systems treat data as isolated text chunks and vectors.  
-**Semantica understands meaning and relationships.**
+Most AI systems fail in high-stakes domains because they operate on **text similarity**, not **meaning**.
+
+### What Organizations Have
+- PDFs, DOCX, emails, logs
+- APIs, databases, streams
+- Conflicting facts and duplicates
+- Siloed systems with no lineage
+
+### What High-Stakes AI Requires
+- Formal domain rules (ontologies)
+- Structured and validated entities
+- Explicit semantic relationships
+- **Explainable reasoning paths**
+- **End-to-end traceability**
+- **Audit-ready provenance**
+
+Without semantics:
+- ❌ Decisions cannot be explained
+- ❌ Errors cannot be traced
+- ❌ Conflicts go undetected
+- ❌ Compliance becomes impossible
+
+**Trustworthy AI requires semantic accountability.**
+
+---
+
+## 🆚 Semantica vs Traditional RAG
 
 | Traditional RAG | Semantica |
 |-----------------|-----------|
-| Isolated documents | Unified semantic layer |
-| Vector-only search | Knowledge Graph + Vector (GraphRAG) |
-| Manual schemas | Automated ontology generation |
-| Hallucinations | Rule-based semantic validation |
-| Silent failures | Conflict detection & QA |
+| Black-box answers | Explainable reasoning |
+| No provenance | Source-level traceability |
+| Vector similarity only | Semantic + graph reasoning |
+| No conflict handling | Explicit contradiction detection |
+| Unsafe for high-stakes use | Designed for governed environments |
 
 ---
 
-## 🧠 The Problem: The Semantic Gap
+## 🧩 Semantica Architecture
 
-Organizations have:
-- **Unstructured data** (PDFs, emails, logs)
-- **Messy data** (duplicates, conflicts, missing links)
-- **Siloed systems** (no shared context)
+### 1️⃣ Input Layer — Governed Ingestion
+- PDFs, DOCX, HTML  
+- JSON, CSV, databases  
+- APIs, streams, archives  
+- Multi-modal content  
 
-AI systems require:
-- **Clear rules** (formal ontologies)
-- **Structured entities** (validated & consistent)
-- **Relationships** (context-aware reasoning)
-
-Without semantics:
-- ❌ Systems **break**
-- ❌ Models **hallucinate**
-- ❌ Errors **go undetected**
-
-**Data ≠ Knowledge. Semantics is the difference.**
+All data enters through a **single ingestion pipeline** with metadata and source tracking.
 
 ---
 
-## 🧩 Semantica Architecture (3 Layers)
+### 2️⃣ Semantic Layer — Trust & Reasoning Engine
 
-### 1️⃣ Input Layer
-Universal ingestion from:
-- PDFs, DOCX, HTML
-- JSON, CSV, databases
-- APIs, streams, archives
-- Multi-modal content
+This layer enforces **governance by design**:
 
-### 2️⃣ Semantic Layer (Core Engine)
-- Entity extraction & relationship mapping  
-- Automated ontology generation  
-- Context engineering & reasoning  
-- **Entity deduplication (Jaro-Winkler)**  
-- Conflict detection & provenance tracking  
-- Production-grade QA  
-
-### 3️⃣ Output Layer
-- Validated **Knowledge Graphs**
-- **OWL Ontologies**
-- **Vector Embeddings**
-
-**Powers GraphRAG, AI Agents & Multi-Agent Systems**
+- Entity extraction & normalization  
+- Relationship discovery & triplet generation  
+- Automated ontology induction  
+- **Entity deduplication** (Jaro-Winkler, disjoint properties)  
+- **Conflict detection and resolution**  
+- **Provenance tracking (source, time, confidence)**  
+- **Reasoning trace generation**  
+- Context engineering for grounded LLM outputs  
 
 ---
 
-## 💡 Core Capabilities
+### 3️⃣ Output Layer — Auditable Knowledge Assets
+- **Knowledge Graphs** (queryable, temporal, explainable)  
+- **OWL Ontologies** (HermiT / Pellet validated)  
+- **Vector Embeddings** (FastEmbed by default)  
 
-- **GraphRAG Engine**  
-  Hybrid vector + graph retrieval with **91% accuracy** (**+30% over vector-only**) and multi-hop reasoning
-
-- **Automated Ontology Generation**  
-  6-stage LLM pipeline with **HermiT / Pellet validation**
-
-- **Knowledge Graphs**  
-  Entity resolution, temporal support, graph analytics
-
-- **Universal Ingestion**  
-  Unified pipeline, no custom parsers required
-
-- **Efficient Embeddings**  
-  FastEmbed by default (lightweight & local)
-
-- **Agent Memory**  
-  Persistent memory using Vector + Graph retrieval
-
-- **LLM-Agnostic**  
-  Works with 100+ LLMs (OpenAI, Groq, HuggingFace, LiteLLM)
-
-- **Pipeline Orchestration**  
-  Parallel execution with orchestrator-worker pattern
-
-- **Production-Grade QA**  
-  Conflict detection, deduplication, quality scoring
+Every AI response can be traced back to:
+- Source documents
+- Extracted entities & relations
+- Ontology rules applied
+- Reasoning steps used
 
 ---
 
-## 👥 Who Is This For?
+## ⚙️ Core Capabilities (High-Stakes Ready)
 
-- **AI / ML Engineers** — GraphRAG, AI agents, reasoning systems  
-- **Data Engineers** — Semantic enrichment pipelines  
-- **Knowledge Engineers & Ontologists** — Automated KG & ontology creation  
-- **Enterprise Data Teams** — Unified semantic layers & data quality  
-- **Security & Compliance Teams** — Threat intelligence, audits, traceability  
-- **Startups & Product Teams** — Rapid AI prototyping  
+- **Explainable GraphRAG** — Graph-based reasoning with inspectable paths  
+- **Automated Ontology Generation** — Domain rules encoded explicitly  
+- **Traceable Knowledge Graphs** — Full lineage and versioning  
+- **Agent Memory with Guardrails** — Rule-validated agent actions  
+- **Production-Grade QA** — Deduplication, conflict detection, validation  
+- **LLM-Agnostic Design** — Works across providers with structured outputs  
+- **Scalable Pipelines** — Parallel, modular, production-friendly  
+
+---
+
+## 🏥 Built for High-Stakes Domains
+
+Semantica is designed for domains where **mistakes have real consequences**:
+
+- **Healthcare & Life Sciences** — Clinical reasoning, audit trails  
+- **Finance & Risk** — Explainable decisions, regulatory compliance  
+- **Legal & Compliance** — Evidence-backed reasoning  
+- **Cybersecurity & Intelligence** — Attribution and provenance  
+- **Government & Defense** — Governed, auditable AI systems  
+
+---
+
+## 👥 Who Uses Semantica?
+
+- **AI / ML Engineers** — Explainable GraphRAG & agents  
+- **Data Engineers** — Governed semantic pipelines  
+- **Knowledge Engineers** — Ontologies & KGs at scale  
+- **Enterprise Teams** — Trustworthy AI infrastructure  
+- **Risk & Compliance Teams** — Audit-ready systems  
 
 ---
 
@@ -143,14 +158,6 @@ Universal ingestion from:
 pip install semantica
 # or
 pip install semantica[all]
-
-
-**Current Version:** [![PyPI version](https://badge.fury.io/py/semantica.svg)](https://pypi.org/project/semantica/) • [View on PyPI](https://pypi.org/project/semantica/)
-
-!!! info "Windows PyTorch Note"
-    If you encounter PyTorch DLL errors on Windows, ensure you have the [Microsoft Visual C++ Redistributable](https://aka.ms/vs/17/release/vc_redist.x64.exe) installed. This is a common environment-specific issue with PyTorch on Windows and not a bug in Semantica.
-
-
 
 ### Install from Source (Development)
 
