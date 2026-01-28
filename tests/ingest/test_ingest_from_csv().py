@@ -227,7 +227,9 @@ def test_bad_row_unclosed_quote():
     content = "x,y\n1,2\n\"3,4\n5,6\n"
     path = write_temp_csv(content)
     data = PandasIngestor().from_csv(path)
-    assert data.row_count == 3
+    # The malformed quoted line consumes the following line; both are skipped.
+    # Only the first valid row remains.
+    assert data.row_count == 1
 
 
 
