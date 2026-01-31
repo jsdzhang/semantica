@@ -9,6 +9,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added / Changed
 
+- **Provenance Tracking Module**:
+  - New `semantica.provenance` module with W3C PROV-O compliant lineage tracking
+  - **Core Components**:
+    - `ProvenanceManager` - Unified tracking interface for all operations
+    - W3C PROV-O schemas - ProvenanceEntry, SourceReference, PropertySource implementing prov:Entity, prov:Activity, prov:Agent, prov:wasDerivedFrom
+    - Storage backends - InMemoryStorage (fast) and SQLiteStorage (persistent)
+    - Integrity verification - SHA-256 checksums for tamper detection
+    - Bridge axioms - BridgeAxiom and TranslationChain classes for domain transformations
+  - **Module Integrations** (17 total):
+    - Semantic Extract - NER, Relations, Events, Coreference, Triplets
+    - LLMs - Groq, OpenAI, HuggingFace, LiteLLM
+    - Storage - Graph Store, Vector Store, Triplet Store
+    - Processing - Pipeline, Context, Ingest, Embeddings, Reasoning
+    - Quality - Conflicts, Deduplication
+    - Output - Export, Parse, Normalize, Ontology, Visualization
+  - **Features**:
+    - Complete lineage tracking - Document → Chunk → Entity → Relationship → Graph → Query → Response
+    - LLM tracking - Token counts, API costs, latency, model parameters
+    - Source tracking - Document identifiers, page numbers, sections, quotes, confidence scores
+    - Bridge axioms - Healthcare (clinical→diagnostic), Finance (ecological→financial), Legal (evidence→conclusions), Pharmaceutical (research→efficacy)
+  - **Testing**: 237 tests (101 passed, 26 skipped) - core functionality, all module integrations, edge cases, real scenarios, backward compatibility
+  - **Documentation**: 
+    - API reference (docs/reference/provenance.md, 666 lines)
+    - Usage guide (semantica/provenance/provenance_usage.md, 1,247 lines)
+    - Updated README with provenance section and compliance disclaimers
+  - **Design**: Opt-in only (provenance=False default), 100% backward compatible, no new dependencies (Python stdlib only)
+
 - **Enhanced Change Management Module**:
   - New `semantica.change_management` module with persistent version storage and audit trails
   - **Core Classes**: `TemporalVersionManager` (KG versioning), `OntologyVersionManager` (ontology versioning), `ChangeLogEntry` (metadata)

@@ -107,6 +107,7 @@ nav:
     - installation.md
     - quickstart.md
   - Docs:
+    - Change Management: reference/change_management.md
     - Conflicts: reference/conflicts.md
     - Context: reference/context.md
     - Core: reference/core.md
@@ -122,6 +123,7 @@ nav:
     - Ontology: reference/ontology.md
     - Parse: reference/parse.md
     - Pipeline: reference/pipeline.md
+    - Provenance: reference/provenance.md
     - Reasoning: reference/reasoning.md
     - Seed: reference/seed.md
     - Semantic Extract: reference/semantic_extract.md
