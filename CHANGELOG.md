@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Core Module**: `ProvenanceManager`, W3C PROV-O schemas, storage backends (InMemory, SQLite), SHA-256 integrity verification
   - **Module Integrations**: Semantic Extract, LLMs (Groq, OpenAI, HuggingFace, LiteLLM), Pipeline, Context, Ingest, Embeddings, Graph/Vector/Triplet stores, Reasoning, Conflicts, Deduplication, Export, Parse, Normalize, Ontology, Visualization
   - **Features**: Complete lineage tracking (Document → Chunk → Entity → Relationship → Graph), LLM tracking (tokens, costs, latency), source tracking, bridge axioms for domain transformations
-  - **Compliance**: W3C PROV-O, FDA 21 CFR Part 11, SOX, HIPAA, TNFD support
+  - **Compliance Infrastructure**: W3C PROV-O, FDA 21 CFR Part 11, SOX, HIPAA, TNFD
   - **Testing**: 237 tests covering core functionality, all 17 module integrations, edge cases, backward compatibility
   - **Design**: Opt-in with `provenance=False` by default, zero breaking changes, no new dependencies
   - Contributed by @KaifAhmad1
@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Core Classes**: `TemporalVersionManager` (KG versioning), `OntologyVersionManager` (ontology versioning), `ChangeLogEntry` (metadata)
   - **Storage**: SQLite (persistent) and in-memory backends with thread-safe operations
   - **Features**: SHA-256 checksums, detailed entity/relationship diffs, structural ontology comparison, email validation
-  - **Compliance**: HIPAA, SOX, FDA 21 CFR Part 11 support with immutable audit trails
+  - **Compliance Infrastructure**: HIPAA, SOX, FDA 21 CFR Part 11 with immutable audit trails
   - **Testing**: 104 tests (100% pass) - unit, integration, compliance, performance, edge cases
   - **Performance**: 17.6ms for 10k entities, 510+ ops/sec concurrent, handles 5k+ entity graphs
   - **Migration**: Backward compatible, simplified class names, zero external dependencies
