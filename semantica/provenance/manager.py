@@ -109,9 +109,24 @@ class ProvenanceManager:
         if not isinstance(entity_id, str):
             raise TypeError(f"entity_id must be a string, got {type(entity_id).__name__}")
         
+        if not isinstance(entity_id, str):
+            raise TypeError(f"entity_id must be a string, got {type(entity_id).__name__}")
+        
         # Check if entity already exists
         existing = self.storage.retrieve(entity_id)
         parent_id = kwargs.get("parent_entity_id")
+        
+        # If source is a known entity, link it as parent (unless parent already set)
+        if not parent_id and source and isinstance(source, str):
+            try:
+                # Check if source exists in storage
+                # trace_lineage is cheaper than retrieve for just checking existence? Or retrieve?
+                # retrieve returns the *latest* entry for that ID
+                source_entity = self.storage.retrieve(source)
+                if source_entity:
+                    parent_id = source
+            except Exception:
+                pass
 
         # If entity exists, preserve history by archiving the old state
         if existing:
@@ -443,7 +458,16 @@ class ProvenanceManager:
         aggregated_metadata = {}
         for entry in lineage_entries:
             if entry.metadata:
-                aggregated_metadata.update(entry.metadata)
+                meta = entry.metadata
+                if isinstance(meta, str):
+                    try:
+                        import json
+                        meta = json.loads(meta)
+                    except (json.JSONDecodeError, TypeError):
+                        pass
+                
+                if isinstance(meta, dict):
+                    aggregated_metadata.update(meta)
         
         return {
             "entity_id": entity_id,
