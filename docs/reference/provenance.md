@@ -20,7 +20,7 @@ The Semantica provenance module provides W3C PROV-O compliant tracking for knowl
 
     All 17 Semantica modules integrated for comprehensive tracking
 
--   :material-source-document:{ .lg .middle } **Source Tracking**
+-   :material-file-document:{ .lg .middle } **Source Tracking**
 
     ---
 
