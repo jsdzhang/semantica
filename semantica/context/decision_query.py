@@ -783,7 +783,7 @@ class DecisionQuery:
             
             # Calculate degree centrality
             centrality = self.kg_components["centrality_calculator"].calculate_degree_centrality(subgraph)
-            boost = centrality.get(decision_id, 0.0)
+            boost = centrality.get('centrality', {}).get(decision_id, 0.0)
             
             # Cache the result
             self._cache[cache_key] = boost
@@ -882,16 +882,25 @@ class DecisionQuery:
             # Calculate centrality measures
             if "centrality_calculator" in self.kg_components:
                 subgraph = self._get_decision_subgraph(decision_id, max_depth)
-                centrality_measures = self.kg_components["centrality_calculator"].calculate_all_centrality(subgraph)
-                analysis["centrality_measures"] = centrality_measures.get(decision_id, {})
+                centrality_results = self.kg_components["centrality_calculator"].calculate_all_centrality(subgraph)
+                
+                # Extract centrality measures for this decision from nested structure
+                decision_measures = {}
+                centrality_measures = centrality_results.get('centrality_measures', {})
+                
+                for measure_type, measure_data in centrality_measures.items():
+                    if isinstance(measure_data, dict) and 'centrality' in measure_data:
+                        decision_measures[measure_type] = measure_data['centrality'].get(decision_id, 0.0)
+                
+                analysis["centrality_measures"] = decision_measures
                 
                 # Calculate overall influence score
                 measures = analysis["centrality_measures"]
                 analysis["influence_score"] = (
-                    0.3 * measures.get("degree_centrality", 0.0) +
-                    0.3 * measures.get("betweenness_centrality", 0.0) +
-                    0.2 * measures.get("closeness_centrality", 0.0) +
-                    0.2 * measures.get("eigenvector_centrality", 0.0)
+                    0.3 * measures.get("degree", 0.0) +
+                    0.3 * measures.get("betweenness", 0.0) +
+                    0.2 * measures.get("closeness", 0.0) +
+                    0.2 * measures.get("eigenvector", 0.0)
                 )
             
             # Community detection
