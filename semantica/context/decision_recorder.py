@@ -145,7 +145,7 @@ class DecisionRecorder:
             if self.provenance_manager:
                 self._track_decision_provenance(decision, source_documents)
             
-            self.logger.info(f"Recorded decision: {decision.decision_id}")
+            self.logger.info(f"Recorded decision: {decision.decision_id} | Actor: {decision.decision_maker} | Timestamp: {decision.timestamp} | Outcome: {decision.outcome} | Category: {decision.category}")
             return decision.decision_id
             
         except Exception as e:
