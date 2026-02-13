@@ -998,7 +998,7 @@ class ContextGraph:
             
             # Centrality analysis
             if "centrality_calculator" in self.kg_components:
-                centrality = self.kg_components["centrality_calculator"].calculate_all_centralities(kg_graph)
+                centrality = self.kg_components["centrality_calculator"].calculate_all_centrality(kg_graph)
                 analysis["centrality_analysis"] = centrality
             
             # Community detection
@@ -1053,7 +1053,7 @@ class ContextGraph:
             subgraph = self._get_node_subgraph(node_id, max_depth=2)
             
             # Calculate centrality
-            centrality = self.kg_components["centrality_calculator"].calculate_all_centralities(subgraph)
+            centrality = self.kg_components["centrality_calculator"].calculate_all_centrality(subgraph)
             
             # Cache result
             self._analytics_cache[cache_key] = centrality.get(node_id, {})
@@ -1109,6 +1109,7 @@ class ContextGraph:
         """Convert context graph to KG-compatible format."""
         nodes = []
         edges = []
+        relationships = []
         
         # Convert nodes
         for node_id, node in self.nodes.items():
@@ -1121,15 +1122,21 @@ class ContextGraph:
         
         # Convert edges
         for edge in self.edges:
-            edges.append({
+            edge_data = {
                 "source": edge.source_id,
                 "target": edge.target_id,
                 "type": edge.edge_type,
                 "weight": edge.weight,
                 "properties": edge.metadata
-            })
+            }
+            edges.append(edge_data)
+            relationships.append(edge_data)
         
-        return {"nodes": nodes, "edges": edges}
+        return {
+            "nodes": nodes, 
+            "edges": edges,
+            "relationships": relationships  # KG algorithms expect this key
+        }
     
     def _get_node_type_distribution(self) -> Dict[str, int]:
         """Get distribution of node types."""
