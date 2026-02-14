@@ -734,6 +734,37 @@ reasoned_result = context.query_with_reasoning(
 - **ContextRetriever**: Performs hybrid retrieval combining vector search, graph traversal, and memory for optimal context relevance
 - **AgentContext**: High-level interface integrating Context Graph and Context Retriever for GraphRAG applications
 
+#### Context Graphs: Decision Tracking
+
+```python
+from semantica.context import AgentContext, ContextGraph
+from semantica.vector_store import VectorStore
+
+context = AgentContext(
+    vector_store=VectorStore(backend="inmemory", dimension=128),
+    knowledge_graph=ContextGraph(),
+    enable_decision_tracking=True,
+    enable_kg_algorithms=False,  # semantic-only precedent search
+)
+
+decision_id = context.record_decision(
+    category="credit_approval",
+    scenario="High-risk credit limit increase",
+    reasoning="Recent velocity-check failure and prior fraud flag",
+    outcome="rejected",
+    confidence=0.78,
+    entities=["customer:jessica_norris"],
+)
+
+precedents = context.find_precedents(
+    scenario="High-risk customer credit increase",
+    category="credit_approval",
+    limit=5,
+)
+```
+
+Runnable script: `examples/context_graphs_decision_tracking.py`
+
 **Core Notebooks:**
 - [**Context Module Introduction**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/introduction/19_Context_Module.ipynb) - Basic memory and storage.
 - [**Advanced Context Engineering**](https://github.com/Hawksight-AI/semantica/tree/main/cookbook/advanced/11_Advanced_Context_Engineering.ipynb) - Hybrid retrieval, graph builders, and custom memory policies.

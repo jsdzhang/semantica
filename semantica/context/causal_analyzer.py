@@ -77,7 +77,7 @@ class CausalChainAnalyzer:
     using graph traversal.
     """
     
-    def __init__(self, graph_store: GraphStore):
+    def __init__(self, graph_store: Any):
         """
         Initialize CausalChainAnalyzer.
         
@@ -105,6 +105,13 @@ class CausalChainAnalyzer:
             List of decisions in causal chain
         """
         try:
+            if hasattr(self.graph_store, "get_causal_chain") and not hasattr(self.graph_store, "execute_query"):
+                return self.graph_store.get_causal_chain(
+                    decision_id=decision_id,
+                    direction=direction,
+                    max_depth=max_depth
+                )
+
             if direction not in ["upstream", "downstream"]:
                 raise ValueError("Direction must be 'upstream' or 'downstream'")
             

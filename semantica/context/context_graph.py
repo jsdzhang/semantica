@@ -260,7 +260,69 @@ class ContextGraph:
                 count += 1
         return count
 
-    def get_neighbors(self, node_id: str, hops: int = 1) -> List[Dict[str, Any]]:
+    def __contains__(self, node_id: object) -> bool:
+        if not isinstance(node_id, str):
+            return False
+        return node_id in self.nodes
+
+    def has_node(self, node_id: str) -> bool:
+        return node_id in self.nodes
+
+    def neighbors(self, node_id: str) -> List[str]:
+        return self.get_neighbor_ids(node_id)
+
+    def get_neighbor_ids(
+        self,
+        node_id: str,
+        relationship_types: Optional[List[str]] = None,
+    ) -> List[str]:
+        if node_id not in self.nodes:
+            return []
+
+        rel_filter = set(relationship_types) if relationship_types else None
+        neighbor_ids: List[str] = []
+        for edge in self._adjacency.get(node_id, []):
+            if rel_filter is None or edge.edge_type in rel_filter:
+                neighbor_ids.append(edge.target_id)
+        return neighbor_ids
+
+    def get_nodes_by_label(self, label: str) -> List[str]:
+        return list(self.node_type_index.get(label, set()))
+
+    def get_node_property(self, node_id: str, property_name: str) -> Any:
+        node = self.nodes.get(node_id)
+        if not node:
+            return None
+        return node.properties.get(property_name)
+
+    def get_node_attributes(self, node_id: str) -> Dict[str, Any]:
+        node = self.nodes.get(node_id)
+        if not node:
+            return {}
+        return node.properties.copy()
+
+    def add_node_attribute(self, node_id: str, attributes: Dict[str, Any]) -> None:
+        node = self.nodes.get(node_id)
+        if not node:
+            return
+        node.properties.update(attributes)
+        node.metadata.update(attributes)
+
+    def get_edge_data(self, source_id: str, target_id: str) -> Dict[str, Any]:
+        for edge in self._adjacency.get(source_id, []):
+            if edge.target_id == target_id:
+                data = edge.metadata.copy()
+                data["type"] = edge.edge_type
+                data["weight"] = edge.weight
+                return data
+        return {}
+
+    def get_neighbors(
+        self,
+        node_id: str,
+        hops: int = 1,
+        relationship_types: Optional[List[str]] = None,
+    ) -> List[Dict[str, Any]]:
         """
         Get neighbors of a node.
 
@@ -269,36 +331,39 @@ class ContextGraph:
         if node_id not in self.nodes:
             return []
 
-        neighbors = []
+        neighbors: List[Dict[str, Any]] = []
         visited = {node_id}
-        queue = deque([(node_id, 0)])  # (current_id, current_hop)
+        queue = deque([(node_id, 0)])
+        rel_filter = set(relationship_types) if relationship_types else None
 
         while queue:
             current_id, current_hop = queue.popleft()
-
             if current_hop >= hops:
                 continue
 
-            # Get outgoing edges
             outgoing_edges = self._adjacency.get(current_id, [])
             for edge in outgoing_edges:
+                if rel_filter is not None and edge.edge_type not in rel_filter:
+                    continue
                 neighbor_id = edge.target_id
-                if neighbor_id not in visited:
-                    visited.add(neighbor_id)
-                    queue.append((neighbor_id, current_hop + 1))
+                if neighbor_id in visited:
+                    continue
+                visited.add(neighbor_id)
+                queue.append((neighbor_id, current_hop + 1))
 
-                    if neighbor_id in self.nodes:
-                        node = self.nodes[neighbor_id]
-                        neighbors.append(
-                            {
-                                "id": node.node_id,
-                                "type": node.node_type,
-                                "content": node.content,
-                                "relationship": edge.edge_type,
-                                "weight": edge.weight,
-                                "hop": current_hop + 1,
-                            }
-                        )
+                node = self.nodes.get(neighbor_id)
+                if not node:
+                    continue
+                neighbors.append(
+                    {
+                        "id": node.node_id,
+                        "type": node.node_type,
+                        "content": node.content,
+                        "relationship": edge.edge_type,
+                        "weight": edge.weight,
+                        "hop": current_hop + 1,
+                    }
+                )
 
         return neighbors
 
