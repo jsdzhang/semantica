@@ -209,62 +209,56 @@ class AgentContext:
         if knowledge_graph and hasattr(knowledge_graph, "build_from_conversations"):
             self._graph_builder = knowledge_graph
 
-        # Store config
-        self.config = {
+        self.config.update({
             "retention_days": retention_days,
             "max_memories": max_memories,
-            "use_graph_expansion": use_graph_expansion,
-            "max_expansion_hops": max_expansion_hops,
-            "hybrid_alpha": hybrid_alpha,
-            "enable_decision_tracking": enable_decision_tracking,
-        }
+        })
         
         # Initialize decision tracking components if enabled
+        self._decision_backend = None
         self._decision_recorder = None
         self._decision_query = None
         self._causal_analyzer = None
         self._policy_engine = None
         
         if enable_decision_tracking and knowledge_graph:
-            # Validate that knowledge_graph supports required GraphStore interface
-            if not hasattr(knowledge_graph, 'execute_query'):
-                self.logger.error(
-                    "Decision tracking requires a GraphStore-compatible knowledge graph with execute_query() method. "
-                    "Provided knowledge_graph type does not support Cypher queries. "
-                    "Use GraphStore (Neo4j, FalkorDB) or disable decision tracking."
-                )
-                raise ValueError(
-                    "Decision tracking requires a GraphStore-compatible knowledge graph. "
-                    "The provided knowledge_graph does not have an execute_query() method. "
-                    "For decision tracking, use a GraphStore backend (Neo4j, FalkorDB) "
-                    "or set enable_decision_tracking=False."
-                )
-            
-            # Initialize enhanced decision tracking components
-            try:
-                self._decision_recorder = DecisionRecorder(knowledge_graph)
-                
-                # Enhanced DecisionQuery with KG and vector store integration
-                self._decision_query = DecisionQuery(
-                    graph_store=knowledge_graph,
-                    vector_store=vector_store if enable_vector_store_features else None,
-                    enable_advanced_analytics=enable_advanced_analytics,
-                    enable_centrality_analysis=enable_kg_algorithms,
-                    enable_community_detection=enable_kg_algorithms,
-                    enable_node_embeddings=enable_kg_algorithms
-                )
-                
-                self._causal_analyzer = CausalChainAnalyzer(knowledge_graph)
+            if hasattr(knowledge_graph, "execute_query"):
+                self._decision_backend = "graph_store"
+                try:
+                    self._decision_recorder = DecisionRecorder(knowledge_graph)
+                    self._decision_query = DecisionQuery(
+                        graph_store=knowledge_graph,
+                        vector_store=vector_store if enable_vector_store_features else None,
+                        enable_advanced_analytics=enable_advanced_analytics,
+                        enable_centrality_analysis=enable_kg_algorithms,
+                        enable_community_detection=enable_kg_algorithms,
+                        enable_node_embeddings=enable_kg_algorithms
+                    )
+                    self._causal_analyzer = CausalChainAnalyzer(knowledge_graph)
+                    self._policy_engine = PolicyEngine(knowledge_graph)
+                    self.logger.info("Enhanced decision tracking components initialized successfully")
+                except Exception as e:
+                    self.logger.warning(
+                        f"Failed to initialize enhanced decision tracking ({type(e).__name__})"
+                    )
+                    self._decision_recorder = DecisionRecorder(knowledge_graph)
+                    self._decision_query = DecisionQuery(knowledge_graph)
+                    self._causal_analyzer = CausalChainAnalyzer(knowledge_graph)
+                    self._policy_engine = PolicyEngine(knowledge_graph)
+            else:
+                self._decision_backend = "context_graph"
                 self._policy_engine = PolicyEngine(knowledge_graph)
-                
-                self.logger.info("Enhanced decision tracking components initialized successfully")
-            except Exception as e:
-                self.logger.warning(f"Failed to initialize enhanced decision tracking: {e}")
-                # Fallback to basic components
-                self._decision_recorder = DecisionRecorder(knowledge_graph)
-                self._decision_query = DecisionQuery(knowledge_graph)
                 self._causal_analyzer = CausalChainAnalyzer(knowledge_graph)
-                self._policy_engine = PolicyEngine(knowledge_graph)
+                if enable_vector_store_features and hasattr(self.vector_store, "initialize_decision_pipeline"):
+                    try:
+                        self.vector_store.initialize_decision_pipeline(
+                            graph_store=knowledge_graph if enable_kg_algorithms else None,
+                            use_graph_features=enable_kg_algorithms
+                        )
+                    except Exception as e:
+                        self.logger.warning(
+                            f"Failed to initialize decision pipeline ({type(e).__name__})"
+                        )
 
     @property
     def memory(self) -> AgentMemory:
@@ -766,7 +760,7 @@ class AgentContext:
                 "edge_count": graph.get("statistics", {}).get("edge_count", 0),
             }
         except Exception as e:
-            self.logger.warning(f"Failed to build graph from documents: {e}")
+            self.logger.warning(f"Failed to build graph from documents ({type(e).__name__})")
             return {"node_count": 0, "edge_count": 0}
 
     def _context_to_dict(
@@ -1467,7 +1461,7 @@ class AgentContext:
                 if memory_id:
                     imported += 1
             except Exception as e:
-                self.logger.warning(f"Failed to import memory: {e}")
+                self.logger.warning(f"Failed to import memory ({type(e).__name__})")
 
         return imported
 
@@ -1560,7 +1554,7 @@ class AgentContext:
         Raises:
             RuntimeError: If decision tracking is not enabled
         """
-        if not self._decision_recorder:
+        if not self._decision_backend:
             raise RuntimeError("Decision tracking is not enabled")
         
         from .decision_models import Decision
@@ -1579,18 +1573,80 @@ class AgentContext:
         
         entities = entities or []
         source_documents = []  # Could be enhanced to capture source docs
-        
-        decision_id = self._decision_recorder.record_decision(
-            decision, entities, source_documents
-        )
-        
-        # Capture cross-system context if provided
-        if cross_system_context:
-            self._decision_recorder.capture_cross_system_context(
-                decision_id, cross_system_context
+
+        if self._decision_backend == "graph_store":
+            decision_id = self._decision_recorder.record_decision(
+                decision, entities, source_documents
             )
-        
-        return decision_id
+
+            if cross_system_context:
+                self._decision_recorder.capture_cross_system_context(
+                    decision_id, cross_system_context
+                )
+
+            return decision_id
+
+        if not hasattr(self.knowledge_graph, "add_decision"):
+            raise RuntimeError("Decision tracking backend does not support decisions")
+
+        self.knowledge_graph.add_decision(decision)
+        if cross_system_context and hasattr(self.knowledge_graph, "add_node_attribute"):
+            self.knowledge_graph.add_node_attribute(
+                decision.decision_id, {"cross_system_context": cross_system_context}
+            )
+        about_edge_failures: List[Dict[str, str]] = []
+        for entity_id in entities:
+            try:
+                self.knowledge_graph.add_edge(decision.decision_id, entity_id, edge_type="ABOUT")
+            except Exception as e:
+                about_edge_failures.append(
+                    {"entity_id": str(entity_id), "error_type": type(e).__name__}
+                )
+
+        if about_edge_failures:
+            failure_types = sorted(
+                {f.get("error_type", "") for f in about_edge_failures if f.get("error_type")}
+            )
+            self.logger.warning(
+                f"record_decision ABOUT edge creation failures: {len(about_edge_failures)} "
+                f"({', '.join(failure_types) if failure_types else 'unknown'})"
+            )
+            if hasattr(self.knowledge_graph, "add_node_attribute"):
+                self.knowledge_graph.add_node_attribute(
+                    decision.decision_id, {"about_edge_failures": about_edge_failures}
+                )
+
+        vector_id = None
+        vector_store_error_type: Optional[str] = None
+        if hasattr(self.vector_store, "store_decision"):
+            try:
+                vector_id = self.vector_store.store_decision(
+                    scenario=scenario,
+                    reasoning=reasoning,
+                    outcome=outcome,
+                    confidence=confidence,
+                    entities=entities,
+                    category=category,
+                    decision_id=decision.decision_id,
+                    decision_maker=decision.decision_maker,
+                    timestamp=decision.timestamp.isoformat()
+                )
+            except Exception as e:
+                vector_id = None
+                vector_store_error_type = type(e).__name__
+                self.logger.warning(
+                    f"record_decision vector store write failed ({vector_store_error_type})"
+                )
+                if hasattr(self.knowledge_graph, "add_node_attribute"):
+                    self.knowledge_graph.add_node_attribute(
+                        decision.decision_id,
+                        {"vector_store_error_type": vector_store_error_type},
+                    )
+
+        if vector_id and hasattr(self.knowledge_graph, "add_node_attribute"):
+            self.knowledge_graph.add_node_attribute(decision.decision_id, {"vector_id": vector_id})
+
+        return decision.decision_id
 
     def find_precedents(
         self,
@@ -1618,24 +1674,95 @@ class AgentContext:
         Raises:
             RuntimeError: If decision tracking is not enabled
         """
-        if not self._decision_query:
+        if not self._decision_backend:
             raise RuntimeError("Decision tracking is not enabled")
-        
-        if use_hybrid_search:
-            try:
-                return self._decision_query.find_precedents_hybrid(
-                    scenario, category, limit
-                )
-            except Exception:
-                # Fallback to basic search if hybrid fails
-                return self._decision_query._find_precedents_basic(scenario, category, limit)
-        else:
-            # Simple category-based search
+
+        if self._decision_backend == "graph_store":
+            if use_hybrid_search:
+                try:
+                    return self._decision_query.find_precedents_hybrid(
+                        scenario, category, limit
+                    )
+                except Exception:
+                    return self._decision_query._find_precedents_basic(scenario, category, limit)
             if category:
                 return self._decision_query.find_by_category(category, limit)
-            else:
-                # Use basic search
-                return self._decision_query._find_precedents_basic(scenario, category, limit)
+            return self._decision_query._find_precedents_basic(scenario, category, limit)
+
+        results: List[Decision] = []
+
+        def _safe_parse_timestamp(value: Any) -> datetime:
+            if isinstance(value, datetime):
+                return value
+            if not value:
+                return datetime.now()
+            try:
+                return datetime.fromisoformat(str(value))
+            except Exception:
+                return datetime.now()
+
+        if use_hybrid_search and hasattr(self.vector_store, "search_decisions"):
+            filters = {"category": category} if category else None
+            vector_results = self.vector_store.search_decisions(
+                query=scenario,
+                filters=filters,
+                limit=limit,
+                use_hybrid_search=True
+            )
+            for r in vector_results:
+                meta = r.get("metadata") or {}
+                decision_id = meta.get("decision_id") or meta.get("id")
+                if decision_id and hasattr(self.knowledge_graph, "nodes") and decision_id in self.knowledge_graph.nodes:
+                    node = self.knowledge_graph.nodes[decision_id]
+                    if getattr(node, "node_type", None) == "Decision":
+                        data = getattr(node, "properties", {}) or {}
+                        decision = Decision(
+                            decision_id=decision_id,
+                            category=data.get("category", ""),
+                            scenario=getattr(node, "content", ""),
+                            reasoning=data.get("reasoning", ""),
+                            outcome=data.get("outcome", ""),
+                            confidence=float(data.get("confidence", 0.0) or 0.0),
+                            timestamp=_safe_parse_timestamp(data.get("timestamp")),
+                            decision_maker=data.get("decision_maker", "ai_agent"),
+                            reasoning_embedding=data.get("reasoning_embedding"),
+                            node2vec_embedding=data.get("node2vec_embedding"),
+                            metadata={k: v for k, v in data.items() if k not in [
+                                "category", "reasoning", "outcome", "confidence",
+                                "timestamp", "decision_maker", "reasoning_embedding", "node2vec_embedding"
+                            ]}
+                        )
+                        decision.metadata["score"] = r.get("score")
+                        results.append(decision)
+
+        if results:
+            return results[:limit]
+
+        if hasattr(self.knowledge_graph, "find_nodes"):
+            for node in self.knowledge_graph.find_nodes(node_type="Decision"):
+                if category and node.get("metadata", {}).get("category") != category:
+                    continue
+                data = node.get("metadata", {}) or {}
+                results.append(
+                    Decision(
+                        decision_id=node.get("id", ""),
+                        category=data.get("category", ""),
+                        scenario=node.get("content", ""),
+                        reasoning=data.get("reasoning", ""),
+                        outcome=data.get("outcome", ""),
+                        confidence=float(data.get("confidence", 0.0) or 0.0),
+                        timestamp=_safe_parse_timestamp(data.get("timestamp")),
+                        decision_maker=data.get("decision_maker", "ai_agent"),
+                        reasoning_embedding=data.get("reasoning_embedding"),
+                        node2vec_embedding=data.get("node2vec_embedding"),
+                        metadata={k: v for k, v in data.items() if k not in [
+                            "category", "reasoning", "outcome", "confidence",
+                            "timestamp", "decision_maker", "reasoning_embedding", "node2vec_embedding"
+                        ]}
+                    )
+                )
+
+        return results[:limit]
 
     def get_causal_chain(
         self,
@@ -1657,12 +1784,22 @@ class AgentContext:
         Raises:
             RuntimeError: If decision tracking is not enabled
         """
-        if not self._causal_analyzer:
+        if not self._decision_backend:
             raise RuntimeError("Decision tracking is not enabled")
-        
-        return self._causal_analyzer.get_causal_chain(
-            decision_id, direction, max_depth
-        )
+
+        if self._decision_backend == "graph_store":
+            return self._causal_analyzer.get_causal_chain(
+                decision_id, direction, max_depth
+            )
+
+        if hasattr(self.knowledge_graph, "get_causal_chain"):
+            return self.knowledge_graph.get_causal_chain(
+                decision_id=decision_id,
+                direction=direction,
+                max_depth=max_depth
+            )
+
+        raise RuntimeError("Decision tracking backend does not support causal chains")
 
     def get_policy_engine(self) -> PolicyEngine:
         """
@@ -1869,7 +2006,7 @@ class AgentContext:
                     "message": "Basic analysis only - KG features not available"
                 }
         except Exception as e:
-            self.logger.error(f"Failed to analyze context graph: {e}")
+            self.logger.error(f"Failed to analyze context graph ({type(e).__name__})")
             return {"error": str(e)}
     
     def find_similar_entities(
@@ -1896,7 +2033,7 @@ class AgentContext:
                 # Fallback to basic content similarity
                 return []
         except Exception as e:
-            self.logger.error(f"Failed to find similar entities: {e}")
+            self.logger.error(f"Failed to find similar entities ({type(e).__name__})")
             return []
     
     def get_entity_centrality(self, entity_id: str) -> Dict[str, float]:
@@ -1918,7 +2055,7 @@ class AgentContext:
             else:
                 return {"error": "Centrality analysis not available"}
         except Exception as e:
-            self.logger.error(f"Failed to get entity centrality: {e}")
+            self.logger.error(f"Failed to get entity centrality ({type(e).__name__})")
             return {"error": str(e)}
     
     def find_precedents_advanced(
@@ -1958,7 +2095,7 @@ class AgentContext:
                 # Fallback to basic method
                 return self.find_precedents(scenario, category, limit)
         except Exception as e:
-            self.logger.error(f"Failed to find advanced precedents: {e}")
+            self.logger.error(f"Failed to find advanced precedents ({type(e).__name__})")
             return []
     
     def analyze_decision_influence(self, decision_id: str, max_depth: int = 3) -> Dict[str, Any]:
@@ -1987,7 +2124,7 @@ class AgentContext:
                     "message": "Basic analysis only - KG features not available"
                 }
         except Exception as e:
-            self.logger.error(f"Failed to analyze decision influence: {e}")
+            self.logger.error(f"Failed to analyze decision influence ({type(e).__name__})")
             return {"error": str(e)}
     
     def predict_decision_relationships(self, decision_id: str, top_k: int = 5) -> List[Dict]:
@@ -2010,7 +2147,7 @@ class AgentContext:
             else:
                 return []
         except Exception as e:
-            self.logger.error(f"Failed to predict decision relationships: {e}")
+            self.logger.error(f"Failed to predict decision relationships ({type(e).__name__})")
             return []
     
     def get_context_insights(self) -> Dict[str, Any]:

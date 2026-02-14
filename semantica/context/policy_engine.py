@@ -84,7 +84,7 @@ class PolicyEngine:
     records exceptions, and analyzes policy impact.
     """
     
-    def __init__(self, graph_store: GraphStore):
+    def __init__(self, graph_store: Any):
         """
         Initialize PolicyEngine.
         
@@ -93,6 +93,7 @@ class PolicyEngine:
         """
         self.graph_store = graph_store
         self.logger = get_logger(__name__)
+        self._supports_cypher = hasattr(graph_store, "execute_query")
     
     def add_policy(self, policy: Policy) -> str:
         """
@@ -105,35 +106,54 @@ class PolicyEngine:
             Policy ID
         """
         try:
-            # Store policy node
-            query = """
-            CREATE (p:Policy {
-                policy_id: $policy_id,
-                name: $name,
-                description: $description,
-                rules: $rules,
-                category: $category,
-                version: $version,
-                created_at: $created_at,
-                updated_at: $updated_at,
-                metadata: $metadata
-            })
-            """
-            self.graph_store.execute_query(query, {
-                "policy_id": policy.policy_id,
-                "name": policy.name,
-                "description": policy.description,
-                "rules": policy.rules,
-                "category": policy.category,
-                "version": policy.version,
-                "created_at": policy.created_at,
-                "updated_at": policy.updated_at,
-                "metadata": policy.metadata
-            })
-            
+            if self._supports_cypher:
+                query = """
+                CREATE (p:Policy {
+                    policy_id: $policy_id,
+                    name: $name,
+                    description: $description,
+                    rules: $rules,
+                    category: $category,
+                    version: $version,
+                    created_at: $created_at,
+                    updated_at: $updated_at,
+                    metadata: $metadata
+                })
+                """
+                self.graph_store.execute_query(query, {
+                    "policy_id": policy.policy_id,
+                    "name": policy.name,
+                    "description": policy.description,
+                    "rules": policy.rules,
+                    "category": policy.category,
+                    "version": policy.version,
+                    "created_at": policy.created_at,
+                    "updated_at": policy.updated_at,
+                    "metadata": policy.metadata
+                })
+                self.logger.info(f"Added policy: {policy.policy_id} version {policy.version}")
+                return policy.policy_id
+
+            if not hasattr(self.graph_store, "add_node"):
+                raise RuntimeError("Graph backend does not support policy storage")
+
+            node_id = f"{policy.policy_id}:{policy.version}"
+            self.graph_store.add_node(
+                node_id=node_id,
+                node_type="Policy",
+                content=policy.name or policy.policy_id,
+                policy_id=policy.policy_id,
+                name=policy.name,
+                description=policy.description,
+                rules=policy.rules,
+                category=policy.category,
+                version=policy.version,
+                created_at=policy.created_at.isoformat() if hasattr(policy.created_at, "isoformat") else str(policy.created_at),
+                updated_at=policy.updated_at.isoformat() if hasattr(policy.updated_at, "isoformat") else str(policy.updated_at),
+                metadata=policy.metadata or {}
+            )
             self.logger.info(f"Added policy: {policy.policy_id} version {policy.version}")
             return policy.policy_id
-            
         except Exception as e:
             self.logger.error(f"Failed to add policy: {e}")
             raise
@@ -187,17 +207,26 @@ class PolicyEngine:
             # Store new version
             self.add_policy(updated_policy)
             
-            # Link versions
-            query = """
-            MATCH (old:Policy {policy_id: $policy_id, version: $old_version})
-            MATCH (new:Policy {policy_id: $policy_id, version: $new_version})
-            MERGE (old)-[:VERSION_OF]->(new)
-            """
-            self.graph_store.execute_query(query, {
-                "policy_id": policy_id,
-                "old_version": current_policy.version,
-                "new_version": new_version
-            })
+            if self._supports_cypher:
+                query = """
+                MATCH (old:Policy {policy_id: $policy_id, version: $old_version})
+                MATCH (new:Policy {policy_id: $policy_id, version: $new_version})
+                MERGE (old)-[:VERSION_OF]->(new)
+                """
+                self.graph_store.execute_query(query, {
+                    "policy_id": policy_id,
+                    "old_version": current_policy.version,
+                    "new_version": new_version
+                })
+            else:
+                if hasattr(self.graph_store, "add_edge"):
+                    self.graph_store.add_edge(
+                        f"{policy_id}:{current_policy.version}",
+                        f"{policy_id}:{new_version}",
+                        edge_type="VERSION_OF",
+                        changed_at=datetime.now().isoformat(),
+                        change_reason=change_reason
+                    )
             
             self.logger.info(f"Updated policy {policy_id} to version {new_version}")
             return new_version
@@ -222,26 +251,60 @@ class PolicyEngine:
             List of applicable policies (latest versions)
         """
         try:
+            if self._supports_cypher:
             # Get latest policies for category
-            query = """
-            MATCH (p:Policy {category: $category})
-            WHERE NOT (p)-[:VERSION_OF]->(:Policy)
-            RETURN p
-            ORDER BY p.updated_at DESC
-            """
-            results = self.graph_store.execute_query(query, {"category": category})
-            
-            policies = []
-            for record in results:
-                policy_data = record.get("p", {})
-                policies.append(self._dict_to_policy(policy_data))
-            
-            # Filter by entities if specified
-            if entities:
-                # This would require entity-specific policy relationships
-                # For now, return all category policies
-                pass
-            
+                query = """
+                MATCH (p:Policy {category: $category})
+                WHERE NOT (p)-[:VERSION_OF]->(:Policy)
+                RETURN p
+                ORDER BY p.updated_at DESC
+                """
+                results = self.graph_store.execute_query(query, {"category": category})
+
+                policies = []
+                for record in results:
+                    policy_data = record.get("p", {})
+                    policies.append(self._dict_to_policy(policy_data))
+
+                if entities:
+                    pass
+
+                self.logger.info(f"Found {len(policies)} applicable policies for category {category}")
+                return policies
+
+            if not hasattr(self.graph_store, "find_nodes"):
+                return []
+
+            latest_by_policy_id: Dict[str, Dict[str, Any]] = {}
+            for node in self.graph_store.find_nodes(node_type="Policy"):
+                data = node.get("metadata", {}) or {}
+                if data.get("category") != category:
+                    continue
+                pid = data.get("policy_id")
+                if not pid:
+                    continue
+                updated_at = data.get("updated_at") or ""
+                prev = latest_by_policy_id.get(pid)
+                if not prev:
+                    latest_by_policy_id[pid] = data
+                else:
+                    if str(updated_at) > str(prev.get("updated_at") or ""):
+                        latest_by_policy_id[pid] = data
+
+            policies: List[Policy] = []
+            for data in latest_by_policy_id.values():
+                policies.append(self._dict_to_policy({
+                    "policy_id": data.get("policy_id"),
+                    "name": data.get("name"),
+                    "description": data.get("description"),
+                    "rules": data.get("rules", {}),
+                    "category": data.get("category"),
+                    "version": data.get("version"),
+                    "created_at": data.get("created_at"),
+                    "updated_at": data.get("updated_at"),
+                    "metadata": data.get("metadata", {})
+                }))
+
             self.logger.info(f"Found {len(policies)} applicable policies for category {category}")
             return policies
             
@@ -303,20 +366,33 @@ class PolicyEngine:
             version: Policy version that was applied
         """
         try:
-            query = """
-            MATCH (d:Decision {decision_id: $decision_id})
-            MATCH (p:Policy {policy_id: $policy_id, version: $version})
-            MERGE (d)-[:APPLIED_POLICY]->(p)
-            SET d.policy_applied_at = timestamp()
-            """
-            self.graph_store.execute_query(query, {
-                "decision_id": decision_id,
-                "policy_id": policy_id,
-                "version": version
-            })
-            
+            if self._supports_cypher:
+                query = """
+                MATCH (d:Decision {decision_id: $decision_id})
+                MATCH (p:Policy {policy_id: $policy_id, version: $version})
+                MERGE (d)-[:APPLIED_POLICY]->(p)
+                SET d.policy_applied_at = timestamp()
+                """
+                self.graph_store.execute_query(query, {
+                    "decision_id": decision_id,
+                    "policy_id": policy_id,
+                    "version": version
+                })
+                self.logger.info(f"Recorded policy application: {policy_id} v{version} to decision {decision_id}")
+                return
+
+            if not hasattr(self.graph_store, "add_edge"):
+                raise RuntimeError("Graph backend does not support relationships")
+            policy_node_id = f"{policy_id}:{version}"
+            self.graph_store.add_edge(
+                decision_id,
+                policy_node_id,
+                edge_type="APPLIED_POLICY",
+                applied_at=datetime.now().isoformat(),
+                policy_id=policy_id,
+                version=version
+            )
             self.logger.info(f"Recorded policy application: {policy_id} v{version} to decision {decision_id}")
-            
         except Exception as e:
             self.logger.error(f"Failed to record policy application: {e}")
             raise
@@ -340,40 +416,61 @@ class PolicyEngine:
         """
         try:
             exception_id = str(uuid.uuid4())
-            
-            query = """
-            CREATE (e:Exception {
-                exception_id: $exception_id,
-                decision_id: $decision_id,
-                policy_id: $policy_id,
-                reason: $reason,
-                created_at: datetime()
-            })
-            """
-            self.graph_store.execute_query(query, {
-                "exception_id": exception_id,
-                "decision_id": decision_id,
-                "policy_id": policy_id,
-                "reason": reason
-            })
-            
-            # Link to decision and policy
-            query = """
-            MATCH (d:Decision {decision_id: $decision_id})
-            MATCH (p:Policy {policy_id: $policy_id})
-            MATCH (e:Exception {exception_id: $exception_id})
-            MERGE (d)-[:GRANTED_EXCEPTION]->(e)
-            MERGE (e)-[:OVERRIDDEN_POLICY]->(p)
-            """
-            self.graph_store.execute_query(query, {
-                "decision_id": decision_id,
-                "policy_id": policy_id,
-                "exception_id": exception_id
-            })
-            
+
+            if self._supports_cypher:
+                query = """
+                CREATE (e:Exception {
+                    exception_id: $exception_id,
+                    decision_id: $decision_id,
+                    policy_id: $policy_id,
+                    reason: $reason,
+                    created_at: datetime()
+                })
+                """
+                self.graph_store.execute_query(query, {
+                    "exception_id": exception_id,
+                    "decision_id": decision_id,
+                    "policy_id": policy_id,
+                    "reason": reason
+                })
+
+                query = """
+                MATCH (d:Decision {decision_id: $decision_id})
+                MATCH (p:Policy {policy_id: $policy_id})
+                MATCH (e:Exception {exception_id: $exception_id})
+                MERGE (d)-[:GRANTED_EXCEPTION]->(e)
+                MERGE (e)-[:OVERRIDDEN_POLICY]->(p)
+                """
+                self.graph_store.execute_query(query, {
+                    "decision_id": decision_id,
+                    "policy_id": policy_id,
+                    "exception_id": exception_id
+                })
+
+                self.logger.info(f"Recorded policy exception: {exception_id}")
+                return exception_id
+
+            if not hasattr(self.graph_store, "add_node") or not hasattr(self.graph_store, "add_edge"):
+                raise RuntimeError("Graph backend does not support exceptions")
+
+            self.graph_store.add_node(
+                node_id=exception_id,
+                node_type="Exception",
+                content=reason,
+                exception_id=exception_id,
+                decision_id=decision_id,
+                policy_id=policy_id,
+                reason=reason,
+                created_at=datetime.now().isoformat()
+            )
+            self.graph_store.add_edge(decision_id, exception_id, edge_type="GRANTED_EXCEPTION")
+
+            policy = self.get_policy(policy_id)
+            if policy:
+                self.graph_store.add_edge(exception_id, f"{policy_id}:{policy.version}", edge_type="OVERRIDDEN_POLICY")
+
             self.logger.info(f"Recorded policy exception: {exception_id}")
             return exception_id
-            
         except Exception as e:
             self.logger.error(f"Failed to record exception: {e}")
             raise
@@ -389,23 +486,45 @@ class PolicyEngine:
             List of policy versions
         """
         try:
-            query = """
-            MATCH (p:Policy {policy_id: $policy_id})
-            OPTIONAL MATCH (p)-[:VERSION_OF*]->(future:Policy)
-            WITH collect(p) + collect(future) as all_versions
-            UNWIND all_versions as version
-            RETURN DISTINCT version
-            ORDER BY version.updated_at
-            """
-            results = self.graph_store.execute_query(query, {"policy_id": policy_id})
+            if self._supports_cypher:
+                query = """
+                MATCH (p:Policy {policy_id: $policy_id})
+                OPTIONAL MATCH (p)-[:VERSION_OF*]->(future:Policy)
+                WITH collect(p) + collect(future) as all_versions
+                UNWIND all_versions as version
+                RETURN DISTINCT version
+                ORDER BY version.updated_at
+                """
+                results = self.graph_store.execute_query(query, {"policy_id": policy_id})
             
-            policies = []
-            for record in results:
-                policy_data = record.get("version", {})
-                policies.append(self._dict_to_policy(policy_data))
+                policies = []
+                for record in results:
+                    policy_data = record.get("version", {})
+                    policies.append(self._dict_to_policy(policy_data))
             
-            self.logger.info(f"Found {len(policies)} versions for policy {policy_id}")
-            return policies
+                self.logger.info(f"Found {len(policies)} versions for policy {policy_id}")
+                return policies
+
+            if not hasattr(self.graph_store, "find_nodes"):
+                return []
+            versions: List[Policy] = []
+            for node in self.graph_store.find_nodes(node_type="Policy"):
+                data = node.get("metadata", {}) or {}
+                if data.get("policy_id") != policy_id:
+                    continue
+                versions.append(self._dict_to_policy({
+                    "policy_id": data.get("policy_id"),
+                    "name": data.get("name"),
+                    "description": data.get("description"),
+                    "rules": data.get("rules", {}),
+                    "category": data.get("category"),
+                    "version": data.get("version"),
+                    "created_at": data.get("created_at"),
+                    "updated_at": data.get("updated_at"),
+                    "metadata": data.get("metadata", {})
+                }))
+            versions.sort(key=lambda p: str(p.updated_at))
+            return versions
             
         except Exception as e:
             self.logger.error(f"Failed to get policy history: {e}")
@@ -429,23 +548,33 @@ class PolicyEngine:
             List of affected decision IDs
         """
         try:
-            query = """
-            MATCH (d:Decision)-[:APPLIED_POLICY]->(p:Policy {
-                policy_id: $policy_id,
-                version: $from_version
-            })
-            RETURN d.decision_id as decision_id
-            """
-            results = self.graph_store.execute_query(query, {
-                "policy_id": policy_id,
-                "from_version": from_version
-            })
+            if self._supports_cypher:
+                query = """
+                MATCH (d:Decision)-[:APPLIED_POLICY]->(p:Policy {
+                    policy_id: $policy_id,
+                    version: $from_version
+                })
+                RETURN d.decision_id as decision_id
+                """
+                results = self.graph_store.execute_query(query, {
+                    "policy_id": policy_id,
+                    "from_version": from_version
+                })
             
-            decision_ids = []
-            for record in results:
-                decision_ids.append(record.get("decision_id", ""))
+                decision_ids = []
+                for record in results:
+                    decision_ids.append(record.get("decision_id", ""))
             
-            self.logger.info(f"Found {len(decision_ids)} decisions affected by policy change")
+                self.logger.info(f"Found {len(decision_ids)} decisions affected by policy change")
+                return decision_ids
+
+            if not hasattr(self.graph_store, "find_edges"):
+                return []
+            policy_node_id = f"{policy_id}:{from_version}"
+            decision_ids: List[str] = []
+            for edge in self.graph_store.find_edges(edge_type="APPLIED_POLICY"):
+                if edge.get("target") == policy_node_id:
+                    decision_ids.append(edge.get("source"))
             return decision_ids
             
         except Exception as e:
@@ -471,16 +600,38 @@ class PolicyEngine:
             current_policy = self.get_policy(policy_id)
             if not current_policy:
                 raise ValueError(f"Policy {policy_id} not found")
-            
-            # Get decisions that used this policy
-            query = """
-            MATCH (d:Decision)-[:APPLIED_POLICY]->(p:Policy {policy_id: $policy_id})
-            RETURN d.decision_id as decision_id, d.confidence as confidence,
-                   d.outcome as outcome, d.category as category
-            """
-            results = self.graph_store.execute_query(query, {"policy_id": policy_id})
-            
-            # Analyze impact
+
+            results: List[Dict[str, Any]] = []
+            if self._supports_cypher:
+                query = """
+                MATCH (d:Decision)-[:APPLIED_POLICY]->(p:Policy {policy_id: $policy_id})
+                RETURN d.decision_id as decision_id, d.confidence as confidence,
+                       d.outcome as outcome, d.category as category
+                """
+                results = self.graph_store.execute_query(query, {"policy_id": policy_id})
+            else:
+                if hasattr(self.graph_store, "find_edges") and hasattr(self.graph_store, "nodes"):
+                    for edge in self.graph_store.find_edges(edge_type="APPLIED_POLICY"):
+                        target = edge.get("target")
+                        if not target or not isinstance(target, str):
+                            continue
+                        policy_node = self.graph_store.nodes.get(target)
+                        if not policy_node:
+                            continue
+                        props = getattr(policy_node, "properties", {}) or {}
+                        if props.get("policy_id") != policy_id:
+                            continue
+                        decision_node = self.graph_store.nodes.get(edge.get("source"))
+                        if not decision_node:
+                            continue
+                        dprops = getattr(decision_node, "properties", {}) or {}
+                        results.append({
+                            "decision_id": edge.get("source"),
+                            "confidence": dprops.get("confidence", 0.0),
+                            "outcome": dprops.get("outcome", ""),
+                            "category": dprops.get("category", "")
+                        })
+
             impact_analysis = {
                 "total_decisions": len(results),
                 "affected_decisions": 0,
@@ -488,19 +639,16 @@ class PolicyEngine:
                 "risk_assessment": "low",
                 "recommendations": []
             }
-            
+
             for record in results:
                 decision_data = {
                     "confidence": record.get("confidence", 0.0),
                     "outcome": record.get("outcome", ""),
                     "category": record.get("category", "")
                 }
-                
-                # Check if decision would still comply with new rules
                 would_comply = self._check_compliance_with_rules(
                     decision_data, proposed_rules
                 )
-                
                 if not would_comply:
                     impact_analysis["affected_decisions"] += 1
             
@@ -546,29 +694,76 @@ class PolicyEngine:
             Policy object or None
         """
         try:
+            if self._supports_cypher:
+                if version:
+                    query = """
+                    MATCH (p:Policy {policy_id: $policy_id, version: $version})
+                    RETURN p
+                    """
+                    params = {"policy_id": policy_id, "version": version}
+                else:
+                    query = """
+                    MATCH (p:Policy {policy_id: $policy_id})
+                    WHERE NOT (p)-[:VERSION_OF]->(:Policy)
+                    RETURN p
+                    """
+                    params = {"policy_id": policy_id}
+
+                results = self.graph_store.execute_query(query, params)
+
+                if results:
+                    policy_data = results[0].get("p", {})
+                    return self._dict_to_policy(policy_data)
+                return None
+
+            if not hasattr(self.graph_store, "find_nodes"):
+                return None
+
+            candidates: List[Dict[str, Any]] = []
+            for node in self.graph_store.find_nodes(node_type="Policy"):
+                data = node.get("metadata", {}) or {}
+                if data.get("policy_id") != policy_id:
+                    continue
+                if version and data.get("version") != version:
+                    continue
+                candidates.append(data)
+
+            if not candidates:
+                return None
+
             if version:
-                query = """
-                MATCH (p:Policy {policy_id: $policy_id, version: $version})
-                RETURN p
-                """
-                params = {"policy_id": policy_id, "version": version}
+                data = candidates[0]
             else:
-                # Get latest version
-                query = """
-                MATCH (p:Policy {policy_id: $policy_id})
-                WHERE NOT (p)-[:VERSION_OF]->(:Policy)
-                RETURN p
-                """
-                params = {"policy_id": policy_id}
-            
-            results = self.graph_store.execute_query(query, params)
-            
-            if results:
-                policy_data = results[0].get("p", {})
-                return self._dict_to_policy(policy_data)
-            
-            return None
-            
+                # Prefer highest semantic version if available, fallback to updated_at
+                def _version_key(v: str) -> tuple:
+                    try:
+                        parts = [int(p) for p in str(v).split(".")]
+                        # Normalize length for comparison
+                        while len(parts) < 3:
+                            parts.append(-1)
+                        return tuple(parts[:3])
+                    except Exception:
+                        return (-1, -1, -1)
+
+                try:
+                    data = max(
+                        candidates,
+                        key=lambda d: (_version_key(d.get("version")), str(d.get("updated_at") or "")),
+                    )
+                except Exception:
+                    data = max(candidates, key=lambda d: str(d.get("updated_at") or ""))
+
+            return self._dict_to_policy({
+                "policy_id": data.get("policy_id"),
+                "name": data.get("name"),
+                "description": data.get("description"),
+                "rules": data.get("rules", {}),
+                "category": data.get("category"),
+                "version": data.get("version"),
+                "created_at": data.get("created_at"),
+                "updated_at": data.get("updated_at"),
+                "metadata": data.get("metadata", {})
+            })
         except Exception as e:
             self.logger.error(f"Failed to get policy: {e}")
             return None
