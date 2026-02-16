@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from unittest.mock import Mock, patch
 from typing import List, Dict, Any
 
-from semantica.context.decision_models import Policy, Exception
+from semantica.context.decision_models import Policy, PolicyException
 from semantica.context.policy_engine import PolicyEngine
 
 

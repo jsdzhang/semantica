@@ -101,7 +101,7 @@ class Decision:
     
     def __post_init__(self):
         """Validate decision data."""
-        if self.decision_id is None:
+        if not self.decision_id:  # Handle both None and empty string
             self.decision_id = str(uuid.uuid4())
         if not 0 <= self.confidence <= 1:
             raise ValueError("Confidence must be between 0 and 1")
@@ -143,7 +143,7 @@ class DecisionContext:
     
     def __post_init__(self):
         """Validate context data."""
-        if self.context_id is None:
+        if not self.context_id:  # Handle both None and empty string
             self.context_id = str(uuid.uuid4())
     
     def to_dict(self) -> Dict[str, Any]:
@@ -179,7 +179,7 @@ class Policy:
     
     def __post_init__(self):
         """Validate policy data."""
-        if self.policy_id is None:
+        if not self.policy_id:  # Handle both None and empty string
             self.policy_id = str(uuid.uuid4())
     
     def to_dict(self) -> Dict[str, Any]:
@@ -220,7 +220,7 @@ class PolicyException:
     
     def __post_init__(self):
         """Validate exception data."""
-        if self.exception_id is None:
+        if not self.exception_id:  # Handle both None and empty string
             self.exception_id = str(uuid.uuid4())
     
     def to_dict(self) -> Dict[str, Any]:
@@ -256,7 +256,7 @@ class Precedent:
     
     def __post_init__(self):
         """Validate precedent data."""
-        if self.precedent_id is None:
+        if not self.precedent_id:  # Handle both None and empty string
             self.precedent_id = str(uuid.uuid4())
         if not 0 <= self.similarity_score <= 1:
             raise ValueError("Similarity score must be between 0 and 1")
@@ -294,7 +294,7 @@ class ApprovalChain:
     
     def __post_init__(self):
         """Validate approval data."""
-        if self.approval_id is None:
+        if not self.approval_id:  # Handle both None and empty string
             self.approval_id = str(uuid.uuid4())
         valid_methods = ["slack_dm", "zoom_call", "email", "system"]
         if self.approval_method not in valid_methods:
