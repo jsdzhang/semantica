@@ -1403,8 +1403,78 @@ class ContextGraph:
         import uuid
         from datetime import datetime
         
+        # Input validation
+        if not isinstance(category, str) or not category.strip():
+            raise ValueError("Category must be a non-empty string")
+        if len(category.strip()) > 100:
+            raise ValueError("Category must be 100 characters or less")
+        
+        if not isinstance(scenario, str) or not scenario.strip():
+            raise ValueError("Scenario must be a non-empty string")
+        if len(scenario.strip()) > 5000:
+            raise ValueError("Scenario must be 5000 characters or less")
+        
+        if not isinstance(reasoning, str) or not reasoning.strip():
+            raise ValueError("Reasoning must be a non-empty string")
+        if len(reasoning.strip()) > 10000:
+            raise ValueError("Reasoning must be 10000 characters or less")
+        
+        if not isinstance(outcome, str) or not outcome.strip():
+            raise ValueError("Outcome must be a non-empty string")
+        if len(outcome.strip()) > 1000:
+            raise ValueError("Outcome must be 1000 characters or less")
+        
+        if not isinstance(confidence, (int, float)):
+            raise ValueError("Confidence must be a number")
+        if not (0.0 <= confidence <= 1.0):
+            raise ValueError("Confidence must be between 0.0 and 1.0")
+        
+        if entities is not None:
+            if not isinstance(entities, list):
+                raise ValueError("Entities must be a list of strings")
+            for entity in entities:
+                if not isinstance(entity, str) or not entity.strip():
+                    raise ValueError("Each entity must be a non-empty string")
+                if len(entity.strip()) > 200:
+                    raise ValueError("Each entity must be 200 characters or less")
+        
+        if decision_maker is not None:
+            if not isinstance(decision_maker, str) or not decision_maker.strip():
+                raise ValueError("Decision maker must be a non-empty string")
+            if len(decision_maker.strip()) > 200:
+                raise ValueError("Decision maker must be 200 characters or less")
+        
+        if metadata is not None:
+            if not isinstance(metadata, dict):
+                raise ValueError("Metadata must be a dictionary")
+            for key, value in metadata.items():
+                if not isinstance(key, str) or not key.strip():
+                    raise ValueError("Metadata keys must be non-empty strings")
+                if len(key.strip()) > 100:
+                    raise ValueError("Metadata keys must be 100 characters or less")
+                if len(str(value)) > 1000:
+                    raise ValueError("Metadata values must be 1000 characters or less")
+        
+        # Validate kwargs
+        for key, value in kwargs.items():
+            if not isinstance(key, str) or not key.strip():
+                raise ValueError("Additional field names must be non-empty strings")
+            if len(key.strip()) > 100:
+                raise ValueError("Additional field names must be 100 characters or less")
+            if len(str(value)) > 1000:
+                raise ValueError("Additional field values must be 1000 characters or less")
+        
         decision_id = str(uuid.uuid4())
         timestamp = datetime.now().timestamp()
+        
+        # Sanitize inputs
+        category = category.strip()
+        scenario = scenario.strip()
+        reasoning = reasoning.strip()
+        outcome = outcome.strip()
+        confidence = float(confidence)
+        entities = [entity.strip() for entity in (entities or []) if entity.strip()]
+        decision_maker = decision_maker.strip() if decision_maker else None
         
         # Create decision record
         decision = {
@@ -1414,7 +1484,7 @@ class ContextGraph:
             "reasoning": reasoning,
             "outcome": outcome,
             "confidence": confidence,
-            "entities": entities or [],
+            "entities": entities,
             "decision_maker": decision_maker,
             "timestamp": timestamp,
             "metadata": metadata or {},
