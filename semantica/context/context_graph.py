@@ -1894,14 +1894,15 @@ class ContextGraph:
             similar_nodes = self.find_similar_nodes(
                 decision_id,
                 similarity_type="structural",
-                limit=5
+                top_k=5
             )
             
             if similar_nodes:
-                return max(node.get("similarity", 0.0) for node in similar_nodes)
+                # similar_nodes is List[Tuple[str, float]], extract similarity scores
+                return max(similarity for node_id, similarity in similar_nodes)
             
         except Exception as e:
-            self.logger.warning(f"Structural similarity calculation failed: {e}")
+            self.logger.exception("Structural similarity calculation failed")
         
         return 0.0
     
