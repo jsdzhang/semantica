@@ -42,7 +42,28 @@ def test_capture_decision_trace_without_graph_store_is_backward_compatible(caplo
 def test_capture_decision_trace_with_graph_store_records_trace_events():
     decision = _sample_decision()
     graph_store = Mock()
-    graph_store.execute_query = Mock(return_value=[])
+
+    def _execute_query(query, params=None, *args, **kwargs):
+        if "RETURN t.trace_id as trace_id" in query:
+            # Simulate existing chain head so NEXT_TRACE_EVENT is exercised.
+            return {
+                "records": [
+                    {
+                        "trace_id": "decision_trace_test_001:3",
+                        "event_index": 3,
+                        "event_hash": "prev_hash_123",
+                    }
+                ]
+            }
+        if "RETURN p.policy_id as policy_id, p.version as version" in query:
+            return {
+                "records": [
+                    {"policy_id": "renewal_discount_policy_v3_2", "version": "3.2"}
+                ]
+            }
+        return {"records": []}
+
+    graph_store.execute_query = Mock(side_effect=_execute_query)
 
     decision_id = capture_decision_trace(
         decision=decision,
@@ -68,7 +89,24 @@ def test_capture_decision_trace_with_graph_store_records_trace_events():
     )
 
     assert decision_id == decision.decision_id
-    assert graph_store.execute_query.call_count > 0
+    calls = graph_store.execute_query.call_args_list
+    queries = [c[0][0] for c in calls]
+    params_list = [c[0][1] if len(c[0]) > 1 else {} for c in calls]
+
+    assert any("CREATE (t:DecisionTraceEvent" in q for q in queries)
+    assert any("MERGE (d)-[:HAS_TRACE_EVENT]->(t)" in q for q in queries)
+    assert any("MERGE (prev)-[:NEXT_TRACE_EVENT]->(curr)" in q for q in queries)
+
+    event_types = [
+        p.get("event_type")
+        for p in params_list
+        if isinstance(p, dict) and "event_type" in p
+    ]
+    assert "DECISION_RECORDED" in event_types
+    assert "CROSS_SYSTEM_CONTEXT_CAPTURED" in event_types
+    assert "POLICIES_APPLIED" in event_types
+    assert "APPROVAL_CHAIN_RECORDED" in event_types
+    assert "PRECEDENTS_LINKED" in event_types
 
 
 def test_capture_decision_trace_accepts_legacy_payload_shapes():
