@@ -257,12 +257,12 @@ def capture_decision_trace(
             return decision.decision_id
 
         recorder = DecisionRecorder(graph_store)
-        entities = entities or []
-        source_documents = source_documents or []
-        policy_ids = policy_ids or []
-        exceptions = exceptions or []
-        approvals = approvals or []
-        precedents = precedents or []
+        entities = _normalize_string_list(entities)
+        source_documents = _normalize_string_list(source_documents)
+        policy_ids = _normalize_string_list(policy_ids)
+        exceptions = _normalize_record_list(exceptions)
+        approvals = _normalize_record_list(approvals)
+        precedents = _normalize_precedents(precedents)
 
         decision_id = recorder.record_decision(
             decision=decision,
@@ -340,7 +340,11 @@ def capture_decision_trace(
 
         if precedents:
             precedent_ids = [p.get("precedent_id", "") for p in precedents if p.get("precedent_id")]
-            relationship_types = [p.get("relationship_type", "similar_scenario") for p in precedents if p.get("precedent_id")]
+            relationship_types = [
+                p.get("relationship_type", "similar_scenario")
+                for p in precedents
+                if p.get("precedent_id")
+            ]
             if precedent_ids:
                 recorder.link_precedents(decision_id, precedent_ids, relationship_types)
                 trace_events.append(
@@ -388,9 +392,10 @@ def _append_immutable_trace_events(
         records = previous_result.get("records", []) if isinstance(previous_result, dict) else previous_result
         if records:
             latest = records[0]
-            previous_trace_id = latest.get("trace_id")
-            previous_hash = latest.get("event_hash", "") or ""
-            next_index = int(latest.get("event_index", 0) or 0) + 1
+            latest_map = latest.get("t", latest) if isinstance(latest, dict) else {}
+            previous_trace_id = latest_map.get("trace_id")
+            previous_hash = latest_map.get("event_hash", "") or ""
+            next_index = int(latest_map.get("event_index", 0) or 0) + 1
     except Exception:
         # Start a fresh chain if previous trace lookup fails.
         previous_trace_id = None
@@ -450,6 +455,63 @@ def _append_immutable_trace_events(
         next_index += 1
 
     logger.debug(f"Appended {len(events)} immutable trace events for {decision_id}")
+
+
+def _normalize_string_list(value: Optional[Union[str, List[str]]]) -> List[str]:
+    """Normalize optional string/list payloads to a clean list of strings."""
+    if value is None:
+        return []
+    if isinstance(value, str):
+        return [value] if value else []
+    if isinstance(value, list):
+        return [str(item) for item in value if item is not None and str(item)]
+    return []
+
+
+def _normalize_record_list(
+    value: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]]
+) -> List[Dict[str, Any]]:
+    """Normalize optional dict/list payloads to list[dict] for legacy callers."""
+    if value is None:
+        return []
+    if isinstance(value, dict):
+        return [value]
+    if isinstance(value, list):
+        return [item for item in value if isinstance(item, dict)]
+    return []
+
+
+def _normalize_precedents(
+    value: Optional[Union[str, Dict[str, str], List[Union[str, Dict[str, str]]]]]
+) -> List[Dict[str, str]]:
+    """Normalize precedents payload from legacy forms to structured records."""
+    if value is None:
+        return []
+
+    raw_items: List[Union[str, Dict[str, str]]]
+    if isinstance(value, (str, dict)):
+        raw_items = [value]
+    elif isinstance(value, list):
+        raw_items = value
+    else:
+        return []
+
+    normalized: List[Dict[str, str]] = []
+    for item in raw_items:
+        if isinstance(item, str) and item:
+            normalized.append(
+                {"precedent_id": item, "relationship_type": "similar_scenario"}
+            )
+        elif isinstance(item, dict) and item.get("precedent_id"):
+            normalized.append(
+                {
+                    "precedent_id": str(item.get("precedent_id")),
+                    "relationship_type": str(
+                        item.get("relationship_type", "similar_scenario")
+                    ),
+                }
+            )
+    return normalized
 
 
 def find_exception_precedents(

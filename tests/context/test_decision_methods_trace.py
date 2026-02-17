@@ -56,3 +56,25 @@ def test_capture_decision_trace_with_graph_store_records_trace_events():
 
     assert decision_id == decision.decision_id
     assert graph_store.execute_query.call_count > 0
+
+
+def test_capture_decision_trace_accepts_legacy_payload_shapes():
+    decision = _sample_decision()
+    graph_store = Mock()
+    graph_store.execute_query = Mock(return_value=[{"t": {"trace_id": "decision_trace_test_001:4", "event_index": 4, "event_hash": "abc"}}])
+
+    decision_id = capture_decision_trace(
+        decision=decision,
+        cross_system_context={"crm": {"arr": 120000}},
+        graph_store=graph_store,
+        entities="customer_legacy_001",
+        source_documents="doc_legacy_001",
+        policy_ids="policy_legacy_v1",
+        exceptions={"policy_id": "policy_legacy_v1", "reason": "legacy exception"},
+        approvals={"approver": "vp_ops", "approval_method": "email"},
+        precedents=["decision_legacy_001"],
+        immutable_audit_log=True,
+    )
+
+    assert decision_id == decision.decision_id
+    assert graph_store.execute_query.call_count > 0
