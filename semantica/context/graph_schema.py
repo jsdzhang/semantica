@@ -5,6 +5,7 @@ This module provides schema setup utilities for decision tracking,
 including node labels, relationship types, and indexes for graph databases.
 """
 
+import json
 from typing import Dict, Any, List
 
 from ..graph_store import GraphStore
@@ -193,7 +194,11 @@ def verify_schema(graph_store: GraphStore) -> bool:
             "policy_id_index",
             "policy_category_index",
             "exception_id_index",
-            "approval_id_index"
+            "approval_id_index",
+            "decision_trace_id_index",
+            "decision_trace_event_index",
+            "decision_trace_type_index",
+            "decision_trace_timestamp_index",
         ]
         
         for index_name in index_checks:
@@ -218,6 +223,25 @@ def verify_schema(graph_store: GraphStore) -> bool:
                     logger.warning(f"Schema verification failed for {index_name}: {e}")
                     return False
         
+        # Verify policy constraint compatibility:
+        # prefer composite (policy_id, version), allow legacy policy_id uniqueness.
+        try:
+            constraints_result = graph_store.execute_query("SHOW CONSTRAINTS")
+            constraint_records = (
+                constraints_result.get("records", [])
+                if isinstance(constraints_result, dict)
+                else constraints_result
+            )
+            constraint_text = json.dumps(constraint_records, default=str).lower()
+            has_composite = "policy_identity_unique" in constraint_text
+            has_legacy = "policy_id_unique" in constraint_text
+            if not (has_composite or has_legacy):
+                logger.warning("Missing policy identity constraint (composite or legacy)")
+                return False
+        except Exception:
+            # Backend may not support SHOW CONSTRAINTS; skip hard failure here.
+            pass
+
         # Check for node labels
         label_checks = [
             "Decision",
