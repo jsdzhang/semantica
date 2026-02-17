@@ -944,8 +944,9 @@ class ContextGraph:
         """
         from .decision_models import Decision
         
-        # Handle empty decision ID by generating UUID only if None (preserve empty string)
-        node_id = decision.decision_id if decision.decision_id is not None else str(uuid.uuid4())
+        # Handle empty decision ID by generating UUID for both None and empty string
+        # This ensures consistent behavior with Decision model's __post_init__ method
+        node_id = decision.decision_id if decision.decision_id else str(uuid.uuid4())
         
         # Handle None metadata
         metadata = decision.metadata or {}
