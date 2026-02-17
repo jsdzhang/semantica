@@ -1659,9 +1659,9 @@ class AgentContext:
             raise RuntimeError("Decision tracking is not enabled")
 
         # Delegate to ContextGraph if available
-        if self._decision_backend == "context_graph" and hasattr(self.knowledge_graph, "find_precedents"):
+        if self._decision_backend == "context_graph" and hasattr(self.knowledge_graph, "find_precedents_by_scenario"):
             try:
-                precedents = self.knowledge_graph.find_precedents(
+                precedents = self.knowledge_graph.find_precedents_by_scenario(
                     scenario=scenario,
                     category=category,
                     limit=limit,

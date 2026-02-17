@@ -2078,7 +2078,7 @@ class ContextGraph:
         Returns:
             List of similar decisions with similarity scores
         """
-        return self.find_precedents(
+        return self.find_precedents_by_scenario(
             scenario=scenario,
             category=category,
             limit=max_results,
