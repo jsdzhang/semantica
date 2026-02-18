@@ -1672,6 +1672,9 @@ class AgentContext:
                 decisions = []
                 for precedent in precedents:
                     decision_data = precedent["decision"]
+                    metadata = dict(decision_data.get("metadata", {}) or {})
+                    if "entities" in decision_data:
+                        metadata["entities"] = decision_data.get("entities", [])
                     decision = Decision(
                         decision_id=decision_data["id"],
                         category=decision_data["category"],
@@ -1681,7 +1684,7 @@ class AgentContext:
                         confidence=decision_data["confidence"],
                         timestamp=datetime.fromtimestamp(decision_data["timestamp"]),
                         decision_maker=decision_data.get("decision_maker"),
-                        entities=decision_data.get("entities", [])
+                        metadata=metadata,
                     )
                     decisions.append(decision)
                 return decisions

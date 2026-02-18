@@ -131,10 +131,13 @@ class CausalChainAnalyzer:
             results = self.graph_store.execute_query(query, {
                 "decision_id": decision_id
             })
+            results = self._extract_records(results)
             
             decisions = []
             for record in results:
-                decision_data = record.get("end", {})
+                decision_data = record.get("end") if isinstance(record, dict) else None
+                if not isinstance(decision_data, dict):
+                    decision_data = record if isinstance(record, dict) else {}
                 decision = self._dict_to_decision(decision_data)
                 decision.metadata["causal_distance"] = record.get("distance", 0)
                 decisions.append(decision)
@@ -172,10 +175,13 @@ class CausalChainAnalyzer:
             results = self.graph_store.execute_query(query, {
                 "decision_id": decision_id
             })
+            results = self._extract_records(results)
             
             decisions = []
             for record in results:
-                decision_data = record.get("end", {})
+                decision_data = record.get("end") if isinstance(record, dict) else None
+                if not isinstance(decision_data, dict):
+                    decision_data = record if isinstance(record, dict) else {}
                 decision = self._dict_to_decision(decision_data)
                 decision.metadata["influence_depth"] = record.get("influence_depth", 0)
                 decisions.append(decision)
@@ -214,10 +220,13 @@ class CausalChainAnalyzer:
             results = self.graph_store.execute_query(query, {
                 "decision_id": decision_id
             })
+            results = self._extract_records(results)
             
             decisions = []
             for record in results:
-                decision_data = record.get("end", {})
+                decision_data = record.get("end") if isinstance(record, dict) else None
+                if not isinstance(decision_data, dict):
+                    decision_data = record if isinstance(record, dict) else {}
                 decision = self._dict_to_decision(decision_data)
                 decision.metadata["precedent_depth"] = record.get("precedent_depth", 0)
                 decision.metadata["relationship_types"] = record.get("relationship_types", [])
@@ -250,7 +259,7 @@ class CausalChainAnalyzer:
             ORDER BY loop_length
             """
             
-            results = self.graph_store.execute_query(query)
+            results = self._extract_records(self.graph_store.execute_query(query))
             
             loops = []
             for record in results:
@@ -323,10 +332,13 @@ class CausalChainAnalyzer:
             results = self.graph_store.execute_query(query, {
                 "decision_id": decision_id
             })
+            results = self._extract_records(results)
             
             root_decisions = []
             for record in results:
-                decision_data = record.get("root", {})
+                decision_data = record.get("root") if isinstance(record, dict) else None
+                if not isinstance(decision_data, dict):
+                    decision_data = record if isinstance(record, dict) else {}
                 decision = self._dict_to_decision(decision_data)
                 decision.metadata["root_distance"] = record.get("root_distance", 0)
                 root_decisions.append(decision)
@@ -418,9 +430,13 @@ class CausalChainAnalyzer:
         # Handle timestamp conversion
         if isinstance(data.get("timestamp"), str):
             data["timestamp"] = datetime.fromisoformat(data["timestamp"])
-        
+
+        decision_id = data.get("decision_id") or data.get("id")
+        if not decision_id:
+            raise KeyError("decision_id")
+
         return Decision(
-            decision_id=data["decision_id"],  # Required field
+            decision_id=decision_id,
             category=data.get("category", ""),
             scenario=data.get("scenario", ""),
             reasoning=data.get("reasoning", ""),
@@ -431,5 +447,13 @@ class CausalChainAnalyzer:
             reasoning_embedding=data.get("reasoning_embedding"),
             node2vec_embedding=data.get("node2vec_embedding"),
             metadata=data.get("metadata", {}),
-            auto_generate_id=False  # Don't auto-generate for deserialization
         )
+
+    def _extract_records(self, results: Any) -> List[Dict[str, Any]]:
+        """Normalize execute_query result shapes to a list of record maps."""
+        if isinstance(results, dict):
+            records = results.get("records", [])
+            return records if isinstance(records, list) else []
+        if isinstance(results, list):
+            return results
+        return []

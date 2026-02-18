@@ -2155,6 +2155,7 @@ Answer:"""
                 safe_category = category[:20] if category else "unknown"
                 self.logger.warning(f"Failed to find policies for {safe_category}: {type(e).__name__}")
                 return policies
+        return policies
 
     # Decision Retrieval Methods
     def find_precedents_hybrid(
