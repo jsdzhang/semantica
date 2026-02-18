@@ -10,8 +10,7 @@
 [![PyPI](https://img.shields.io/pypi/v/semantica.svg)](https://pypi.org/project/semantica/)
 [![Total Downloads](https://static.pepy.tech/badge/semantica)](https://pepy.tech/project/semantica)
 [![CI](https://github.com/Hawksight-AI/semantica/workflows/CI/badge.svg)](https://github.com/Hawksight-AI/semantica/actions)
-[![Discord](https://img.shields.io/badge/Discord-Join-7289da?logo=discord&logoColor=white)](https://discord.gg/N7WmAuDH)
-
+[![Discord](https://img.shields.io/discord/1449054810048565342?label=Discord&logo=discord&logoColor=white&color=7289da)](https://discord.gg/N7WmAuDH)
 ### ⭐ Give us a Star • 🍴 Fork us • 💬 Join our Discord
 
 > **Transform Chaos into Intelligence. Build AI systems with context graphs, decision tracking, and advanced knowledge engineering that are explainable, traceable, and trustworthy — not black boxes.**
@@ -1282,7 +1281,7 @@ print(f"Found {len(results)} results")
 
 | **Channel** | **Purpose** |
 |:-----------:|:-----------|
-| [**Discord**](https://discord.gg/ggb7vWeP) | Real-time help, showcases |
+| [**Discord**](https://discord.gg/N7WmAuDH) | Real-time help, showcases |
 | [**GitHub Discussions**](https://github.com/Hawksight-AI/semantica/discussions) | Q&A, feature requests |
 
 ### Learning Resources
@@ -1293,7 +1292,7 @@ print(f"Found {len(results)} results")
 Enterprise support, professional services, and commercial licensing will be available in the future. For now, we offer community support through Discord and GitHub Discussions.
 
 **Current Support:**
-- **Community Support** - Free support via [Discord](https://discord.gg/ggb7vWeP) and [GitHub Discussions](https://github.com/Hawksight-AI/semantica/discussions)
+- **Community Support** - Free support via [Discord](https://discord.gg/N7WmAuDH) and [GitHub Discussions](https://github.com/Hawksight-AI/semantica/discussions)
 - **Bug Reports** - [GitHub Issues](https://github.com/Hawksight-AI/semantica/issues)
 
 **Future Enterprise Offerings:**
