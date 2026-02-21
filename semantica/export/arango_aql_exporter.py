@@ -84,6 +84,10 @@ class ArangoAQLExporter:
         self.config = config or {}
         self.config.update(kwargs)
 
+        # Validate collection names
+        self._validate_collection_name(vertex_collection, "vertex_collection")
+        self._validate_collection_name(edge_collection, "edge_collection")
+
         # AQL export configuration
         self.vertex_collection = vertex_collection
         self.edge_collection = edge_collection
@@ -142,6 +146,12 @@ class ArangoAQLExporter:
             # Override collection names if provided in options
             vertex_collection = options.pop("vertex_collection", self.vertex_collection)
             edge_collection = options.pop("edge_collection", self.edge_collection)
+
+            # Validate overridden collection names
+            if vertex_collection != self.vertex_collection:
+                self._validate_collection_name(vertex_collection, "vertex_collection")
+            if edge_collection != self.edge_collection:
+                self._validate_collection_name(edge_collection, "edge_collection")
 
             # Generate AQL statements
             aql_statements = self._generate_aql_statements(
@@ -303,6 +313,12 @@ class ArangoAQLExporter:
         """
         Convert a vertex/entity to an ArangoDB document.
 
+        Additional properties from the input entity are preserved as-is in the
+        document root (not flattened or merged). Nested dictionaries and lists
+        are preserved as JSON-serializable structures. The 'properties' field,
+        if present, is also preserved as-is rather than being flattened into
+        the document root.
+
         Args:
             vertex: Vertex/entity dictionary
             idx: Index for generating fallback IDs
@@ -372,7 +388,9 @@ class ArangoAQLExporter:
         statements = []
 
         # Add header comment
-        statements.append(f"// Inserting {len(edges)} edges into {collection}")
+        statements.append(
+            f"// Attempting to insert {len(edges)} edges into {collection}"
+        )
         statements.append("")
 
         # Process edges in batches
@@ -484,6 +502,45 @@ class ArangoAQLExporter:
                     document[key] = value
 
         return document
+
+    def _validate_collection_name(self, name: str, param_name: str) -> None:
+        """
+        Validate an ArangoDB collection name.
+
+        ArangoDB collection names must:
+        - Start with a letter or underscore
+        - Contain only alphanumeric characters, hyphens, and underscores
+        - Not exceed 256 characters
+
+        Args:
+            name: Collection name to validate
+            param_name: Parameter name for error messages
+
+        Raises:
+            ValueError: If the collection name is invalid
+        """
+        if not name:
+            raise ValueError(f"{param_name} cannot be empty")
+
+        if len(name) > 256:
+            raise ValueError(
+                f"{param_name} '{name}' exceeds maximum length of 256 characters"
+            )
+
+        # Check first character
+        if not (name[0].isalpha() or name[0] == "_"):
+            raise ValueError(
+                f"{param_name} '{name}' must start with a letter or underscore"
+            )
+
+        # Check remaining characters
+        for char in name:
+            if not (char.isalnum() or char in ("-", "_")):
+                raise ValueError(
+                    f"{param_name} '{name}' contains invalid character "
+                    f"'{char}'. Only alphanumeric characters, hyphens, and "
+                    "underscores are allowed."
+                )
 
     def _sanitize_key(self, key: str) -> str:
         """

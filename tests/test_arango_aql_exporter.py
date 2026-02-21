@@ -12,7 +12,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from semantica.export.arango_aql_exporter import ArangoAQLExporter
+from semantica.export import ArangoAQLExporter
 
 
 class TestArangoAQLExporter(unittest.TestCase):
@@ -158,7 +158,7 @@ class TestArangoAQLExporter(unittest.TestCase):
         self.assertIn("Acme Corp", content)
 
         # Check that edges are NOT present (empty relationships)
-        self.assertIn("Inserting 0 edges", content)
+        self.assertIn("Attempting to insert 0 edges", content)
 
     def test_export_relationships_only(self):
         """Test exporting only relationships (edges)."""
@@ -256,7 +256,7 @@ class TestArangoAQLExporter(unittest.TestCase):
 
         # Should have collection creation comments but no INSERT statements
         self.assertIn("Inserting 0 vertices", content)
-        self.assertIn("Inserting 0 edges", content)
+        self.assertIn("Attempting to insert 0 edges", content)
 
     def test_missing_source_or_target(self):
         """Test handling of edges with missing source or target."""
@@ -286,10 +286,10 @@ class TestArangoAQLExporter(unittest.TestCase):
         with open(output_path, "r", encoding="utf-8") as f:
             content = f.read()
 
-        # Should only contain the valid relationship
+        # The data section should only contain the valid relationship
         self.assertIn("VALID", content)
-        # Count should reflect only 1 valid edge
-        self.assertIn("Inserting 3 edges", content)  # Attempts all 3
+        # The header comment should count all input edges, including invalid ones
+        self.assertIn("Attempting to insert 3 edges", content)
 
     def test_key_sanitization(self):
         """Test sanitization of keys with invalid characters."""
@@ -493,6 +493,45 @@ class TestArangoAQLExporter(unittest.TestCase):
         self.assertIn("INSERT doc INTO override_v", content)
         self.assertIn("INSERT doc INTO override_e", content)
         self.assertIn("override_v/e1", content)
+
+    def test_invalid_collection_name_on_init(self):
+        """Test that invalid collection names raise ValueError on initialization."""
+        # Test collection name starting with number
+        with self.assertRaises(ValueError) as context:
+            ArangoAQLExporter(vertex_collection="123invalid")
+        self.assertIn("must start with a letter or underscore", str(context.exception))
+
+        # Test collection name with invalid characters
+        with self.assertRaises(ValueError) as context:
+            ArangoAQLExporter(edge_collection="invalid@name")
+        self.assertIn("contains invalid character", str(context.exception))
+
+        # Test empty collection name
+        with self.assertRaises(ValueError) as context:
+            ArangoAQLExporter(vertex_collection="")
+        self.assertIn("cannot be empty", str(context.exception))
+
+        # Test too long collection name
+        with self.assertRaises(ValueError) as context:
+            ArangoAQLExporter(vertex_collection="a" * 257)
+        self.assertIn("exceeds maximum length", str(context.exception))
+
+    def test_invalid_collection_name_on_export(self):
+        """Test invalid collection names raise ValueError when overriding."""
+        exporter = ArangoAQLExporter()
+        output_path = Path(self.test_dir) / "test.aql"
+
+        kg = {"entities": self.entities, "relationships": self.relationships}
+
+        # Test invalid vertex collection override
+        with self.assertRaises(ValueError) as context:
+            exporter.export(kg, str(output_path), vertex_collection="123invalid")
+        self.assertIn("must start with a letter or underscore", str(context.exception))
+
+        # Test invalid edge collection override
+        with self.assertRaises(ValueError) as context:
+            exporter.export(kg, str(output_path), edge_collection="invalid@name")
+        self.assertIn("contains invalid character", str(context.exception))
 
 
 if __name__ == "__main__":
