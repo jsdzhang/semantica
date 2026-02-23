@@ -24,12 +24,18 @@ Author: Semantica Contributors
 License: MIT
 """
 
+from __future__ import annotations
+
 import json
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 if TYPE_CHECKING:
     import pyarrow as pa  # noqa: F401
+
+
+if TYPE_CHECKING:
+    import pyarrow as pa
 
 try:
     import pyarrow as pa  # noqa: F811
@@ -82,11 +88,58 @@ except ImportError:
     ARROW_AVAILABLE = False
     ENTITY_SCHEMA = None
     RELATIONSHIP_SCHEMA = None
+    pa = None  # Set pa to None when not available
 
 from ..utils.exceptions import ProcessingError, ValidationError
 from ..utils.helpers import ensure_directory
 from ..utils.logging import get_logger
 from ..utils.progress_tracker import get_progress_tracker
+
+# Explicit Arrow Schemas (no inference)
+if ARROW_AVAILABLE:
+    ENTITY_SCHEMA = pa.schema(
+        [
+            pa.field("id", pa.string(), nullable=False),
+            pa.field("text", pa.string(), nullable=True),
+            pa.field("type", pa.string(), nullable=True),
+            pa.field("confidence", pa.float64(), nullable=True),
+            pa.field("start", pa.int64(), nullable=True),
+            pa.field("end", pa.int64(), nullable=True),
+            pa.field(
+                "metadata",
+                pa.struct(
+                    [
+                        pa.field("keys", pa.list_(pa.string())),
+                        pa.field("values", pa.list_(pa.string())),
+                    ]
+                ),
+                nullable=True,
+            ),
+        ]
+    )
+
+    RELATIONSHIP_SCHEMA = pa.schema(
+        [
+            pa.field("id", pa.string(), nullable=False),
+            pa.field("source_id", pa.string(), nullable=False),
+            pa.field("target_id", pa.string(), nullable=False),
+            pa.field("type", pa.string(), nullable=True),
+            pa.field("confidence", pa.float64(), nullable=True),
+            pa.field(
+                "metadata",
+                pa.struct(
+                    [
+                        pa.field("keys", pa.list_(pa.string())),
+                        pa.field("values", pa.list_(pa.string())),
+                    ]
+                ),
+                nullable=True,
+            ),
+        ]
+    )
+else:
+    ENTITY_SCHEMA = None
+    RELATIONSHIP_SCHEMA = None
 
 
 class ArrowExporter:
@@ -206,7 +259,8 @@ class ArrowExporter:
                 # Export each key as separate Arrow file
                 exported_files = []
                 self.progress_tracker.update_tracking(
-                    tracking_id, message=f"Exporting {len(data)} data groups..."
+                    tracking_id,
+                    message=f"Exporting {len(data)} data groups...",
                 )
                 for key, value in data.items():
                     if isinstance(value, list):
@@ -241,7 +295,8 @@ class ArrowExporter:
             elif isinstance(data, list):
                 # Single Arrow file
                 self.progress_tracker.update_tracking(
-                    tracking_id, message=f"Exporting {len(data)} records..."
+                    tracking_id,
+                    message=f"Exporting {len(data)} records...",
                 )
                 self._write_arrow(data, file_path, schema=schema, **options)
                 self.logger.info(f"Exported Arrow to: {file_path}")
@@ -322,6 +377,7 @@ class ArrowExporter:
                     confidence = float(confidence)
                 except (TypeError, ValueError):
                     msg = (
+                    self.logger.warning(
                         f"Invalid confidence value for entity {i}: "
                         f"{confidence}. Setting to None."
                     )
@@ -430,6 +486,7 @@ class ArrowExporter:
                     confidence = float(confidence)
                 except (TypeError, ValueError):
                     msg = (
+                    self.logger.warning(
                         f"Invalid confidence value for relationship {i}: "
                         f"{confidence}. Setting to None."
                     )
