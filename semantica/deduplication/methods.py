@@ -282,9 +282,9 @@ def dedup_triplets(
         List of duplicate relationship piars (rel1, rel2).
     """
 
+    # Check for custom method in registry (but not ourself)
     custom_method = method_registry.get("detection", "triplets")
-
-    if custom_method:
+    if custom_method and custom_method.__name__ != "dedup_triplets":
         return custom_method(relationships, mode=mode, threshold=threshold, **kwargs)
 
     detector = DuplicateDetector(**kwargs)
